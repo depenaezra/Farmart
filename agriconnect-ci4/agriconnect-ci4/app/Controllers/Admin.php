@@ -6,6 +6,7 @@ use App\Models\UserModel;
 use App\Models\ProductModel;
 use App\Models\OrderModel;
 use App\Models\AnnouncementModel;
+use App\Models\ViolationModel;
 
 class Admin extends BaseController
 {
@@ -13,13 +14,15 @@ class Admin extends BaseController
     protected $productModel;
     protected $orderModel;
     protected $announcementModel;
-    
+    protected $violationModel;
+
     public function __construct()
     {
         $this->userModel = new UserModel();
         $this->productModel = new ProductModel();
         $this->orderModel = new OrderModel();
         $this->announcementModel = new AnnouncementModel();
+        $this->violationModel = new ViolationModel();
     }
     
     /**
@@ -53,10 +56,17 @@ class Admin extends BaseController
                     'pending' => $this->orderModel->where('status', 'pending')->countAllResults(false),
                     'completed' => $this->orderModel->where('status', 'completed')->countAllResults()
                 ],
+                'violations' => [
+                    'total' => $this->violationModel->countAll(),
+                    'pending' => $this->violationModel->where('status', 'pending')->countAllResults(false),
+                    'reviewed' => $this->violationModel->where('status', 'reviewed')->countAllResults(false),
+                    'resolved' => $this->violationModel->where('status', 'resolved')->countAllResults()
+                ],
                 'revenue' => $revenue
             ],
             'recent_orders' => $this->orderModel->getRecentOrders(5),
-            'recent_users' => $this->userModel->orderBy('created_at', 'DESC')->findAll(5)
+            'recent_users' => $this->userModel->orderBy('created_at', 'DESC')->findAll(5),
+            'recent_violations' => $this->violationModel->getViolationsForAdmin('pending')
         ];
 
         return view('admin/dashboard', $data);
@@ -417,6 +427,53 @@ class Admin extends BaseController
         ];
 
         return view('admin/settings', $data);
+    }
+
+    /**
+     * Violations Management
+     */
+    public function violations()
+    {
+        $status = $this->request->getGet('status');
+
+        $violations = $this->violationModel->getViolationsForAdmin($status);
+
+        $data = [
+            'title' => 'Violation Reports',
+            'violations' => $violations,
+            'current_status' => $status,
+            'statistics' => [
+                'violations' => [
+                    'total' => $this->violationModel->countAll(),
+                    'pending' => $this->violationModel->where('status', 'pending')->countAllResults(false),
+                    'reviewed' => $this->violationModel->where('status', 'reviewed')->countAllResults(false),
+                    'resolved' => $this->violationModel->where('status', 'resolved')->countAllResults()
+                ]
+            ]
+        ];
+
+        return view('admin/violations', $data);
+    }
+
+    /**
+     * Update Violation Status
+     */
+    public function updateViolationStatus($id)
+    {
+        $status = $this->request->getPost('status');
+
+        if (!in_array($status, ['pending', 'reviewed', 'resolved'])) {
+            return redirect()->back()
+                ->with('error', 'Invalid status specified.');
+        }
+
+        if ($this->violationModel->updateStatus($id, $status, session()->get('user_id'))) {
+            return redirect()->back()
+                ->with('success', 'Violation status updated successfully.');
+        } else {
+            return redirect()->back()
+                ->with('error', 'Failed to update violation status.');
+        }
     }
 
     /**

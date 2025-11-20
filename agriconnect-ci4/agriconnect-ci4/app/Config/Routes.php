@@ -161,14 +161,24 @@ $routes->group('admin', ['filter' => 'auth:admin'], function($routes) {
     $routes->get('announcements/edit/(:num)', 'Admin::editAnnouncement/$1');
     $routes->post('announcements/edit/(:num)', 'Admin::editAnnouncementProcess/$1');
     $routes->post('announcements/delete/(:num)', 'Admin::deleteAnnouncement/$1');
-    
+
+    // Violations
+    $routes->get('violations', 'Admin::violations');
+    $routes->post('violations/(:num)/status', 'Admin::updateViolationStatus/$1');
+
     // Analytics
     $routes->get('analytics', 'Admin::analytics');
-    
+
     // Settings
     $routes->get('settings', 'Admin::settings');
     $routes->post('settings', 'Admin::updateSettings');
 });
+
+// ============================================================
+// REPORTING ROUTES (Protected - Authenticated users)
+// ============================================================
+
+$routes->post('report', 'Report::submit', ['filter' => 'auth']);
 
 // ============================================================
 // API ROUTES (Optional - for AJAX)
@@ -179,7 +189,7 @@ $routes->group('api', function($routes) {
     $routes->get('products', 'Api\Products::index');
     $routes->get('products/(:num)', 'Api\Products::show/$1');
     $routes->get('products/search', 'Api\Products::search');
-    
+
     // Cart (requires auth)
     $routes->post('cart/add', 'Api\Cart::add', ['filter' => 'auth']);
     $routes->get('cart/count', 'Api\Cart::count', ['filter' => 'auth']);

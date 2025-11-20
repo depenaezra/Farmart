@@ -93,11 +93,16 @@
                                 </div>
                             </div>
 
-                            <div class="ml-4">
+                            <div class="ml-4 flex gap-2">
                                 <a href="/forum/post/<?= $post['id'] ?>" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors">
                                     <i data-lucide="eye" class="w-4 h-4 mr-2"></i>
                                     View Post
                                 </a>
+                                <?php if (session()->get('user_id')): ?>
+                                <button onclick="reportPost(<?= $post['id'] ?>, 'forum_post')" class="inline-flex items-center px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors" title="Report this post">
+                                    <i data-lucide="flag" class="w-4 h-4"></i>
+                                </button>
+                                <?php endif; ?>
                             </div>
                         </div>
 
@@ -118,5 +123,76 @@
         </div>
     <?php endif; ?>
 </div>
+
+<!-- Report Modal -->
+<div id="reportModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg max-w-md w-full p-6">
+            <h3 class="text-lg font-semibold mb-4">Report Content</h3>
+            <form id="reportForm">
+                <input type="hidden" id="reportedType" name="reported_type">
+                <input type="hidden" id="reportedId" name="reported_id">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Reason</label>
+                    <select id="reportReason" name="reason" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
+                        <option value="">Select a reason</option>
+                        <option value="spam">Spam</option>
+                        <option value="inappropriate">Inappropriate content</option>
+                        <option value="harassment">Harassment</option>
+                        <option value="false_information">False information</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Description (optional)</label>
+                    <textarea id="reportDescription" name="description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Provide more details..."></textarea>
+                </div>
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeReportModal()" class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300">Cancel</button>
+                    <button type="submit" class="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700">Submit Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function reportPost(id, type) {
+    document.getElementById('reportedId').value = id;
+    document.getElementById('reportedType').value = type;
+    document.getElementById('reportModal').classList.remove('hidden');
+}
+
+function closeReportModal() {
+    document.getElementById('reportModal').classList.add('hidden');
+    document.getElementById('reportForm').reset();
+}
+
+document.getElementById('reportForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+
+    fetch('/report', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            closeReportModal();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('An error occurred. Please try again.');
+    });
+});
+</script>
 
 <?= $this->endSection() ?>
