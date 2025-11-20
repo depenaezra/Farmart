@@ -114,7 +114,7 @@
                                 <p class="font-semibold text-gray-900">Order #<?= $order['id'] ?></p>
                                 <p class="text-sm text-gray-600">
                                     <?= esc($order['buyer_name']) ?> •
-                                    ₱<?= number_format($order['total_price'], 2) ?> •
+                                    ₱<?= number_format($order['total_amount'], 2) ?> •
                                     <?= date('M d, Y', strtotime($order['created_at'])) ?>
                                 </p>
                             </div>

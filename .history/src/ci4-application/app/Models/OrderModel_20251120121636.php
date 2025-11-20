@@ -82,10 +82,10 @@ class OrderModel extends Model
      */
     public function getOrdersByFarmer($farmerId, $status = null)
     {
-        $builder = $this->select('orders.*,
-                                  products.name as product_name,
+        $builder = $this->select('orders.*, 
+                                  products.name as product_name, 
                                   products.image_url,
-                                  buyer.name as buyer_name,
+                                  buyer.name as buyer_name, 
                                   buyer.phone as buyer_phone,
                                   buyer.email as buyer_email,
                                   buyer.location as buyer_location')
@@ -93,11 +93,11 @@ class OrderModel extends Model
                         ->join('users as buyer', 'buyer.id = orders.buyer_id')
                         ->where('orders.farmer_id', $farmerId)
                         ->orderBy('orders.created_at', 'DESC');
-
+        
         if ($status) {
             $builder->where('orders.status', $status);
         }
-
+        
         return $builder->get()->getResultArray();
     }
     
@@ -146,13 +146,13 @@ class OrderModel extends Model
     public function getFarmerStatistics($farmerId)
     {
         $db = \Config\Database::connect();
-
+        
         return [
-            'total_orders' => $db->table('orders')->where('farmer_id', $farmerId)->countAllResults(),
-            'pending' => $db->table('orders')->where('farmer_id', $farmerId)->where('status', 'pending')->countAllResults(),
-            'processing' => $db->table('orders')->where('farmer_id', $farmerId)->where('status', 'processing')->countAllResults(),
-            'completed' => $db->table('orders')->where('farmer_id', $farmerId)->where('status', 'completed')->countAllResults(),
-            'cancelled' => $db->table('orders')->where('farmer_id', $farmerId)->where('status', 'cancelled')->countAllResults(),
+            'total_orders' => $this->where('farmer_id', $farmerId)->countAllResults(false),
+            'pending' => $this->where('farmer_id', $farmerId)->where('status', 'pending')->countAllResults(false),
+            'processing' => $this->where('farmer_id', $farmerId)->where('status', 'processing')->countAllResults(false),
+            'completed' => $this->where('farmer_id', $farmerId)->where('status', 'completed')->countAllResults(false),
+            'cancelled' => $this->where('farmer_id', $farmerId)->where('status', 'cancelled')->countAllResults(false),
             'total_sales' => $db->table('orders')
                                ->selectSum('total_price')
                                ->where('farmer_id', $farmerId)

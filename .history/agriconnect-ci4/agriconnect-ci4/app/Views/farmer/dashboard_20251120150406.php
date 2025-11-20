@@ -41,7 +41,7 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-600">Revenue</p>
-                    <p class="text-2xl font-bold text-gray-900">₱<?= number_format($statistics['orders']['total_sales'] ?? 0, 2) ?></p>
+                    <p class="text-2xl font-bold text-gray-900">₱<?= number_format($statistics['orders']['revenue'] ?? 0, 2) ?></p>
                 </div>
             </div>
         </div>
@@ -114,7 +114,7 @@
                                 <p class="font-semibold text-gray-900">Order #<?= $order['id'] ?></p>
                                 <p class="text-sm text-gray-600">
                                     <?= esc($order['buyer_name']) ?> •
-                                    ₱<?= number_format($order['total_price'], 2) ?> •
+                                    ₱<?= number_format($order['total_amount'], 2) ?> •
                                     <?= date('M d, Y', strtotime($order['created_at'])) ?>
                                 </p>
                             </div>

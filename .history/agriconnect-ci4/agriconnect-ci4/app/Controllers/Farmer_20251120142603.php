@@ -30,7 +30,7 @@ class Farmer extends BaseController
                 'products' => $this->productModel->getFarmerStatistics($farmerId),
                 'orders' => $this->orderModel->getFarmerStatistics($farmerId)
             ],
-            'recent_orders' => array_slice($this->orderModel->getOrdersByFarmer($farmerId, null), 0, 5)
+            'recent_orders' => $this->orderModel->getOrdersByFarmer($farmerId, null)->slice(0, 5)
         ];
         
         return view('farmer/dashboard', $data);
