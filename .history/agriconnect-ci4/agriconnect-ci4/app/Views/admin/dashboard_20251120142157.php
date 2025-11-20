@@ -69,7 +69,7 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-600">Total Revenue</p>
-                    <p class="text-2xl font-bold text-gray-900">₱<?= number_format($statistics['revenue'] ?? 0, 2) ?></p>
+                    <p class="text-2xl font-bold text-gray-900">₱0.00</p>
                     <p class="text-xs text-gray-500">This month</p>
                 </div>
             </div>

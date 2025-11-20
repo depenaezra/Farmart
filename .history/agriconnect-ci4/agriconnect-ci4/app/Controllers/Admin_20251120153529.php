@@ -415,19 +415,7 @@ class Admin extends BaseController
         $data = [
             'title' => 'System Settings'
         ];
-
+        
         return view('admin/settings', $data);
-    }
-
-    /**
-     * Update Settings
-     */
-    public function updateSettings()
-    {
-        // This is a placeholder for settings functionality
-        // In a real application, you would save these to a settings table or config file
-
-        return redirect()->back()
-            ->with('success', 'Settings updated successfully!');
     }
 }

@@ -139,27 +139,6 @@ class Admin extends BaseController
     }
     
     /**
-     * Change User Role
-     */
-    public function changeUserRole($id)
-    {
-        $newRole = $this->request->getPost('role');
-
-        if (!in_array($newRole, ['farmer', 'buyer', 'admin'])) {
-            return redirect()->back()
-                ->with('error', 'Invalid role specified.');
-        }
-
-        if ($this->userModel->update($id, ['role' => $newRole])) {
-            return redirect()->back()
-                ->with('success', 'User role updated successfully.');
-        } else {
-            return redirect()->back()
-                ->with('error', 'Failed to update user role.');
-        }
-    }
-
-    /**
      * Delete User
      */
     public function deleteUser($id)
@@ -169,7 +148,7 @@ class Admin extends BaseController
             return redirect()->back()
                 ->with('error', 'You cannot delete your own account.');
         }
-
+        
         if ($this->userModel->delete($id)) {
             return redirect()->to('/admin/users')
                 ->with('success', 'User deleted.');
@@ -415,19 +394,7 @@ class Admin extends BaseController
         $data = [
             'title' => 'System Settings'
         ];
-
+        
         return view('admin/settings', $data);
-    }
-
-    /**
-     * Update Settings
-     */
-    public function updateSettings()
-    {
-        // This is a placeholder for settings functionality
-        // In a real application, you would save these to a settings table or config file
-
-        return redirect()->back()
-            ->with('success', 'Settings updated successfully!');
     }
 }
