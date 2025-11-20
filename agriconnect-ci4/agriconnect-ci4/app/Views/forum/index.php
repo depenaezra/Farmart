@@ -9,12 +9,12 @@
                 <h1 class="text-3xl font-bold text-gray-900 mb-2">Community Forum</h1>
                 <p class="text-gray-600">Connect with fellow farmers and share your experiences</p>
             </div>
-            <?php if (session()->get('user_id')): ?>
+            <?php if (session()->get('user_id') && session()->get('user_role') !== 'admin'): ?>
                 <a href="/forum/create" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-hover font-semibold transition-colors">
                     <i data-lucide="plus" class="w-5 h-5 inline mr-2"></i>
                     New Post
                 </a>
-            <?php else: ?>
+            <?php elseif (!session()->has('user_id')): ?>
                 <a href="/auth/login" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-hover font-semibold transition-colors">
                     <i data-lucide="log-in" class="w-5 h-5 inline mr-2"></i>
                     Login to Post
@@ -98,7 +98,7 @@
                                     <i data-lucide="eye" class="w-4 h-4 mr-2"></i>
                                     View Post
                                 </a>
-                                <?php if (session()->get('user_id')): ?>
+                                <?php if (session()->get('user_id') && session()->get('user_role') !== 'admin'): ?>
                                 <button onclick="reportPost(<?= $post['id'] ?>, 'forum_post')" class="inline-flex items-center px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors" title="Report this post">
                                     <i data-lucide="flag" class="w-4 h-4"></i>
                                 </button>

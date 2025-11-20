@@ -69,9 +69,34 @@
                                 </h3>
                                 <div class="text-sm text-gray-600 mb-3">
                                     <p><strong>Reported by:</strong> <?= esc($violation['reporter_name']) ?></p>
+                                    <p><strong>Reported Item ID:</strong> <?= $violation['reported_id'] ?> (<?= ucfirst(str_replace('_', ' ', $violation['reported_type'])) ?>)</p>
                                     <p><strong>Reported on:</strong> <?= date('M d, Y H:i', strtotime($violation['created_at'])) ?></p>
                                     <?php if ($violation['reviewed_at']): ?>
                                         <p><strong>Reviewed by:</strong> <?= esc($violation['reviewer_name']) ?> on <?= date('M d, Y H:i', strtotime($violation['reviewed_at'])) ?></p>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="mb-3">
+                                    <?php
+                                    $viewUrl = '';
+                                    switch ($violation['reported_type']) {
+                                        case 'forum_post':
+                                            $viewUrl = '/forum/post/' . $violation['reported_id'];
+                                            break;
+                                        case 'forum_comment':
+                                            $viewUrl = '/forum/post/' . $violation['reported_id']; // Assuming comment links to post
+                                            break;
+                                        case 'product':
+                                            $viewUrl = '/marketplace/product/' . $violation['reported_id'];
+                                            break;
+                                        case 'user':
+                                            $viewUrl = '/admin/users/' . $violation['reported_id'];
+                                            break;
+                                    }
+                                    if ($viewUrl): ?>
+                                        <a href="<?= $viewUrl ?>" target="_blank" class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm">
+                                            <i data-lucide="eye" class="w-4 h-4 mr-1"></i>
+                                            View Reported Item
+                                        </a>
                                     <?php endif; ?>
                                 </div>
                                 <?php if ($violation['description']): ?>
@@ -105,6 +130,14 @@
                                         </button>
                                     </form>
                                 <?php endif; ?>
+
+                                <!-- Delete Reported Item Button -->
+                                <form action="/admin/violations/<?= $violation['id'] ?>/delete" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this reported item? This action cannot be undone.')">
+                                    <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">
+                                        <i data-lucide="trash-2" class="w-4 h-4 inline mr-1"></i>
+                                        Delete Item
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>

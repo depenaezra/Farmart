@@ -165,6 +165,7 @@ $routes->group('admin', ['filter' => 'auth:admin'], function($routes) {
     // Violations
     $routes->get('violations', 'Admin::violations');
     $routes->post('violations/(:num)/status', 'Admin::updateViolationStatus/$1');
+    $routes->post('violations/(:num)/delete', 'Admin::deleteReportedItem/$1');
 
     // Analytics
     $routes->get('analytics', 'Admin::analytics');

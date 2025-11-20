@@ -82,8 +82,8 @@
                     </a>
                     <?php endif; ?>
 
-                    <!-- Report Button (if authenticated) -->
-                    <?php if (session()->get('user_id')): ?>
+                    <!-- Report Button (if authenticated and not admin) -->
+                    <?php if (session()->get('user_id') && session()->get('user_role') !== 'admin'): ?>
                     <button onclick="reportPost(<?= $product['id'] ?>, 'product')" class="bg-red-100 text-red-700 py-3 px-4 rounded-lg hover:bg-red-200 transition-colors font-semibold" title="Report this product">
                         <i data-lucide="flag" class="w-5 h-5"></i>
                     </button>

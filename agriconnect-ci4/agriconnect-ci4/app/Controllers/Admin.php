@@ -477,6 +477,70 @@ class Admin extends BaseController
     }
 
     /**
+     * Delete Reported Item
+     */
+    public function deleteReportedItem($violationId)
+    {
+        $violation = $this->violationModel->find($violationId);
+
+        if (!$violation) {
+            return redirect()->back()
+                ->with('error', 'Violation report not found.');
+        }
+
+        $deleted = false;
+        $itemType = '';
+
+        switch ($violation['reported_type']) {
+            case 'forum_post':
+                $deleted = $this->deleteForumPost($violation['reported_id']);
+                $itemType = 'forum post';
+                break;
+            case 'forum_comment':
+                $deleted = $this->deleteForumComment($violation['reported_id']);
+                $itemType = 'forum comment';
+                break;
+            case 'product':
+                $deleted = $this->deleteProduct($violation['reported_id']);
+                $itemType = 'product';
+                break;
+            case 'user':
+                // For user reports, perhaps suspend instead of delete
+                $deleted = $this->userModel->update($violation['reported_id'], ['status' => 'inactive']);
+                $itemType = 'user account';
+                break;
+        }
+
+        if ($deleted) {
+            // Mark violation as resolved
+            $this->violationModel->updateStatus($violationId, 'resolved', session()->get('user_id'));
+            return redirect()->back()
+                ->with('success', ucfirst($itemType) . ' deleted successfully.');
+        } else {
+            return redirect()->back()
+                ->with('error', 'Failed to delete ' . $itemType . '.');
+        }
+    }
+
+    /**
+     * Delete Forum Post (Admin)
+     */
+    private function deleteForumPost($postId)
+    {
+        $db = \Config\Database::connect();
+        return $db->table('forum_posts')->delete(['id' => $postId]);
+    }
+
+    /**
+     * Delete Forum Comment (Admin)
+     */
+    private function deleteForumComment($commentId)
+    {
+        $db = \Config\Database::connect();
+        return $db->table('forum_comments')->delete(['id' => $commentId]);
+    }
+
+    /**
      * Update Settings
      */
     public function updateSettings()

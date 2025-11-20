@@ -47,10 +47,12 @@
                                 </button>
                             </form>
 
+                            <?php if (session()->get('user_role') !== 'admin'): ?>
                             <button onclick="reportPost(<?= $post['id'] ?>, 'forum_post')" class="inline-flex items-center px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors" title="Report this post">
                                 <i data-lucide="flag" class="w-4 h-4 mr-1"></i>
                                 Report
                             </button>
+                            <?php endif; ?>
 
                             <?php if (session()->get('user_id') == $post['user_id'] || session()->get('user_role') == 'admin'): ?>
                                 <form action="/forum/post/<?= $post['id'] ?>/delete" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this post?')">
