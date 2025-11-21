@@ -69,24 +69,38 @@
 
                 <!-- Action Buttons -->
                 <div class="flex gap-3">
-                    <!-- Add to Cart Button (if authenticated as buyer) -->
-                    <?php if (session()->get('user_role') === 'buyer'): ?>
-                    <button class="flex-1 bg-primary text-white py-3 px-6 rounded-lg hover:bg-primary-hover transition-colors font-semibold">
-                        <i data-lucide="shopping-cart" class="w-5 h-5 inline mr-2"></i>
-                        Add to Cart
-                    </button>
-                    <?php elseif (!session()->has('user_id')): ?>
-                    <a href="/auth/login" class="flex-1 block bg-primary text-white py-3 px-6 rounded-lg hover:bg-primary-hover transition-colors font-semibold text-center">
-                        <i data-lucide="log-in" class="w-5 h-5 inline mr-2"></i>
-                        Login to Purchase
-                    </a>
-                    <?php endif; ?>
+                    <?php if ($product['farmer_id'] == session()->get('user_id')): ?>
+                        <!-- Edit and Delete buttons for own product -->
+                        <a href="/farmer/products/edit/<?= $product['id'] ?>" class="flex-1 bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition-colors font-semibold text-center">
+                            <i data-lucide="edit" class="w-5 h-5 inline mr-2"></i>
+                            Edit Product
+                        </a>
+                        <form action="/farmer/products/delete/<?= $product['id'] ?>" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this product?')">
+                            <button type="submit" class="bg-red-500 text-white py-3 px-6 rounded-lg hover:bg-red-600 transition-colors font-semibold">
+                                <i data-lucide="trash-2" class="w-5 h-5 inline mr-2"></i>
+                                Delete Product
+                            </button>
+                        </form>
+                    <?php else: ?>
+                        <!-- Add to Cart Button (if authenticated as buyer) -->
+                        <?php if (session()->get('user_role') === 'buyer'): ?>
+                        <button class="flex-1 bg-primary text-white py-3 px-6 rounded-lg hover:bg-primary-hover transition-colors font-semibold">
+                            <i data-lucide="shopping-cart" class="w-5 h-5 inline mr-2"></i>
+                            Add to Cart
+                        </button>
+                        <?php elseif (!session()->has('user_id')): ?>
+                        <a href="/auth/login" class="flex-1 block bg-primary text-white py-3 px-6 rounded-lg hover:bg-primary-hover transition-colors font-semibold text-center">
+                            <i data-lucide="log-in" class="w-5 h-5 inline mr-2"></i>
+                            Login to Purchase
+                        </a>
+                        <?php endif; ?>
 
-                    <!-- Report Button (if authenticated and not admin) -->
-                    <?php if (session()->get('user_id') && session()->get('user_role') !== 'admin'): ?>
-                    <button onclick="reportPost(<?= $product['id'] ?>, 'product')" class="bg-red-100 text-red-700 py-3 px-4 rounded-lg hover:bg-red-200 transition-colors font-semibold" title="Report this product">
-                        <i data-lucide="flag" class="w-5 h-5"></i>
-                    </button>
+                        <!-- Report Button (if authenticated and not admin) -->
+                        <?php if (session()->get('user_id') && session()->get('user_role') !== 'admin'): ?>
+                        <button onclick="reportPost(<?= $product['id'] ?>, 'product')" class="bg-red-100 text-red-700 py-3 px-4 rounded-lg hover:bg-red-200 transition-colors font-semibold" title="Report this product">
+                            <i data-lucide="flag" class="w-5 h-5"></i>
+                        </button>
+                        <?php endif; ?>
                     <?php endif; ?>
                 </div>
             </div>

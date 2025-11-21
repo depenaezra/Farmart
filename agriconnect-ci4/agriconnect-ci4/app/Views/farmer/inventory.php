@@ -46,13 +46,13 @@
                                     <?= ucfirst(esc($product['category'])) ?>
                                 </div>
                             </div>
-                            <div class="flex gap-1">
-                                <a href="/farmer/products/edit/<?= $product['id'] ?>" class="p-1 text-gray-600 hover:text-primary transition-colors">
-                                    <i data-lucide="edit" class="w-4 h-4"></i>
+                            <div class="flex gap-2">
+                                <a href="/farmer/products/edit/<?= $product['id'] ?>" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors">
+                                    Edit
                                 </a>
                                 <form action="/farmer/products/delete/<?= $product['id'] ?>" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this product?')">
-                                    <button type="submit" class="p-1 text-gray-600 hover:text-red-600 transition-colors">
-                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors">
+                                        Delete
                                     </button>
                                 </form>
                             </div>
@@ -81,6 +81,10 @@
                         <div class="text-xs text-gray-500">
                             Added: <?= date('M d, Y', strtotime($product['created_at'])) ?>
                         </div>
+
+                        <a href="/marketplace/product/<?= $product['id'] ?>" class="block w-full bg-primary text-white py-2 rounded-lg text-center hover:bg-primary-hover transition-colors mt-3">
+                            View Details
+                        </a>
                     </div>
                 </div>
             <?php endforeach; ?>
