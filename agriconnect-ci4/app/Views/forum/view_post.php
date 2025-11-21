@@ -41,8 +41,8 @@
             <?= nl2br(esc($post['content'])) ?>
         </div>
 
-        <!-- Post Actions (if logged in) -->
-        <?php if (session()->get('user_id')): ?>
+        <!-- Post Actions (if logged in and not admin) -->
+        <?php if (session()->get('user_id') && session()->get('user_role') !== 'admin'): ?>
             <div class="mt-6 pt-4 border-t border-gray-200">
                 <form action="/forum/post/<?= $post['id'] ?>/like" method="POST" class="inline">
                     <button type="submit" class="text-primary hover:text-primary-hover font-semibold inline-flex items-center">

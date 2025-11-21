@@ -8,54 +8,74 @@
         <p class="text-gray-600">Browse fresh produce directly from Nasugbu farmers</p>
     </div>
     
+    <!-- Category Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <a href="/marketplace?category=vegetables" class="bg-white rounded-xl shadow-md border-2 <?= ($filters['category'] ?? '') === 'vegetables' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300' ?> transition-all p-6 text-center">
+            <div class="flex flex-col items-center">
+                <i data-lucide="carrot" class="w-12 h-12 text-green-600 mb-3"></i>
+                <h3 class="text-lg font-semibold text-gray-900">Vegetables</h3>
+                <p class="text-sm text-gray-600 mt-1">Fresh produce</p>
+            </div>
+        </a>
+
+        <a href="/marketplace?category=fruits" class="bg-white rounded-xl shadow-md border-2 <?= ($filters['category'] ?? '') === 'fruits' ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-red-300' ?> transition-all p-6 text-center">
+            <div class="flex flex-col items-center">
+                <i data-lucide="apple" class="w-12 h-12 text-red-600 mb-3"></i>
+                <h3 class="text-lg font-semibold text-gray-900">Fruits</h3>
+                <p class="text-sm text-gray-600 mt-1">Sweet & juicy</p>
+            </div>
+        </a>
+
+        <a href="/marketplace?category=grains" class="bg-white rounded-xl shadow-md border-2 <?= ($filters['category'] ?? '') === 'grains' ? 'border-yellow-500 bg-yellow-50' : 'border-gray-200 hover:border-yellow-300' ?> transition-all p-6 text-center">
+            <div class="flex flex-col items-center">
+                <i data-lucide="wheat" class="w-12 h-12 text-yellow-600 mb-3"></i>
+                <h3 class="text-lg font-semibold text-gray-900">Grains</h3>
+                <p class="text-sm text-gray-600 mt-1">Rice & staples</p>
+            </div>
+        </a>
+
+        <a href="/marketplace?category=other" class="bg-white rounded-xl shadow-md border-2 <?= ($filters['category'] ?? '') === 'other' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-purple-300' ?> transition-all p-6 text-center">
+            <div class="flex flex-col items-center">
+                <i data-lucide="package" class="w-12 h-12 text-purple-600 mb-3"></i>
+                <h3 class="text-lg font-semibold text-gray-900">Other</h3>
+                <p class="text-sm text-gray-600 mt-1">Miscellaneous</p>
+            </div>
+        </a>
+    </div>
+
     <!-- Filters -->
     <div class="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-8">
-        <form action="/marketplace" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <form action="/marketplace" method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
                 <label for="keyword" class="block text-sm font-semibold text-gray-700 mb-2">Search</label>
-                <input 
-                    type="text" 
-                    id="keyword" 
-                    name="keyword" 
+                <input
+                    type="text"
+                    id="keyword"
+                    name="keyword"
                     value="<?= esc($filters['keyword'] ?? '') ?>"
                     placeholder="Product name, farmer..."
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
                 >
             </div>
-            
-            <div>
-                <label for="category" class="block text-sm font-semibold text-gray-700 mb-2">Category</label>
-                <select 
-                    id="category" 
-                    name="category"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
-                >
-                    <option value="">All Categories</option>
-                    <option value="vegetables" <?= ($filters['category'] ?? '') === 'vegetables' ? 'selected' : '' ?>>Vegetables</option>
-                    <option value="fruits" <?= ($filters['category'] ?? '') === 'fruits' ? 'selected' : '' ?>>Fruits</option>
-                    <option value="grains" <?= ($filters['category'] ?? '') === 'grains' ? 'selected' : '' ?>>Grains</option>
-                    <option value="other" <?= ($filters['category'] ?? '') === 'other' ? 'selected' : '' ?>>Other</option>
-                </select>
-            </div>
-            
+
             <div>
                 <label for="min_price" class="block text-sm font-semibold text-gray-700 mb-2">Min Price</label>
-                <input 
-                    type="number" 
-                    id="min_price" 
-                    name="min_price" 
+                <input
+                    type="number"
+                    id="min_price"
+                    name="min_price"
                     value="<?= esc($filters['min_price'] ?? '') ?>"
                     placeholder="₱0"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
                 >
             </div>
-            
+
             <div>
                 <label for="max_price" class="block text-sm font-semibold text-gray-700 mb-2">Max Price</label>
-                <input 
-                    type="number" 
-                    id="max_price" 
-                    name="max_price" 
+                <input
+                    type="number"
+                    id="max_price"
+                    name="max_price"
                     value="<?= esc($filters['max_price'] ?? '') ?>"
                     placeholder="₱1000"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
