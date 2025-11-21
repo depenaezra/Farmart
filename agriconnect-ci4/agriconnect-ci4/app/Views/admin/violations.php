@@ -132,9 +132,10 @@
                                 <?php endif; ?>
 
                                 <!-- Delete Reported Item Button -->
-                                <form action="/admin/violations/<?= $violation['id'] ?>/delete" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this reported item? This action cannot be undone.')">
-                                    <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">
-                                        <i data-lucide="trash-2" class="w-4 h-4 inline mr-1"></i>
+                                <form action="/admin/violations/<?= $violation['id'] ?>/delete" method="POST" class="inline"
+                                      onsubmit="return confirm('Are you sure you want to delete this reported item? This action cannot be undone.')">
+                                    <button type="submit" class="text-red-600 hover:text-red-800 font-semibold inline-flex items-center">
+                                        <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i>
                                         Delete Item
                                     </button>
                                 </form>

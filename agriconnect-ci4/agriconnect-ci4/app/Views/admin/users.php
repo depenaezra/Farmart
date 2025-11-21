@@ -108,27 +108,10 @@
                                     <?= date('M d, Y', strtotime($user['created_at'])) ?>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <div class="flex space-x-2">
-                                        <a href="/admin/users/<?= $user['id'] ?>" class="text-primary hover:text-primary-hover">
-                                            <i data-lucide="eye" class="w-4 h-4"></i>
-                                        </a>
-                                        <form method="post" action="/admin/users/toggle-status/<?= $user['id'] ?>" class="inline">
-                                            <?= csrf_field() ?>
-                                            <button type="submit" class="text-yellow-600 hover:text-yellow-800"
-                                                    onclick="return confirm('Are you sure you want to <?= $user['status'] === 'active' ? 'deactivate' : 'activate' ?> this user?')">
-                                                <i data-lucide="<?= $user['status'] === 'active' ? 'user-x' : 'user-check' ?>" class="w-4 h-4"></i>
-                                            </button>
-                                        </form>
-                                        <?php if ($user['id'] != session()->get('user_id')): ?>
-                                            <form method="post" action="/admin/users/delete/<?= $user['id'] ?>" class="inline">
-                                                <?= csrf_field() ?>
-                                                <button type="submit" class="text-red-600 hover:text-red-800"
-                                                        onclick="return confirm('Are you sure you want to delete this user? This action cannot be undone.')">
-                                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                                </button>
-                                            </form>
-                                        <?php endif; ?>
-                                    </div>
+                                    <a href="/admin/users/<?= $user['id'] ?>" class="inline-flex items-center px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-hover transition-colors">
+                                        <i data-lucide="eye" class="w-4 h-4 mr-2"></i>
+                                        View
+                                    </a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

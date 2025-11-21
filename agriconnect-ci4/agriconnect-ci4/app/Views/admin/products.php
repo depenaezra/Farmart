@@ -113,36 +113,10 @@
                                     <?= ucfirst($product['category']) ?>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <div class="flex space-x-2">
-                                        <a href="/admin/products/<?= $product['id'] ?>" class="text-primary hover:text-primary-hover">
-                                            <i data-lucide="eye" class="w-4 h-4"></i>
-                                        </a>
-
-                                        <?php if ($product['status'] === 'pending'): ?>
-                                            <form method="post" action="/admin/products/approve/<?= $product['id'] ?>" class="inline">
-                                                <?= csrf_field() ?>
-                                                <button type="submit" class="text-green-600 hover:text-green-800"
-                                                        onclick="return confirm('Are you sure you want to approve this product?')">
-                                                    <i data-lucide="check" class="w-4 h-4"></i>
-                                                </button>
-                                            </form>
-                                            <form method="post" action="/admin/products/reject/<?= $product['id'] ?>" class="inline">
-                                                <?= csrf_field() ?>
-                                                <button type="submit" class="text-red-600 hover:text-red-800"
-                                                        onclick="return confirm('Are you sure you want to reject this product?')">
-                                                    <i data-lucide="x" class="w-4 h-4"></i>
-                                                </button>
-                                            </form>
-                                        <?php endif; ?>
-
-                                        <form method="post" action="/admin/products/delete/<?= $product['id'] ?>" class="inline">
-                                            <?= csrf_field() ?>
-                                            <button type="submit" class="text-red-600 hover:text-red-800"
-                                                    onclick="return confirm('Are you sure you want to delete this product? This action cannot be undone.')">
-                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                            </button>
-                                        </form>
-                                    </div>
+                                    <a href="/admin/products/<?= $product['id'] ?>" class="inline-flex items-center px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-hover transition-colors">
+                                        <i data-lucide="eye" class="w-4 h-4 mr-2"></i>
+                                        View
+                                    </a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
