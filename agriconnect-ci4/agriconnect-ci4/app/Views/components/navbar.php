@@ -61,6 +61,9 @@
                             <a href="/messages/inbox" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
                                 <i data-lucide="mail" class="w-4 h-4 inline mr-2"></i>Messages
                             </a>
+                            <a href="/profile" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                <i data-lucide="user" class="w-4 h-4 inline mr-2"></i>My Profile
+                            </a>
                             <hr class="my-1">
                             <a href="/auth/logout" class="block px-4 py-2 text-red-600 hover:bg-red-50 rounded-b-lg">
                                 <i data-lucide="log-out" class="w-4 h-4 inline mr-2"></i>Logout
@@ -106,6 +109,7 @@
                 <?php endif; ?>
                 
                 <a href="/messages/inbox" class="block py-2 text-gray-700 hover:text-primary">Messages</a>
+                <a href="/profile" class="block py-2 text-gray-700 hover:text-primary">My Profile</a>
                 <a href="/auth/logout" class="block py-2 text-red-600">Logout</a>
             <?php else: ?>
                 <hr class="my-2">
