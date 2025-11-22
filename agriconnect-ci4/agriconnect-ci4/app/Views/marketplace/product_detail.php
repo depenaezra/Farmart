@@ -82,12 +82,32 @@
                             </button>
                         </form>
                     <?php else: ?>
-                        <!-- Add to Cart Button (if authenticated as buyer) -->
+                        <!-- Add to Cart Form (if authenticated as buyer) -->
                         <?php if (session()->get('user_role') === 'buyer'): ?>
-                        <button class="flex-1 bg-primary text-white py-3 px-6 rounded-lg hover:bg-primary-hover transition-colors font-semibold">
-                            <i data-lucide="shopping-cart" class="w-5 h-5 inline mr-2"></i>
-                            Add to Cart
-                        </button>
+                        <form action="/cart/add" method="POST" class="flex-1">
+                            <?= csrf_field() ?>
+                            <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
+                            <div class="flex gap-2">
+                                <div class="flex items-center gap-2 bg-gray-100 rounded-lg px-3">
+                                    <label for="quantity" class="text-sm font-medium text-gray-700">Qty:</label>
+                                    <input 
+                                        type="number" 
+                                        id="quantity" 
+                                        name="quantity" 
+                                        value="1" 
+                                        min="1" 
+                                        max="<?= $product['stock_quantity'] ?>"
+                                        class="w-16 px-2 py-2 border-0 bg-transparent text-center focus:ring-0 focus:outline-none"
+                                        required
+                                    >
+                                    <span class="text-sm text-gray-600"><?= esc($product['unit']) ?></span>
+                                </div>
+                                <button type="submit" class="flex-1 bg-primary text-white py-3 px-6 rounded-lg hover:bg-primary-hover transition-colors font-semibold">
+                                    <i data-lucide="shopping-cart" class="w-5 h-5 inline mr-2"></i>
+                                    Add to Cart
+                                </button>
+                            </div>
+                        </form>
                         <?php elseif (!session()->has('user_id')): ?>
                         <a href="/auth/login" class="flex-1 block bg-primary text-white py-3 px-6 rounded-lg hover:bg-primary-hover transition-colors font-semibold text-center">
                             <i data-lucide="log-in" class="w-5 h-5 inline mr-2"></i>

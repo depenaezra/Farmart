@@ -56,7 +56,7 @@
                             </div>
                             <div class="text-right">
                                 <div class="text-lg font-bold text-primary mb-1">
-                                    ₱<?= number_format($order['total_amount'], 2) ?>
+                                    ₱<?= number_format($order['total_price'], 2) ?>
                                 </div>
                                 <span class="inline-block px-3 py-1 text-xs font-semibold rounded-full
                                     <?php
@@ -74,34 +74,30 @@
                             </div>
                         </div>
 
-                        <!-- Order Items -->
+                        <!-- Order Item -->
                         <div class="border-t border-gray-200 pt-4">
-                            <h4 class="font-semibold text-gray-900 mb-3">Order Items</h4>
-                            <div class="space-y-2">
-                                <?php foreach ($order['items'] as $item): ?>
-                                    <div class="flex items-center justify-between py-2">
-                                        <div class="flex items-center">
-                                            <?php if ($item['image_url']): ?>
-                                                <img src="<?= esc($item['image_url']) ?>" alt="<?= esc($item['name']) ?>" class="w-10 h-10 object-cover rounded mr-3">
-                                            <?php else: ?>
-                                                <div class="w-10 h-10 bg-gray-200 rounded flex items-center justify-center mr-3">
-                                                    <i data-lucide="package" class="w-5 h-5 text-gray-600"></i>
-                                                </div>
-                                            <?php endif; ?>
-                                            <div>
-                                                <p class="font-medium text-gray-900"><?= esc($item['name']) ?></p>
-                                                <p class="text-sm text-gray-600">
-                                                    <?= esc($item['quantity']) ?> × ₱<?= number_format($item['price'], 2) ?>
-                                                </p>
-                                            </div>
+                            <h4 class="font-semibold text-gray-900 mb-3">Order Item</h4>
+                            <div class="flex items-center justify-between py-2">
+                                <div class="flex items-center">
+                                    <?php if (!empty($order['image_url'])): ?>
+                                        <img src="<?= esc($order['image_url']) ?>" alt="<?= esc($order['product_name']) ?>" class="w-10 h-10 object-cover rounded mr-3">
+                                    <?php else: ?>
+                                        <div class="w-10 h-10 bg-gray-200 rounded flex items-center justify-center mr-3">
+                                            <i data-lucide="package" class="w-5 h-5 text-gray-600"></i>
                                         </div>
-                                        <div class="text-right">
-                                            <p class="font-semibold text-gray-900">
-                                                ₱<?= number_format($item['quantity'] * $item['price'], 2) ?>
-                                            </p>
-                                        </div>
+                                    <?php endif; ?>
+                                    <div>
+                                        <p class="font-medium text-gray-900"><?= esc($order['product_name']) ?></p>
+                                        <p class="text-sm text-gray-600">
+                                            <?= esc($order['quantity']) ?> × <?= esc($order['unit']) ?>
+                                        </p>
                                     </div>
-                                <?php endforeach; ?>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-semibold text-gray-900">
+                                        ₱<?= number_format($order['total_price'], 2) ?>
+                                    </p>
+                                </div>
                             </div>
                         </div>
 

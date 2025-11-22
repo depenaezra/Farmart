@@ -23,6 +23,8 @@ $routes->get('/marketplace/search', 'Marketplace::search');
 
 // Weather
 $routes->get('/weather', 'Weather::index');
+$routes->get('/weather/api', 'Weather::getWeather');
+$routes->get('/weather/update-cache', 'Weather::updateCache'); // For cron job
 
 // Announcements
 $routes->get('/announcements', 'Announcements::index');
@@ -111,6 +113,8 @@ $routes->group('checkout', ['filter' => 'auth:buyer,admin'], function($routes) {
 $routes->group('messages', ['filter' => 'auth'], function($routes) {
     $routes->get('/', 'Messages::index');
     $routes->get('inbox', 'Messages::inbox');
+    $routes->get('conversation/(:num)', 'Messages::getConversation/$1');
+    $routes->post('conversation', 'Messages::getConversation');
     $routes->get('sent', 'Messages::sent');
     $routes->get('compose', 'Messages::compose');
     $routes->post('compose', 'Messages::send');

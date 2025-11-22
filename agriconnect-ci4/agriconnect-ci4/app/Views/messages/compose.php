@@ -17,6 +17,7 @@
 
         <div class="bg-white rounded-xl shadow-md border border-gray-200 p-8">
             <form action="/messages/compose" method="POST">
+                <?= csrf_field() ?>
                 <div class="mb-6">
                     <label for="receiver_id" class="block text-sm font-semibold text-gray-700 mb-2">
                         To <span class="text-red-500">*</span>
