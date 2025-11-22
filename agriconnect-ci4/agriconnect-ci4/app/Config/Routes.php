@@ -158,6 +158,11 @@ $routes->group('admin', ['filter' => 'auth:admin'], function($routes) {
     $routes->post('products/(:num)/reject', 'Admin::rejectProduct/$1');
     $routes->post('products/(:num)/delete', 'Admin::deleteProduct/$1');
     
+    // Orders Management
+    $routes->get('orders', 'Admin::orders');
+    $routes->get('orders/(:num)', 'Admin::orderDetail/$1');
+    $routes->post('orders/(:num)/update-status', 'Admin::updateOrderStatus/$1');
+    
     // Announcements
     $routes->get('announcements', 'Admin::announcements');
     $routes->get('announcements/create', 'Admin::createAnnouncement');
@@ -205,5 +210,5 @@ $routes->group('api', function($routes) {
 // ============================================================
 
 $routes->set404Override(function() {
-    return view('errors/404');
+    return view('errors/html/error_404');
 });

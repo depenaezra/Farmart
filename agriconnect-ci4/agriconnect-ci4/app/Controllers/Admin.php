@@ -270,6 +270,75 @@ class Admin extends BaseController
     }
     
     /**
+     * Orders Management
+     */
+    public function orders()
+    {
+        $status = $this->request->getGet('status');
+        
+        $orders = $this->orderModel->getAllOrdersForAdmin($status);
+        
+        $data = [
+            'title' => 'Order Management',
+            'orders' => $orders,
+            'current_status' => $status,
+            'statistics' => [
+                'total' => $this->orderModel->countAll(),
+                'pending' => $this->orderModel->where('status', 'pending')->countAllResults(false),
+                'confirmed' => $this->orderModel->where('status', 'confirmed')->countAllResults(false),
+                'processing' => $this->orderModel->where('status', 'processing')->countAllResults(false),
+                'completed' => $this->orderModel->where('status', 'completed')->countAllResults(false),
+                'cancelled' => $this->orderModel->where('status', 'cancelled')->countAllResults(false)
+            ]
+        ];
+        
+        return view('admin/orders', $data);
+    }
+    
+    /**
+     * Order Detail
+     */
+    public function orderDetail($id)
+    {
+        $order = $this->orderModel->getOrderWithDetails($id);
+        
+        if (!$order) {
+            return redirect()->to('/admin/orders')
+                ->with('error', 'Order not found.');
+        }
+        
+        $data = [
+            'title' => 'Order: ' . $order['order_number'],
+            'order' => $order
+        ];
+        
+        return view('admin/order_detail', $data);
+    }
+    
+    /**
+     * Update Order Status
+     */
+    public function updateOrderStatus($id)
+    {
+        $status = $this->request->getPost('status');
+        
+        $validStatuses = ['pending', 'confirmed', 'processing', 'completed', 'cancelled'];
+        
+        if (!in_array($status, $validStatuses)) {
+            return redirect()->back()
+                ->with('error', 'Invalid status specified.');
+        }
+        
+        if ($this->orderModel->updateStatus($id, $status)) {
+            return redirect()->back()
+                ->with('success', 'Order status updated successfully.');
+        } else {
+            return redirect()->back()
+                ->with('error', 'Failed to update order status.');
+        }
+    }
+    
+    /**
      * Announcements Management
      */
     public function announcements()
@@ -438,6 +507,9 @@ class Admin extends BaseController
 
         $violations = $this->violationModel->getViolationsForAdmin($status);
 
+        // Get statistics using fresh queries to avoid query builder state issues
+        $db = \Config\Database::connect();
+        
         $data = [
             'title' => 'Violation Reports',
             'violations' => $violations,
@@ -445,9 +517,9 @@ class Admin extends BaseController
             'statistics' => [
                 'violations' => [
                     'total' => $this->violationModel->countAll(),
-                    'pending' => $this->violationModel->where('status', 'pending')->countAllResults(false),
-                    'reviewed' => $this->violationModel->where('status', 'reviewed')->countAllResults(false),
-                    'resolved' => $this->violationModel->where('status', 'resolved')->countAllResults()
+                    'pending' => $db->table('violations')->where('status', 'pending')->countAllResults(),
+                    'reviewed' => $db->table('violations')->where('status', 'reviewed')->countAllResults(),
+                    'resolved' => $db->table('violations')->where('status', 'resolved')->countAllResults()
                 ]
             ]
         ];
