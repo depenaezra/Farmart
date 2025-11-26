@@ -18,15 +18,15 @@
                 
                 <?php if (session()->has('logged_in') && session()->get('logged_in')): ?>
                     <!-- Logged in user menu -->
-                    <div class="relative group">
-                        <button class="flex items-center space-x-2 text-gray-700 hover:text-primary font-medium">
+                    <div class="relative">
+                        <button id="user-menu-button" class="flex items-center space-x-2 text-gray-700 hover:text-primary font-medium">
                             <i data-lucide="user" class="w-5 h-5"></i>
                             <span><?= esc(session()->get('user_name')) ?></span>
                             <i data-lucide="chevron-down" class="w-4 h-4"></i>
                         </button>
-                        
+
                         <!-- Dropdown -->
-                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                        <div id="user-menu-dropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible transition-all duration-200">
                             <?php $role = session()->get('user_role'); ?>
                             
                             <?php if ($role === 'farmer'): ?>
@@ -126,4 +126,33 @@
     document.getElementById('mobile-menu-button')?.addEventListener('click', function() {
         document.getElementById('mobile-menu').classList.toggle('hidden');
     });
+
+    // User menu dropdown toggle
+    const userMenuButton = document.getElementById('user-menu-button');
+    const userMenuDropdown = document.getElementById('user-menu-dropdown');
+
+    if (userMenuButton && userMenuDropdown) {
+        userMenuButton.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const isVisible = !userMenuDropdown.classList.contains('invisible');
+
+            if (isVisible) {
+                // Hide dropdown
+                userMenuDropdown.classList.add('opacity-0', 'invisible');
+                userMenuDropdown.classList.remove('opacity-100', 'visible');
+            } else {
+                // Show dropdown
+                userMenuDropdown.classList.remove('opacity-0', 'invisible');
+                userMenuDropdown.classList.add('opacity-100', 'visible');
+            }
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!userMenuButton.contains(e.target) && !userMenuDropdown.contains(e.target)) {
+                userMenuDropdown.classList.add('opacity-0', 'invisible');
+                userMenuDropdown.classList.remove('opacity-100', 'visible');
+            }
+        });
+    }
 </script>
