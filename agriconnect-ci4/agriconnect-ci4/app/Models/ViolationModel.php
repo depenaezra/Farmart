@@ -44,18 +44,54 @@ class ViolationModel extends Model
      */
     public function getViolationsForAdmin($status = null)
     {
-        $builder = $this->select('violations.*, 
+        $builder = $this->select('violations.*,
                                    reporter.name as reporter_name,
                                    reviewer.name as reviewer_name')
                         ->join('users as reporter', 'reporter.id = violations.reporter_id', 'left')
                         ->join('users as reviewer', 'reviewer.id = violations.reviewed_by', 'left')
                         ->orderBy('violations.created_at', 'DESC');
-        
+
         if ($status) {
             $builder->where('violations.status', $status);
         }
-        
-        return $builder->get()->getResultArray();
+
+        $violations = $builder->get()->getResultArray();
+
+        // Fetch reported item details for each violation
+        $db = \Config\Database::connect();
+        foreach ($violations as &$violation) {
+            switch ($violation['reported_type']) {
+                case 'forum_post':
+                    $violation['reported_item'] = $db->table('forum_posts')
+                        ->select('content')
+                        ->where('id', $violation['reported_id'])
+                        ->get()
+                        ->getRowArray();
+                    break;
+                case 'product':
+                    $violation['reported_item'] = $db->table('products')
+                        ->select('name, image_url')
+                        ->where('id', $violation['reported_id'])
+                        ->get()
+                        ->getRowArray();
+                    if ($violation['reported_item'] && $violation['reported_item']['image_url']) {
+                        $violation['reported_item']['images'] = [$violation['reported_item']['image_url']];
+                        unset($violation['reported_item']['image_url']);
+                    } else {
+                        $violation['reported_item']['images'] = [];
+                    }
+                    break;
+                case 'user':
+                    $violation['reported_item'] = $db->table('users')
+                        ->select('name, email')
+                        ->where('id', $violation['reported_id'])
+                        ->get()
+                        ->getRowArray();
+                    break;
+            }
+        }
+
+        return $violations;
     }
     
     /**

@@ -49,9 +49,6 @@
                         <div class="flex items-start justify-between mb-4">
                             <div class="flex-1">
                                 <div class="flex items-center gap-3 mb-2">
-                                    <span class="inline-block px-3 py-1 bg-red-100 text-red-800 text-sm font-semibold rounded">
-                                        <?= ucfirst(str_replace('_', ' ', $violation['reported_type'])) ?>
-                                    </span>
                                     <span class="inline-block px-3 py-1 text-sm font-semibold rounded
                                         <?php
                                         switch($violation['status']) {
@@ -69,43 +66,82 @@
                                 </h3>
                                 <div class="text-sm text-gray-600 mb-3">
                                     <p><strong>Reported by:</strong> <?= esc($violation['reporter_name']) ?></p>
-                                    <p><strong>Reported Item ID:</strong> <?= $violation['reported_id'] ?> (<?= ucfirst(str_replace('_', ' ', $violation['reported_type'])) ?>)</p>
                                     <p><strong>Reported on:</strong> <?= date('M d, Y H:i', strtotime($violation['created_at'])) ?></p>
                                     <?php if ($violation['reviewed_at']): ?>
                                         <p><strong>Reviewed by:</strong> <?= esc($violation['reviewer_name']) ?> on <?= date('M d, Y H:i', strtotime($violation['reviewed_at'])) ?></p>
                                     <?php endif; ?>
                                 </div>
-                                <div class="mb-3">
-                                    <?php
-                                    $viewUrl = '';
-                                    switch ($violation['reported_type']) {
-                                        case 'forum_post':
-                                            $viewUrl = '/forum/post/' . $violation['reported_id'];
-                                            break;
-                                        case 'forum_comment':
-                                            $viewUrl = '/forum/post/' . $violation['reported_id']; // Assuming comment links to post
-                                            break;
-                                        case 'product':
-                                            $viewUrl = '/marketplace/product/' . $violation['reported_id'];
-                                            break;
-                                        case 'user':
-                                            $viewUrl = '/admin/users/' . $violation['reported_id'];
-                                            break;
-                                    }
-                                    if ($viewUrl): ?>
-                                        <a href="<?= $viewUrl ?>" target="_blank" class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm">
-                                            <i data-lucide="eye" class="w-4 h-4 mr-1"></i>
-                                            View Reported Item
-                                        </a>
-                                    <?php endif; ?>
-                                </div>
-                                <?php if ($violation['description']): ?>
-                                    <div class="bg-gray-50 p-3 rounded-lg mb-3">
-                                        <p class="text-sm text-gray-700">
-                                            <strong>Description:</strong> <?= nl2br(esc($violation['description'])) ?>
-                                        </p>
+                                <div>
+                                    <!-- Button trigger modal -->
+                                    <button type="button" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors" data-bs-toggle="modal" data-bs-target="#violationModal<?= $violation['id'] ?>">
+                                        <i data-lucide="eye" class="w-4 h-4 mr-2"></i>
+                                        View Reported Item
+                                    </button>
+
+                                    <!-- Modal -->
+                                    <div class="modal fade" id="violationModal<?= $violation['id'] ?>" tabindex="-1" aria-labelledby="violationModalLabel<?= $violation['id'] ?>" aria-hidden="true">
+                                      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                                        <div class="modal-content">
+                                          <div class="modal-header">
+                                            <h5 class="modal-title" id="violationModalLabel<?= $violation['id'] ?>">Reported Item Details</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                          </div>
+                                          <div class="modal-body">
+                                            <div class="mb-4">
+                                                <h6 class="text-lg font-semibold text-gray-900 mb-3">Reported Item Information</h6>
+                                                <div class="bg-gray-50 p-3 rounded-lg">
+                                                    <p class="text-sm"><strong>Type:</strong> <?= ucfirst(str_replace('_', ' ', $violation['reported_type'])) ?></p>
+                                                    <p class="text-sm"><strong>ID:</strong> <?= $violation['reported_id'] ?></p>
+                                                </div>
+                                            </div>
+
+                                            <div class="border-t pt-4">
+                                                <h6 class="text-lg font-semibold text-gray-900 mb-3">Item Content</h6>
+                                                <?php if ($violation['reported_type'] === 'forum_post'): ?>
+                                                    <?php $post = $violation['reported_item'] ?? null; ?>
+                                                    <div class="bg-white border rounded-lg p-4">
+                                                        <h6 class="font-medium text-gray-900 mb-2">Forum Post</h6>
+                                                        <p class="text-gray-700 mb-3"><?= esc($post['content'] ?? 'No content available') ?></p>
+                                                    </div>
+                                                <?php elseif ($violation['reported_type'] === 'product'): ?>
+                                                    <?php $product = $violation['reported_item'] ?? null; ?>
+                                                    <div class="bg-white border rounded-lg p-4">
+                                                        <h6 class="font-medium text-gray-900 mb-2">Product</h6>
+                                                        <p class="text-lg font-semibold text-gray-900 mb-2"><?= esc($product['name'] ?? 'No product info available') ?></p>
+                                                        <?php if (!empty($product['images'])): ?>
+                                                            <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                                                <?php foreach($product['images'] as $image): ?>
+                                                                    <img src="<?= esc($image) ?>" class="w-full h-32 object-cover rounded-lg border" alt="Product Image"/>
+                                                                <?php endforeach; ?>
+                                                            </div>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                <?php elseif ($violation['reported_type'] === 'user'): ?>
+                                                    <?php $user = $violation['reported_item'] ?? null; ?>
+                                                    <div class="bg-white border rounded-lg p-4">
+                                                        <h6 class="font-medium text-gray-900 mb-2">User Profile</h6>
+                                                        <div class="space-y-2">
+                                                            <p><strong class="text-gray-700">Name:</strong> <span class="text-gray-900"><?= esc($user['name'] ?? 'No user info') ?></span></p>
+                                                            <p><strong class="text-gray-700">Email:</strong> <span class="text-gray-900"><?= esc($user['email'] ?? '') ?></span></p>
+                                                        </div>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
+                                          </div>
+                                          <div class="modal-footer">
+                                            <form action="/admin/violations/<?= $violation['id'] ?>/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete this reported item?');" class="me-auto">
+                                                <button type="submit" class="btn btn-danger">Delete Item</button>
+                                            </form>
+                                            <form action="/admin/violations/<?= $violation['id'] ?>/status" method="POST">
+                                                <input type="hidden" name="status" value="reviewed">
+                                                <button type="submit" class="btn btn-success">Keep Item</button>
+                                            </form>
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                          </div>
+                                        </div>
+                                      </div>
                                     </div>
-                                <?php endif; ?>
+                                </div>
                             </div>
 
                             <div class="ml-6 flex flex-col gap-2">
