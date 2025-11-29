@@ -30,7 +30,7 @@
 
     <!-- Messages List -->
     <?php if (empty($messages)): ?>
-        <div class="text-center py-12">
+        <div class="text-center py-20">
             <i data-lucide="send" class="w-16 h-16 text-gray-400 mx-auto mb-4"></i>
             <p class="text-xl text-gray-600">No sent messages</p>
             <p class="text-gray-500 mt-2">You haven't sent any messages yet</p>
@@ -39,7 +39,7 @@
             </a>
         </div>
     <?php else: ?>
-        <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+        <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden mb-40">
             <div class="divide-y divide-gray-200">
                 <?php foreach ($messages as $message): ?>
                     <div class="p-6 hover:bg-gray-50 transition-colors">

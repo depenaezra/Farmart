@@ -51,44 +51,6 @@
     <?= $this->include('components/admin_sidebar') ?>
 
     <div id="main-content" class="flex-1 ml-64 transition-all duration-300">
-        <!-- Flash Messages -->
-        <?php if (session()->getFlashdata('success') || session()->getFlashdata('error') || session()->getFlashdata('errors')): ?>
-        <div class="container mx-auto px-4 mt-4 bg-white bg-opacity-80 rounded-lg p-4 shadow-sm">
-            <?php if (session()->getFlashdata('success')): ?>
-                <div class="bg-green-50 border-l-4 border-green-500 text-green-800 p-4 rounded-md mb-4" role="alert">
-                    <div class="flex items-center">
-                        <i data-lucide="check-circle" class="w-5 h-5 mr-2"></i>
-                        <p><?= esc(session()->getFlashdata('success')) ?></p>
-                    </div>
-                </div>
-            <?php endif; ?>
-
-            <?php if (session()->getFlashdata('error')): ?>
-                <div class="bg-red-50 border-l-4 border-red-500 text-red-800 p-4 rounded-md mb-4" role="alert">
-                    <div class="flex items-center">
-                        <i data-lucide="alert-circle" class="w-5 h-5 mr-2"></i>
-                        <p><?= esc(session()->getFlashdata('error')) ?></p>
-                    </div>
-                </div>
-            <?php endif; ?>
-
-            <?php if (session()->getFlashdata('errors')): ?>
-                <div class="bg-red-50 border-l-4 border-red-500 text-red-800 p-4 rounded-md mb-4" role="alert">
-                    <div class="flex items-start">
-                        <i data-lucide="alert-circle" class="w-5 h-5 mr-2 mt-0.5"></i>
-                        <div>
-                            <p class="font-semibold mb-2">Please fix the following errors:</p>
-                            <ul class="list-disc list-inside">
-                                <?php foreach (session()->getFlashdata('errors') as $error): ?>
-                                    <li><?= esc($error) ?></li>
-                                <?php endforeach; ?>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            <?php endif; ?>
-        </div>
-        <?php endif; ?>
 
         <!-- Main Content -->
         <main class="flex-1">
