@@ -8,6 +8,10 @@ import FarmerDashboard from "./components/farmer/Dashboard";
 import AddProduct from "./components/farmer/AddProduct";
 import Inventory from "./components/farmer/Inventory";
 import FarmerOrders from "./components/farmer/Orders";
+import BuyerDashboard from "./components/buyer/BuyerDashboard";
+import BuyerAddProduct from "./components/buyer/AddProduct";
+import BuyerInventory from "./components/buyer/Inventory";
+import BuyerSellerOrders from "./components/buyer/SellerOrders";
 import Marketplace from "./components/buyer/Marketplace";
 import ProductDetail from "./components/buyer/ProductDetail";
 import Cart from "./components/buyer/Cart";
@@ -29,6 +33,10 @@ export type Page =
   | "login"
   | "register-farmer"
   | "register-buyer"
+  | "buyer-dashboard"
+  | "buyer-add-product"
+  | "buyer-inventory"
+  | "buyer-seller-orders"
   | "farmer-dashboard"
   | "add-product"
   | "inventory"
@@ -66,7 +74,7 @@ function App() {
     if (role === "farmer") {
       navigate("farmer-dashboard");
     } else if (role === "buyer") {
-      navigate("marketplace");
+      navigate("buyer-dashboard");
     } else if (role === "admin") {
       navigate("admin-dashboard");
     }
@@ -97,6 +105,14 @@ function App() {
         return <RegisterFarmer navigate={navigate} />;
       case "register-buyer":
         return <RegisterBuyer navigate={navigate} />;
+      case "buyer-dashboard":
+        return <BuyerDashboard navigate={navigate} userName={userName} />;
+      case "buyer-add-product":
+        return <BuyerAddProduct navigate={navigate} />;
+      case "buyer-inventory":
+        return <BuyerInventory navigate={navigate} />;
+      case "buyer-seller-orders":
+        return <BuyerSellerOrders navigate={navigate} />;
       case "farmer-dashboard":
         return <FarmerDashboard navigate={navigate} userName={userName} />;
       case "add-product":

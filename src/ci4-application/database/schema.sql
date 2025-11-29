@@ -170,6 +170,30 @@ CREATE TABLE `forum_comments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
+-- Table: violations
+-- Description: Reports of inappropriate content
+-- ============================================================
+CREATE TABLE `violations` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `reporter_id` int(11) unsigned NOT NULL,
+  `reported_type` enum('forum_post','forum_comment','product','user') NOT NULL,
+  `reported_id` int(11) unsigned NOT NULL,
+  `reason` varchar(255) NOT NULL,
+  `description` text,
+  `status` enum('pending','reviewed','resolved') DEFAULT 'pending',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `reviewed_at` timestamp NULL DEFAULT NULL,
+  `reviewed_by` int(11) unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `reporter_id` (`reporter_id`),
+  KEY `reported_type` (`reported_type`),
+  KEY `reported_id` (`reported_id`),
+  KEY `status` (`status`),
+  CONSTRAINT `violations_ibfk_1` FOREIGN KEY (`reporter_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `violations_ibfk_2` FOREIGN KEY (`reviewed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
 -- Insert sample data
 -- ============================================================
 

@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= esc($title ?? 'AgriConnect - Nasugbu Agricultural Marketplace') ?></title>
-    <meta name="description" content="AgriConnect - Direct marketplace connecting Nasugbu farmers with local buyers">
+    <title><?= esc($title ?? 'Farmart - Nasugbu Agricultural Marketplace') ?></title>
+    <meta name="description" content="Farmart - Direct marketplace connecting Nasugbu farmers with local buyers">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -20,31 +20,39 @@
                         'success': '#16a34a',
                         'warning': '#f59e0b',
                         'error': '#dc2626',
+                        'mint': '#a7f3d0',
+                        'mint-light': '#d1fae5',
+                        'mint-dark': '#6ee7b7',
                     }
                 }
             }
         }
     </script>
     
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+
     <!-- SweetAlert2 + animations -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
+
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col bg-gray-50">
+<body class="min-h-screen flex flex-col bg-mint-light">
     
     <?= $this->include('components/navbar') ?>
     
     <!-- Flash Messages -->
-    <div class="container mx-auto px-4 mt-4">
+    <?php if (session()->getFlashdata('success') || session()->getFlashdata('error') || session()->getFlashdata('errors')): ?>
+    <div class="container mx-auto px-4 mt-4 bg-white bg-opacity-80 rounded-lg p-4 shadow-sm">
         <?php if (session()->getFlashdata('success')): ?>
             <div class="bg-green-50 border-l-4 border-green-500 text-green-800 p-4 rounded-md mb-4" role="alert">
                 <div class="flex items-center">
@@ -53,7 +61,7 @@
                 </div>
             </div>
         <?php endif; ?>
-        
+
         <?php if (session()->getFlashdata('error')): ?>
             <div class="bg-red-50 border-l-4 border-red-500 text-red-800 p-4 rounded-md mb-4" role="alert">
                 <div class="flex items-center">
@@ -62,7 +70,7 @@
                 </div>
             </div>
         <?php endif; ?>
-        
+
         <?php if (session()->getFlashdata('errors')): ?>
             <div class="bg-red-50 border-l-4 border-red-500 text-red-800 p-4 rounded-md mb-4" role="alert">
                 <div class="flex items-start">
@@ -79,6 +87,7 @@
             </div>
         <?php endif; ?>
     </div>
+    <?php endif; ?>
     
     <!-- Main Content -->
     <main class="flex-1">
@@ -87,15 +96,17 @@
     
     <?= $this->include('components/footer') ?>
     
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <!-- Initialize Lucide Icons -->
     <script>
         lucide.createIcons();
     </script>
-</pre>
+
     <script>
         document.addEventListener('DOMContentLoaded', function(){
-            const container = document.querySelector('.container.mx-auto');
-            const alerts = container ? container.querySelectorAll('[role="alert"]') : [];
+            const alerts = document.querySelectorAll('[role="alert"]');
             alerts.forEach(el => {
                 const cls = el.className || '';
                 let icon = 'info';
@@ -104,7 +115,7 @@
                 else if (/red|error/.test(cls)) { icon = 'error'; title = 'Error'; }
                 else if (/warning/.test(cls)) { icon = 'warning'; title = 'Warning'; }
 
-                // Prefer list content for errors, otherwise first paragraph text
+                // Extract message HTML: prefer list items, otherwise paragraph text
                 let html = '';
                 const ul = el.querySelector('ul');
                 if (ul) {
@@ -114,10 +125,9 @@
                     html = p ? p.innerHTML : el.innerHTML;
                 }
 
-                // Remove original element from DOM
+                // Remove original element so it doesn't show in page
                 el.remove();
 
-                // Show SweetAlert2 popup
                 try {
                     const isList = !!el.querySelector('ul');
                     const textOnly = (function(){
@@ -152,9 +162,68 @@
                         });
                     }
                 } catch (e) {
-                    // If SweetAlert2 isn't available for some reason, silently fallback to keeping alert markup
                     console.error('SweetAlert2 not available', e);
                 }
+            });
+        });
+    </script>
+
+    <script>
+        // Global SweetAlert2 confirm handler for forms and links/buttons
+        document.addEventListener('DOMContentLoaded', function(){
+            function showConfirm(message, confirmText = 'Yes', cancelText = 'Cancel'){
+                if (!(window.Swal)) return Promise.resolve({ isConfirmed: confirm(message) });
+                return Swal.fire({
+                    title: message,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: confirmText,
+                    cancelButtonText: cancelText,
+                    reverseButtons: true,
+                    showClass: { popup: 'animate__animated animate__zoomIn' },
+                    hideClass: { popup: 'animate__animated animate__fadeOutUp' }
+                });
+            }
+
+            // Intercept forms with data-confirm or class swal-confirm-form
+            document.querySelectorAll('form[data-confirm], form.swal-confirm-form').forEach(form => {
+                form.addEventListener('submit', function(e){
+                    e.preventDefault();
+                    const msg = form.getAttribute('data-confirm') || form.dataset.confirmMessage || 'Are you sure?';
+                    showConfirm(msg).then(result => {
+                        if (result && result.isConfirmed) form.submit();
+                    });
+                });
+            });
+
+            // Intercept links/buttons with data-confirm or class swal-confirm
+            document.querySelectorAll('[data-confirm], .swal-confirm').forEach(el => {
+                // skip forms (handled above)
+                if (el.tagName === 'FORM') return;
+
+                el.addEventListener('click', function(e){
+                    const msg = el.getAttribute('data-confirm') || el.dataset.confirmMessage || 'Are you sure?';
+
+                    // If element is a link
+                    const href = el.getAttribute('href');
+                    if (href) {
+                        e.preventDefault();
+                        showConfirm(msg).then(result => {
+                            if (result && result.isConfirmed) window.location = href;
+                        });
+                        return;
+                    }
+
+                    // If element targets a form via data-target-form
+                    const target = el.getAttribute('data-target-form');
+                    if (target) {
+                        e.preventDefault();
+                        const form = document.querySelector(target);
+                        if (form){
+                            showConfirm(msg).then(result => { if (result && result.isConfirmed) form.submit(); });
+                        }
+                    }
+                });
             });
         });
     </script>

@@ -1,4 +1,4 @@
-import { Menu, X, Home, ShoppingBag, LayoutDashboard, Cloud, Megaphone, MessageSquare, ShoppingCart, User, LogOut, Users } from "lucide-react";
+import { Menu, X, Home, ShoppingBag, LayoutDashboard, Cloud, Megaphone, MessageSquare, ShoppingCart, User, LogOut, Users, Package } from "lucide-react";
 import { useState } from "react";
 import { UserRole, Page } from "../App";
 
@@ -26,7 +26,7 @@ export default function Layout({ children, navigate, userRole, onLogout, cartIte
           <div className="flex items-center justify-between h-16 md:h-20">
             {/* Logo */}
             <button 
-              onClick={() => navigate(userRole === "guest" ? "landing" : userRole === "farmer" ? "farmer-dashboard" : userRole === "buyer" ? "marketplace" : "admin-dashboard")}
+              onClick={() => navigate(userRole === "guest" ? "landing" : userRole === "farmer" ? "farmer-dashboard" : userRole === "buyer" ? "buyer-dashboard" : "admin-dashboard")}
               className="flex items-center gap-2 hover:opacity-80 transition-opacity"
             >
               <div className="w-10 h-10 md:w-12 md:h-12 bg-primary rounded-lg flex items-center justify-center">
@@ -41,7 +41,7 @@ export default function Layout({ children, navigate, userRole, onLogout, cartIte
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-4">
               <button
-                onClick={() => navigate(userRole === "guest" ? "landing" : userRole === "farmer" ? "farmer-dashboard" : userRole === "buyer" ? "marketplace" : "admin-dashboard")}
+                onClick={() => navigate(userRole === "guest" ? "landing" : userRole === "farmer" ? "farmer-dashboard" : userRole === "buyer" ? "buyer-dashboard" : "admin-dashboard")}
                 className="flex items-center gap-2 px-4 py-2 text-neutral-700 hover:text-primary hover:bg-neutral-100 rounded-lg transition-colors"
               >
                 <Home className="w-5 h-5" />
@@ -64,6 +64,35 @@ export default function Layout({ children, navigate, userRole, onLogout, cartIte
                   <LayoutDashboard className="w-5 h-5" />
                   <span>Dashboard</span>
                 </button>
+              )}
+
+              {userRole === "buyer" && (
+                <button
+                  onClick={() => navigate("buyer-dashboard")}
+                  className="flex items-center gap-2 px-4 py-2 text-neutral-700 hover:text-primary hover:bg-neutral-100 rounded-lg transition-colors"
+                >
+                  <LayoutDashboard className="w-5 h-5" />
+                  <span>Seller Hub</span>
+                </button>
+              )}
+
+              {userRole === "buyer" && (
+                <>
+                  <button
+                    onClick={() => navigate("buyer-inventory")}
+                    className="flex items-center gap-2 px-4 py-2 text-neutral-700 hover:text-primary hover:bg-neutral-100 rounded-lg transition-colors"
+                  >
+                    <Package className="w-5 h-5" />
+                    <span>My Listings</span>
+                  </button>
+                  <button
+                    onClick={() => navigate("buyer-seller-orders")}
+                    className="flex items-center gap-2 px-4 py-2 text-neutral-700 hover:text-primary hover:bg-neutral-100 rounded-lg transition-colors"
+                  >
+                    <ShoppingBag className="w-5 h-5" />
+                    <span>Sales Orders</span>
+                  </button>
+                </>
               )}
 
               {userRole === "admin" && (
@@ -160,7 +189,7 @@ export default function Layout({ children, navigate, userRole, onLogout, cartIte
             <div className="container py-4 space-y-2">
               <button
                 onClick={() => {
-                  navigate(userRole === "guest" ? "landing" : userRole === "farmer" ? "farmer-dashboard" : userRole === "buyer" ? "marketplace" : "admin-dashboard");
+                  navigate(userRole === "guest" ? "landing" : userRole === "farmer" ? "farmer-dashboard" : userRole === "buyer" ? "buyer-dashboard" : "admin-dashboard");
                   setMobileMenuOpen(false);
                 }}
                 className="w-full flex items-center gap-3 px-4 py-3 text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors"
@@ -191,6 +220,44 @@ export default function Layout({ children, navigate, userRole, onLogout, cartIte
                   <LayoutDashboard className="w-6 h-6" />
                   <span>Dashboard</span>
                 </button>
+              )}
+
+              {userRole === "buyer" && (
+                <button
+                  onClick={() => {
+                    navigate("buyer-dashboard");
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors"
+                >
+                  <LayoutDashboard className="w-6 h-6" />
+                  <span>Seller Hub</span>
+                </button>
+              )}
+
+              {userRole === "buyer" && (
+                <>
+                  <button
+                    onClick={() => {
+                      navigate("buyer-inventory");
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors"
+                  >
+                    <Package className="w-6 h-6" />
+                    <span>My Listings</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigate("buyer-seller-orders");
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors"
+                  >
+                    <ShoppingBag className="w-6 h-6" />
+                    <span>Sales Orders</span>
+                  </button>
+                </>
               )}
 
               {userRole === "admin" && (

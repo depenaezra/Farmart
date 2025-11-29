@@ -1,0 +1,174 @@
+<?= $this->extend('layouts/main') ?>
+
+<?= $this->section('content') ?>
+
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Shopping Cart</h1>
+        <p class="text-gray-600">Review your items before checkout</p>
+    </div>
+
+    <?php if (empty($cart)): ?>
+        <div class="bg-white rounded-xl shadow-md border border-gray-200 p-12 text-center">
+            <i data-lucide="shopping-cart" class="w-16 h-16 text-gray-400 mx-auto mb-4"></i>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-2">Your cart is empty</h2>
+            <p class="text-gray-600 mb-6">Add some products to get started!</p>
+            <a href="/marketplace" class="inline-block bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-hover font-semibold transition-colors">
+                <i data-lucide="arrow-left" class="w-5 h-5 inline mr-2"></i>
+                Continue Shopping
+            </a>
+        </div>
+    <?php else: ?>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Cart Items -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+                    <div class="p-6 border-b border-gray-200">
+                        <h2 class="text-xl font-semibold text-gray-900">
+                            Cart Items (<?= $item_count ?>)
+                        </h2>
+                    </div>
+                    
+                    <div class="divide-y divide-gray-200">
+                        <?php foreach ($cart as $item): ?>
+                            <div class="p-6 flex gap-4">
+                                <!-- Product Image -->
+                                <div class="flex-shrink-0">
+                                    <?php if (!empty($item['image_url'])): ?>
+                                        <img src="<?= esc($item['image_url']) ?>" 
+                                             alt="<?= esc($item['product_name']) ?>" 
+                                             class="w-24 h-24 object-cover rounded-lg">
+                                    <?php else: ?>
+                                        <div class="w-24 h-24 bg-gray-200 rounded-lg flex items-center justify-center">
+                                            <i data-lucide="image" class="w-8 h-8 text-gray-400"></i>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+
+                                <!-- Product Details -->
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-1">
+                                        <?= esc($item['product_name']) ?>
+                                    </h3>
+                                    <p class="text-sm text-gray-600 mb-2">
+                                        <i data-lucide="user" class="w-4 h-4 inline mr-1"></i>
+                                        <?= esc($item['farmer_name']) ?>
+                                    </p>
+                                    <?php if (!empty($item['location'])): ?>
+                                        <p class="text-sm text-gray-500 mb-3">
+                                            <i data-lucide="map-pin" class="w-4 h-4 inline mr-1"></i>
+                                            <?= esc($item['location']) ?>
+                                        </p>
+                                    <?php endif; ?>
+                                    
+                                    <div class="flex items-center justify-between mt-4">
+                                        <div class="flex items-center gap-4">
+                                            <!-- Quantity Update -->
+                                            <form action="/cart/update/<?= esc($item['id']) ?>" method="POST" class="flex items-center gap-2">
+                                                <?= csrf_field() ?>
+                                                <label for="quantity_<?= $item['id'] ?>" class="text-sm font-medium text-gray-700">Qty:</label>
+                                                <input 
+                                                    type="number" 
+                                                    id="quantity_<?= $item['id'] ?>" 
+                                                    name="quantity" 
+                                                    value="<?= $item['quantity'] ?>" 
+                                                    min="1"
+                                                    class="w-20 px-3 py-1 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                    onchange="this.form.submit()"
+                                                >
+                                                <span class="text-sm text-gray-600"><?= esc($item['unit']) ?></span>
+                                            </form>
+                                        </div>
+                                        
+                                        <div class="text-right">
+                                            <p class="text-lg font-bold text-primary">
+                                                ₱<?= number_format($item['price'] * $item['quantity'], 2) ?>
+                                            </p>
+                                            <p class="text-sm text-gray-500">
+                                                ₱<?= number_format($item['price'], 2) ?> per <?= esc($item['unit']) ?>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Remove Button -->
+                                <div class="flex-shrink-0">
+                                    <form action="/cart/remove/<?= esc($item['id']) ?>" method="POST" class="swal-confirm-form" data-confirm="Remove this item from cart?">
+                                        <?= csrf_field() ?>
+                                        <button type="submit" class="text-red-500 hover:text-red-700 transition-colors">
+                                            <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+
+                    <!-- Clear Cart -->
+                    <div class="p-6 border-t border-gray-200">
+                        <form action="/cart/clear" method="GET" class="swal-confirm-form" data-confirm="Clear entire cart? This cannot be undone.">
+                            <button type="submit" class="text-red-600 hover:text-red-700 text-sm font-medium transition-colors">
+                                <i data-lucide="trash-2" class="w-4 h-4 inline mr-1"></i>
+                                Clear Cart
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6 sticky top-4">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Order Summary</h2>
+                    
+                    <div class="space-y-3 mb-6">
+                        <div class="flex justify-between text-gray-600">
+                            <span>Subtotal (<?= $item_count ?> items)</span>
+                            <span class="font-semibold">₱<?= number_format($subtotal, 2) ?></span>
+                        </div>
+                        <div class="flex justify-between text-gray-600">
+                            <span>Shipping</span>
+                            <span class="font-semibold">TBD</span>
+                        </div>
+                        <div class="border-t border-gray-200 pt-3 mt-3">
+                            <div class="flex justify-between text-lg font-bold text-gray-900">
+                                <span>Total</span>
+                                <span class="text-primary">₱<?= number_format($subtotal, 2) ?></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <a href="/checkout" class="block w-full bg-primary text-white text-center px-6 py-3 rounded-lg hover:bg-primary-hover font-semibold transition-colors">
+                            <i data-lucide="shopping-bag" class="w-5 h-5 inline mr-2"></i>
+                            Proceed to Checkout
+                        </a>
+                        <a href="/marketplace" class="block w-full bg-gray-200 text-gray-700 text-center px-6 py-3 rounded-lg hover:bg-gray-300 font-semibold transition-colors">
+                            <i data-lucide="arrow-left" class="w-5 h-5 inline mr-2"></i>
+                            Continue Shopping
+                        </a>
+                    </div>
+
+                    <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p class="text-sm text-blue-800">
+                            <i data-lucide="info" class="w-4 h-4 inline mr-1"></i>
+                            Shipping costs will be calculated at checkout
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+});
+</script>
+
+<?= $this->endSection() ?>
+
