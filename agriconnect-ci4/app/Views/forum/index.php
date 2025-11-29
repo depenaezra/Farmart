@@ -433,6 +433,4 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 </script>
 
-*** End Patch
-
 <?= $this->endSection() ?>

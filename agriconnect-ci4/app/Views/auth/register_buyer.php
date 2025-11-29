@@ -8,8 +8,8 @@
             <div class="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
                 <i data-lucide="shopping-bag" class="w-8 h-8 text-white"></i>
             </div>
-            <h1 class="text-3xl font-bold text-gray-900">Register as Buyer</h1>
-            <p class="text-gray-600 mt-2">Start buying fresh local produce directly from farmers</p>
+            <h1 class="text-3xl font-bold text-gray-900">Register</h1>
+            <p class="text-gray-600 mt-2">Create your account to get started</p>
         </div>
         
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
@@ -114,7 +114,7 @@
                     class="w-full bg-accent text-white py-3 rounded-lg font-semibold hover:bg-accent/90 transition-colors flex items-center justify-center"
                 >
                     <i data-lucide="user-plus" class="w-5 h-5 mr-2"></i>
-                    Register as Buyer
+                    Register
                 </button>
             </form>
             
