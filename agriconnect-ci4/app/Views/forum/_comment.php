@@ -1,7 +1,7 @@
 <div class="border-l-4 border-gray-200 pl-6">
     <div class="flex items-start justify-between mb-2">
         <div class="flex items-center">
-            <span class="font-semibold text-gray-900 mr-2"><?= esc($comment['author_name']) ?></span>
+            <a href="/users/<?= $comment['user_id'] ?>" class="font-semibold text-gray-900 mr-2 hover:underline"><?= esc($comment['author_name']) ?></a>
             <?php if (!empty($comment['author_role'])): ?>
                 <span class="inline-block px-2 py-1 bg-primary/10 text-primary text-xs font-semibold rounded">
                     <?= ucfirst(esc($comment['author_role'])) ?>

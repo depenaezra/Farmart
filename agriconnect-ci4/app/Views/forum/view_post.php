@@ -18,7 +18,7 @@
                 <!-- Post Header -->
                 <div class="mb-4">
                     <div class="flex items-center text-xs text-gray-500 mb-3">
-                        <span class="font-medium text-gray-700"><?= esc($post['author_name']) ?></span>
+                        <a href="/users/<?= $post['user_id'] ?>" class="font-medium text-gray-700 hover:underline"><?= esc($post['author_name']) ?></a>
                         <?php if (!empty($post['author_role'])): ?>
                             <span class="ml-2 inline-block px-2 py-0.5 bg-primary/10 text-primary text-xs font-semibold rounded">
                                 <?= ucfirst(esc($post['author_role'])) ?>

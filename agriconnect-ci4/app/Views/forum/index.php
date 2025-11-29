@@ -120,7 +120,7 @@
                         <!-- Post Header -->
                         <div class="mb-3">
                             <div class="flex items-center text-xs text-gray-500 mb-2">
-                                <span class="font-medium text-gray-700"><?= esc($post['author_name']) ?></span>
+                                <a href="/users/<?= $post['user_id'] ?>" class="font-medium text-gray-700 hover:underline"><?= esc($post['author_name']) ?></a>
                                 <span class="mx-1">•</span>
                                 <span><?= date('M d, Y', strtotime($post['created_at'])) ?></span>
                                 <?php if (!empty($post['category'])): ?>
@@ -295,8 +295,8 @@ document.getElementById('reportForm').addEventListener('submit', function(e) {
 });
 </script>
 
-<!-- Post Detail Modal (improved design, lighter backdrop, animations) -->
-<div id="postModal" class="fixed inset-0 bg-black bg-opacity-20 hidden z-50">
+<!-- Post Detail Modal (improved design: light blur backdrop, focused popup) -->
+<div id="postModal" class="fixed inset-0 bg-black/10 backdrop-blur-sm hidden z-50">
     <div class="flex items-center justify-center min-h-screen p-4">
         <div id="postModalCard" class="bg-white rounded-lg max-w-3xl w-full p-0 overflow-hidden shadow-xl transform transition-all">
             <div class="p-4 border-b flex items-start justify-between">
@@ -314,6 +314,17 @@ document.getElementById('reportForm').addEventListener('submit', function(e) {
 </div>
 
 <script>
+// small helper to escape text for HTML insertion
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return String(unsafe)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 async function openPostModalFromData(data){
     try{
         const post = (typeof data === 'string') ? JSON.parse(data) : data;
@@ -328,6 +339,16 @@ async function openPostModalFromData(data){
         card.classList.remove('animate__fadeOutUp');
         card.classList.add('animate__animated', 'animate__zoomIn');
 
+        // populate modal header from embedded data so author link is available immediately
+        const headerTitleEl = document.getElementById('postModalTitle');
+        const headerMetaEl = document.getElementById('postModalMeta');
+        if (headerTitleEl) headerTitleEl.innerText = post.title || '';
+        if (headerMetaEl) {
+            const date = post.created_at ? new Date(post.created_at) : null;
+            const authorLink = post.author_id ? `<a href="/users/${post.author_id}" class="text-primary hover:underline">${escapeHtml(post.author_name || '')}</a>` : escapeHtml(post.author_name || '');
+            headerMetaEl.innerHTML = authorLink + (date ? ' • ' + date.toLocaleString() : '') + (post.category ? ' • ' + escapeHtml(post.category) : '');
+        }
+
         // Try fetching full post page so we can include comments and exact layout
         try {
             const resp = await fetch('/forum/post/' + encodeURIComponent(id));
@@ -336,31 +357,33 @@ async function openPostModalFromData(data){
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
 
+
             // Select the main post container and comments container from the page
             const postContainer = doc.querySelector('.bg-white.rounded-lg.border');
             const commentsNode = doc.getElementById('comments');
 
             inner.innerHTML = '';
-            if (postContainer) inner.appendChild(postContainer.cloneNode(true));
+            if (postContainer) {
+                // Clone post and remove its internal title/meta to avoid duplicate info
+                const clone = postContainer.cloneNode(true);
+                const innerTitle = clone.querySelector('h1, h2, h3');
+                if (innerTitle) innerTitle.remove();
+                const innerMeta = clone.querySelector('.text-xs.text-gray-500');
+                if (innerMeta) innerMeta.remove();
+                inner.appendChild(clone);
+            }
             if (commentsNode) inner.appendChild(commentsNode.cloneNode(true));
-
-            // update modal header metadata
-            const fetchedTitle = doc.querySelector('h1, h2, h3');
-            if (fetchedTitle) document.getElementById('postModalTitle').innerText = fetchedTitle.innerText.trim();
-            const meta = doc.querySelector('.text-xs.text-gray-500');
-            if (meta) document.getElementById('postModalMeta').innerText = meta.innerText.trim();
 
             // Re-initialize lucide icons inside modal
             lucide.createIcons();
 
         } catch (err) {
-            // Fallback: render basic data with mentions linked
-            document.getElementById('postModalTitle').innerText = post.title || '';
-            const date = post.created_at ? new Date(post.created_at) : null;
-            document.getElementById('postModalMeta').innerText = (post.author_name ? post.author_name + ' • ' : '') + (date ? date.toLocaleString() : '');
-            let content = post.content || '';
-            content = content.replace(/@([a-zA-Z0-9_\-]+)/g, function(match, u){ return `<a href="/users/${u}" class="text-primary">@${u}</a>`; });
-            inner.innerHTML = `<div class="mb-4 text-gray-800">${content}</div>`;
+            // Fallback: render basic data with mentions linked (header already populated above)
+            // ensure meta includes linked author (already set from embedded data)
+            let raw = post.content || '';
+            let safe = escapeHtml(raw);
+            safe = safe.replace(/@([a-zA-Z0-9_\-\.]+)/g, function(match, u){ return `<a href="/users/${u}" class="text-primary">@${u}</a>`; });
+            inner.innerHTML = `<div class="mb-4 text-gray-800">${safe}</div>`;
             console.warn('Could not fetch full post, using embedded data', err);
         }
 
