@@ -1,4 +1,4 @@
-<?= $this->extend('layouts/main') ?>
+<?= $this->extend('layouts/admin') ?>
 
 <?= $this->section('content') ?>
 
@@ -89,52 +89,6 @@
                     <p class="text-xs text-gray-500">This month</p>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6 mb-8">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <a href="/admin/users" class="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
-                <i data-lucide="users" class="w-8 h-8 text-blue-600 mr-3"></i>
-                <div>
-                    <p class="font-semibold text-gray-900">Manage Users</p>
-                    <p class="text-sm text-gray-600">View and edit user accounts</p>
-                </div>
-            </a>
-
-            <a href="/admin/products" class="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
-                <i data-lucide="package" class="w-8 h-8 text-green-600 mr-3"></i>
-                <div>
-                    <p class="font-semibold text-gray-900">Moderate Products</p>
-                    <p class="text-sm text-gray-600">Approve or reject products</p>
-                </div>
-            </a>
-
-            <a href="/admin/violations" class="flex items-center p-4 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
-                <i data-lucide="flag" class="w-8 h-8 text-red-600 mr-3"></i>
-                <div>
-                    <p class="font-semibold text-gray-900">Review Reports</p>
-                    <p class="text-sm text-gray-600">Handle violation reports</p>
-                </div>
-            </a>
-
-            <a href="/admin/announcements" class="flex items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
-                <i data-lucide="megaphone" class="w-8 h-8 text-purple-600 mr-3"></i>
-                <div>
-                    <p class="font-semibold text-gray-900">Manage Announcements</p>
-                    <p class="text-sm text-gray-600">Create and edit announcements</p>
-                </div>
-            </a>
-
-            <a href="/admin/analytics" class="flex items-center p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors">
-                <i data-lucide="bar-chart-3" class="w-8 h-8 text-yellow-600 mr-3"></i>
-                <div>
-                    <p class="font-semibold text-gray-900">View Analytics</p>
-                    <p class="text-sm text-gray-600">System reports and insights</p>
-                </div>
-            </a>
         </div>
     </div>
 

@@ -1,9 +1,9 @@
-<?= $this->extend('layouts/main') ?>
+<?= $this->extend(session()->get('user_role') === 'admin' ? 'layouts/admin' : 'layouts/main') ?>
 
 <?= $this->section('content') ?>
 
 <div class="container mx-auto px-4 py-8">
-    <div class="max-w-4xl mx-auto">
+    <div class="max-w-4xl">
         <div class="mb-8">
             <div class="flex items-center justify-between">
                 <div>
@@ -105,12 +105,6 @@
                             </div>
                         <?php endif; ?>
 
-                        <div class="pt-6 border-t border-gray-200">
-                            <a href="/profile/edit" class="inline-flex items-center px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors font-semibold">
-                                <i data-lucide="edit" class="w-5 h-5 mr-2"></i>
-                                Edit Profile
-                            </a>
-                        </div>
                     </div>
                 </div>
             </div>

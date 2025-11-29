@@ -55,18 +55,8 @@
                                 <a href="/cart" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
                                     <i data-lucide="shopping-cart" class="w-4 h-4 inline mr-2"></i>Cart
                                 </a>
-                            <?php elseif ($role === 'admin'): ?>
-                                <a href="/admin/dashboard" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-t-lg">
-                                    <i data-lucide="shield" class="w-4 h-4 inline mr-2"></i>Admin Dashboard
-                                </a>
-                                <a href="/admin/users" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                                    <i data-lucide="users" class="w-4 h-4 inline mr-2"></i>Users
-                                </a>
-                                <a href="/admin/products" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                                    <i data-lucide="package" class="w-4 h-4 inline mr-2"></i>Products
-                                </a>
                             <?php endif; ?>
-                            
+
                             <a href="/messages/inbox" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
                                 <i data-lucide="mail" class="w-4 h-4 inline mr-2"></i>Messages
                             </a>
@@ -116,8 +106,6 @@
                     <a href="/buyer/sales/orders" class="block py-2 text-gray-700 hover:text-primary">Sales Orders</a>
                     <a href="/buyer/orders" class="block py-2 text-gray-700 hover:text-primary">My Orders</a>
                     <a href="/cart" class="block py-2 text-gray-700 hover:text-primary">Cart</a>
-                <?php elseif ($role === 'admin'): ?>
-                    <a href="/admin/dashboard" class="block py-2 text-gray-700 hover:text-primary">Admin Dashboard</a>
                 <?php endif; ?>
                 
                 <a href="/messages/inbox" class="block py-2 text-gray-700 hover:text-primary">Messages</a>
