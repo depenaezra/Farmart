@@ -9,6 +9,11 @@ class Home extends BaseController
 {
     public function index()
     {
+        // Redirect logged-in users to marketplace
+        if (session()->has('logged_in') && session()->get('logged_in')) {
+            return redirect()->to('/marketplace');
+        }
+
         $data = [
             'title' => 'Farmart - Nasugbu Agricultural Marketplace',
             'featured_products' => []
