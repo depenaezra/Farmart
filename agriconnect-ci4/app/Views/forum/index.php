@@ -101,9 +101,21 @@
             <?php endif; ?>
         </div>
     <?php else: ?>
-        <div class="space-y-4">
+            <div class="space-y-4 flex flex-col items-center">
             <?php foreach ($posts as $post): ?>
-                <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover:border-gray-300 transition-colors">
+                    <?php $postData = htmlspecialchars(json_encode([
+                        'id' => $post['id'],
+                        'title' => $post['title'],
+                        'author_name' => $post['author_name'] ?? '',
+                        'author_id' => $post['user_id'] ?? null,
+                        'created_at' => $post['created_at'] ?? '',
+                        'content' => $post['content'] ?? '',
+                        'image_url' => $post['image_url'] ?? null,
+                        'likes' => $post['likes'] ?? 0,
+                        'comment_count' => $post['comment_count'] ?? 0,
+                    ]), ENT_QUOTES, 'UTF-8'); ?>
+
+                    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover:border-gray-300 transition-colors w-full max-w-3xl">
                     <div class="p-4">
                         <!-- Post Header -->
                         <div class="mb-3">
@@ -125,10 +137,22 @@
                             </h2>
                         </div>
 
-                        <!-- Post Content Preview -->
-                        <div class="text-gray-700 text-sm mb-4 line-clamp-3">
-                            <?= esc(substr($post['content'], 0, 300)) ?><?= strlen($post['content']) > 300 ? '...' : '' ?>
-                        </div>
+                            <!-- Image (if any) -->
+                            <?php if (!empty($post['image_url'])): ?>
+                                <div class="mb-4">
+                                    <img src="<?= esc($post['image_url']) ?>" alt="<?= esc($post['title']) ?>" class="w-full h-64 object-cover rounded-lg">
+                                </div>
+                            <?php endif; ?>
+
+                            <!-- Post Content Preview -->
+                            <?php $plain = trim(strip_tags($post['content'])); ?>
+                            <?php if (strlen($plain) >= 50): ?>
+                                <div class="text-gray-700 text-sm mb-4">
+                                    <?= esc(substr($plain, 0, 50)) ?>... <a href="#" class="text-primary view-more" data-post='<?= $postData ?>'>View more</a>
+                                </div>
+                            <?php else: ?>
+                                <div class="text-gray-700 text-sm mb-4"><?= esc($plain) ?></div>
+                            <?php endif; ?>
 
                         <!-- Reddit-style Action Buttons at Bottom -->
                         <div class="flex items-center gap-4 pt-3 border-t border-gray-100">
@@ -149,7 +173,7 @@
                             <?php endif; ?>
 
                             <!-- Comment Button (Cherry Emoji) -->
-                            <a href="/forum/post/<?= $post['id'] ?>" class="flex items-center gap-1.5 px-2 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded transition-colors group">
+                            <a href="/forum/post/<?= $post['id'] ?>" class="open-post-modal flex items-center gap-1.5 px-2 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded transition-colors group" data-post='<?= $postData ?>'>
                                 <span class="text-base group-hover:scale-110 transition-transform">🍒</span>
                                 <span class="font-medium"><?= $post['comment_count'] ?? 0 ?></span>
                                 <span class="hidden sm:inline">Comments</span>
@@ -270,5 +294,122 @@ document.getElementById('reportForm').addEventListener('submit', function(e) {
     });
 });
 </script>
+
+<!-- Post Detail Modal (improved design, lighter backdrop, animations) -->
+<div id="postModal" class="fixed inset-0 bg-black bg-opacity-20 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div id="postModalCard" class="bg-white rounded-lg max-w-3xl w-full p-0 overflow-hidden shadow-xl transform transition-all">
+            <div class="p-4 border-b flex items-start justify-between">
+                <div>
+                    <h3 id="postModalTitle" class="text-lg font-semibold"></h3>
+                    <div id="postModalMeta" class="text-xs text-gray-500"></div>
+                </div>
+                <button id="postModalClose" class="text-gray-500 hover:text-gray-800 ml-4 text-2xl leading-none">&times;</button>
+            </div>
+            <div id="postModalBody" class="p-4 max-h-[70vh] overflow-auto">
+                <div id="postModalInner"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function openPostModalFromData(data){
+    try{
+        const post = (typeof data === 'string') ? JSON.parse(data) : data;
+        const id = post.id;
+
+        const modal = document.getElementById('postModal');
+        const card = document.getElementById('postModalCard');
+        const inner = document.getElementById('postModalInner');
+
+        // Show modal and animate in
+        modal.classList.remove('hidden');
+        card.classList.remove('animate__fadeOutUp');
+        card.classList.add('animate__animated', 'animate__zoomIn');
+
+        // Try fetching full post page so we can include comments and exact layout
+        try {
+            const resp = await fetch('/forum/post/' + encodeURIComponent(id));
+            if (!resp.ok) throw new Error('Fetch failed');
+            const html = await resp.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+
+            // Select the main post container and comments container from the page
+            const postContainer = doc.querySelector('.bg-white.rounded-lg.border');
+            const commentsNode = doc.getElementById('comments');
+
+            inner.innerHTML = '';
+            if (postContainer) inner.appendChild(postContainer.cloneNode(true));
+            if (commentsNode) inner.appendChild(commentsNode.cloneNode(true));
+
+            // update modal header metadata
+            const fetchedTitle = doc.querySelector('h1, h2, h3');
+            if (fetchedTitle) document.getElementById('postModalTitle').innerText = fetchedTitle.innerText.trim();
+            const meta = doc.querySelector('.text-xs.text-gray-500');
+            if (meta) document.getElementById('postModalMeta').innerText = meta.innerText.trim();
+
+            // Re-initialize lucide icons inside modal
+            lucide.createIcons();
+
+        } catch (err) {
+            // Fallback: render basic data with mentions linked
+            document.getElementById('postModalTitle').innerText = post.title || '';
+            const date = post.created_at ? new Date(post.created_at) : null;
+            document.getElementById('postModalMeta').innerText = (post.author_name ? post.author_name + ' • ' : '') + (date ? date.toLocaleString() : '');
+            let content = post.content || '';
+            content = content.replace(/@([a-zA-Z0-9_\-]+)/g, function(match, u){ return `<a href="/users/${u}" class="text-primary">@${u}</a>`; });
+            inner.innerHTML = `<div class="mb-4 text-gray-800">${content}</div>`;
+            console.warn('Could not fetch full post, using embedded data', err);
+        }
+
+        // Wire close button
+        document.getElementById('postModalClose').onclick = closePostModal;
+
+    } catch(e) {
+        console.error('Invalid post data for modal', e, data);
+    }
+}
+
+function closePostModal(){
+    const modal = document.getElementById('postModal');
+    const card = document.getElementById('postModalCard');
+    // animate out
+    card.classList.remove('animate__zoomIn');
+    card.classList.add('animate__animated', 'animate__fadeOutUp');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        card.classList.remove('animate__fadeOutUp');
+    }, 260);
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+    // Wire view-more links
+    document.querySelectorAll('.view-more').forEach(el => {
+        el.addEventListener('click', function(e){
+            e.preventDefault();
+            const data = el.getAttribute('data-post');
+            openPostModalFromData(data);
+        });
+    });
+
+    // Wire comment/open-post buttons
+    document.querySelectorAll('.open-post-modal').forEach(el => {
+        el.addEventListener('click', function(e){
+            e.preventDefault();
+            const data = el.getAttribute('data-post');
+            openPostModalFromData(data);
+        });
+    });
+
+    // Close modal when clicking outside card
+    document.getElementById('postModal').addEventListener('click', function(e){
+        if (e.target.id === 'postModal') closePostModal();
+    });
+});
+</script>
+
+*** End Patch
 
 <?= $this->endSection() ?>
