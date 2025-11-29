@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Controllers;
 
 class Weather extends BaseController
@@ -17,6 +16,81 @@ class Weather extends BaseController
         ];
         
         return view('weather/index', $data);
+    }
+
+    /**
+     * Generate dynamic agricultural advisories based on current weather
+     */
+    private function generateDynamicAdvisories($current)
+    {
+        $advisories = [];
+        $temp = isset($current['temp_C']) ? intval($current['temp_C']) : null;
+        $humidity = isset($current['humidity']) ? intval($current['humidity']) : null;
+        $rainfall = isset($current['precipMM']) ? floatval($current['precipMM']) : 0;
+        $windSpeed = isset($current['windspeedKmph']) ? intval($current['windspeedKmph']) : 0;
+
+        // Temperature advisories
+        if ($temp !== null && $temp > 35) {
+            $advisories[] = [
+                'type' => 'warning',
+                'title' => 'High Temperature Warning',
+                'message' => 'Extreme heat detected. Ensure adequate irrigation and provide shade for sensitive crops. Avoid field work during midday hours.'
+            ];
+        } elseif ($temp !== null && $temp < 15) {
+            $advisories[] = [
+                'type' => 'warning',
+                'title' => 'Low Temperature Alert',
+                'message' => 'Cold temperatures detected. Protect sensitive crops and consider covering plants to prevent frost damage.'
+            ];
+        }
+
+        // Rainfall advisories
+        if ($rainfall > 15) {
+            $advisories[] = [
+                'type' => 'warning',
+                'title' => 'Heavy Rainfall Warning',
+                'message' => 'Heavy rainfall detected. Secure crops, check drainage systems, and avoid field work. Prepare for possible flooding.'
+            ];
+        } elseif ($rainfall > 7.5 && $rainfall <= 15) {
+            $advisories[] = [
+                'type' => 'info',
+                'title' => 'Moderate Rainfall',
+                'message' => 'Moderate rainfall expected. Check drainage systems and ensure crops are not waterlogged.'
+            ];
+        } elseif ($rainfall > 0 && $rainfall <= 7.5) {
+            $advisories[] = [
+                'type' => 'info',
+                'title' => 'Light Rainfall',
+                'message' => 'Light rain is beneficial for crops. Good time for natural irrigation.'
+            ];
+        }
+
+        // Wind advisories
+        if ($windSpeed > 60) {
+            $advisories[] = [
+                'type' => 'warning',
+                'title' => 'Strong Wind Warning',
+                'message' => 'Strong winds detected. Secure crops and structures. Avoid field work during high winds.'
+            ];
+        }
+
+        // Favorable conditions
+        if ($temp !== null && $temp >= 20 && $temp <= 30 && $humidity !== null && $humidity >= 50 && $humidity <= 75 && $rainfall < 5 && $windSpeed < 30) {
+            $advisories[] = [
+                'type' => 'info',
+                'title' => 'Favorable Planting Conditions',
+                'message' => 'Current weather conditions are ideal for planting most crops. Good time for field preparation and planting activities.'
+            ];
+        }
+
+        // General tips (always shown)
+        $advisories[] = [
+            'type' => 'info',
+            'title' => 'General Farm Management',
+            'message' => 'Check and clean irrigation channels. Monitor soil moisture and adjust fertilization.'
+        ];
+
+        return $advisories;
     }
     
     /**
@@ -136,102 +210,72 @@ class Weather extends BaseController
      */
     private function fetchWeatherFromAPI($lat, $lon)
     {
-        // Google Weather API (using OpenWeatherMap as data source, styled like Google)
-        $apiKey = getenv('GOOGLE_WEATHER_API_KEY') ?? getenv('OPENWEATHER_API_KEY') ?? '';
-        
-        if (empty($apiKey)) {
-            return null;
-        }
-        
+        // Use wttr.in for simple weather data (no API key required)
         try {
             $client = \Config\Services::curlrequest();
-            
-            // Current weather
-            $currentUrl = "https://api.openweathermap.org/data/2.5/weather?lat={$lat}&lon={$lon}&appid={$apiKey}&units=metric";
-            $currentResponse = $client->get($currentUrl);
-            $currentData = json_decode($currentResponse->getBody(), true);
-            
-            if ($currentResponse->getStatusCode() !== 200 || !isset($currentData['main'])) {
+            $locationQuery = urlencode('Nasugbu Batangas');
+            $url = "https://wttr.in/{$locationQuery}?format=j1";
+            $response = $client->get($url);
+            $data = json_decode($response->getBody(), true);
+
+            if (!$data || !isset($data['current_condition'][0])) {
                 return null;
             }
-            
-            // Forecast
-            $forecastUrl = "https://api.openweathermap.org/data/2.5/forecast?lat={$lat}&lon={$lon}&appid={$apiKey}&units=metric";
-            $forecastResponse = $client->get($forecastUrl);
-            $forecastData = json_decode($forecastResponse->getBody(), true);
-            
-            // Process with Google Weather style formatting
+
+            $current = $data['current_condition'][0];
             $weather = [
-                'location' => $currentData['name'] . ', ' . ($currentData['sys']['country'] ?? 'PH'),
+                'location' => isset($data['nearest_area'][0]['areaName'][0]['value']) ? $data['nearest_area'][0]['areaName'][0]['value'] : 'Unknown',
                 'current' => [
-                    'temperature' => round($currentData['main']['temp']),
-                    'feels_like' => round($currentData['main']['feels_like']),
-                    'condition' => ucfirst($currentData['weather'][0]['description'] ?? 'Clear'),
-                    'humidity' => $currentData['main']['humidity'],
-                    'wind_speed' => round($currentData['wind']['speed'] * 3.6), // Convert m/s to km/h
-                    'wind_direction' => isset($currentData['wind']['deg']) ? $this->getWindDirection($currentData['wind']['deg']) : null,
-                    'pressure' => $currentData['main']['pressure'],
-                    'visibility' => isset($currentData['visibility']) ? round($currentData['visibility'] / 1000, 1) : null,
-                    'rainfall' => isset($currentData['rain']['1h']) ? round($currentData['rain']['1h'], 1) : 0,
-                    'icon' => $currentData['weather'][0]['icon'] ?? '01d',
-                    'uv_index' => null, // Would need UV index API
-                    'sunrise' => isset($currentData['sys']['sunrise']) ? date('H:i', $currentData['sys']['sunrise']) : null,
-                    'sunset' => isset($currentData['sys']['sunset']) ? date('H:i', $currentData['sys']['sunset']) : null
+                    'temperature' => isset($current['temp_C']) ? intval($current['temp_C']) : null,
+                    'feels_like' => isset($current['FeelsLikeC']) ? intval($current['FeelsLikeC']) : null,
+                    'condition' => isset($current['weatherDesc'][0]['value']) ? $current['weatherDesc'][0]['value'] : '',
+                    'humidity' => isset($current['humidity']) ? intval($current['humidity']) : null,
+                    'wind_speed' => isset($current['windspeedKmph']) ? intval($current['windspeedKmph']) : null,
+                    'wind_direction' => isset($current['winddir16Point']) ? $current['winddir16Point'] : null,
+                    'pressure' => isset($current['pressure']) ? intval($current['pressure']) : null,
+                    'rainfall' => isset($current['precipMM']) ? floatval($current['precipMM']) : 0,
+                    'icon' => '01d', // wttr.in does not provide icons, use default
+                    'sunrise' => isset($data['weather'][0]['astronomy'][0]['sunrise']) ? $data['weather'][0]['astronomy'][0]['sunrise'] : null,
+                    'sunset' => isset($data['weather'][0]['astronomy'][0]['sunset']) ? $data['weather'][0]['astronomy'][0]['sunset'] : null
                 ],
                 'forecast' => [],
                 'hourly' => [],
-                'advisories' => $this->generateGoogleStyleAdvisories($currentData, $forecastData)
+                'advisories' => $this->generateDynamicAdvisories($current)
             ];
-            
-            // Process forecast (Google style - simple and clean)
-            if (isset($forecastData['list'])) {
-                $dailyForecast = [];
-                $processedDates = [];
-                
-                foreach ($forecastData['list'] as $item) {
-                    $date = date('Y-m-d', $item['dt']);
-                    
-                    if (!isset($processedDates[$date]) && date('H', $item['dt']) >= 12) {
-                        $dayName = date('l', $item['dt']);
-                        $dailyForecast[] = [
-                            'day' => $dayName === date('l') ? 'Today' : ($dayName === date('l', strtotime('+1 day')) ? 'Tomorrow' : date('D', $item['dt'])),
-                            'date' => date('M d', $item['dt']),
-                            'high' => round($item['main']['temp_max']),
-                            'low' => round($item['main']['temp_min']),
-                            'condition' => ucfirst($item['weather'][0]['description']),
-                            'rain_chance' => isset($item['pop']) ? round($item['pop'] * 100) : 0,
-                            'icon' => $item['weather'][0]['icon'] ?? '01d'
-                        ];
-                        $processedDates[$date] = true;
-                        
-                        if (count($dailyForecast) >= 10) break; // Google shows 10-day forecast
-                    }
+
+
+            // Simple daily forecast (next 3 days)
+            if (isset($data['weather'])) {
+                foreach ($data['weather'] as $i => $day) {
+                    $weather['forecast'][] = [
+                        'day' => $i === 0 ? 'Today' : ($i === 1 ? 'Tomorrow' : date('D', strtotime($day['date']))),
+                        'date' => $day['date'],
+                        'high' => isset($day['maxtempC']) ? intval($day['maxtempC']) : null,
+                        'low' => isset($day['mintempC']) ? intval($day['mintempC']) : null,
+                        'condition' => isset($day['hourly'][4]['weatherDesc'][0]['value']) ? $day['hourly'][4]['weatherDesc'][0]['value'] : '',
+                        'rain_chance' => isset($day['hourly'][4]['chanceofrain']) ? intval($day['hourly'][4]['chanceofrain']) : 0,
+                        'icon' => '01d'
+                    ];
                 }
-                
-                $weather['forecast'] = $dailyForecast;
-                
-                // Process hourly forecast (next 24 hours)
-                $hourlyForecast = [];
-                $now = time();
-                foreach ($forecastData['list'] as $item) {
-                    if ($item['dt'] > $now && count($hourlyForecast) < 24) {
-                        $hourlyForecast[] = [
-                            'time' => date('H:i', $item['dt']),
-                            'hour' => date('g A', $item['dt']),
-                            'temperature' => round($item['main']['temp']),
-                            'condition' => ucfirst($item['weather'][0]['description']),
-                            'rain_chance' => isset($item['pop']) ? round($item['pop'] * 100) : 0,
-                            'icon' => $item['weather'][0]['icon'] ?? '01d'
-                        ];
-                    }
-                }
-                $weather['hourly'] = $hourlyForecast;
             }
-            
+
+            // Simple hourly forecast (next 8 hours)
+            if (isset($data['weather'][0]['hourly'])) {
+                foreach ($data['weather'][0]['hourly'] as $hour) {
+                    $weather['hourly'][] = [
+                        'time' => isset($hour['time']) ? $hour['time'] : '',
+                        'hour' => isset($hour['time']) ? sprintf('%02d:00', intval($hour['time'])/100) : '',
+                        'temperature' => isset($hour['tempC']) ? intval($hour['tempC']) : null,
+                        'condition' => isset($hour['weatherDesc'][0]['value']) ? $hour['weatherDesc'][0]['value'] : '',
+                        'rain_chance' => isset($hour['chanceofrain']) ? intval($hour['chanceofrain']) : 0,
+                        'icon' => '01d'
+                    ];
+                }
+            }
+
             return $weather;
-            
         } catch (\Exception $e) {
-            log_message('error', 'Weather API Error: ' . $e->getMessage());
+            log_message('error', 'wttr.in API Error: ' . $e->getMessage());
             return null;
         }
     }
