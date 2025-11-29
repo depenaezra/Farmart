@@ -3,6 +3,13 @@
 <?= $this->section('content') ?>
 
 <div class="container mx-auto px-4 py-8">
+    <!-- Warning Banner -->
+    <div id="weatherApiWarning" class="hidden mb-6">
+        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded">
+            <i data-lucide="alert-triangle" class="w-5 h-5 inline-block mr-2 align-middle"></i>
+            <span id="weatherApiWarningText"></span>
+        </div>
+    </div>
     <div class="mb-8 flex items-center justify-between">
         <div>
             <div class="flex items-center gap-3 mb-2">
@@ -102,9 +109,7 @@
         <!-- Agricultural Advisories -->
         <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
             <h3 class="text-xl font-bold text-gray-900 mb-6">Agricultural Advisories</h3>
-            <div class="space-y-4" id="advisoriesContainer">
-                <!-- Advisories will be inserted here -->
-            </div>
+            <div class="space-y-4" id="advisoriesContainer"></div>
         </div>
     </div>
 </div>
@@ -114,7 +119,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const lat = <?= $lat ?? 14.0667 ?>;
     const lon = <?= $lon ?? 120.6333 ?>;
     let refreshInterval;
-    
+
+    updateWeather();
+
     // Initialize Lucide icons
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
@@ -129,12 +136,25 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(`/weather/api?lat=${lat}&lon=${lon}`)
             .then(response => response.json())
             .then(data => {
-                if (data.success && data.data) {
-                    displayWeather(data.data);
-                    updateLastUpdated(data.last_updated, data.from_cache);
-                } else {
-                    showError('Failed to load weather data');
-                }
+                    if (data.success && data.data) {
+                        displayWeather(data.data);
+                        updateLastUpdated(data.last_updated, data.from_cache);
+                        // Show warning if note is present (API not configured or using sample data)
+                        if (data.note) {
+                            const warningDiv = document.getElementById('weatherApiWarning');
+                            const warningText = document.getElementById('weatherApiWarningText');
+                            if (warningDiv && warningText) {
+                                warningText.textContent = data.note;
+                                warningDiv.classList.remove('hidden');
+                                if (typeof lucide !== 'undefined') lucide.createIcons();
+                            }
+                        } else {
+                            const warningDiv = document.getElementById('weatherApiWarning');
+                            if (warningDiv) warningDiv.classList.add('hidden');
+                        }
+                    } else {
+                        showError('Failed to load weather data');
+                    }
             })
             .catch(error => {
                 console.error('Weather fetch error:', error);
@@ -294,9 +314,6 @@ document.addEventListener('DOMContentLoaded', function() {
             lucide.createIcons();
         }
     }
-    
-    // Initial load
-    updateWeather();
     
     // Auto-refresh every 5 minutes (300000 ms)
     refreshInterval = setInterval(updateWeather, 5 * 60 * 1000);
