@@ -6,6 +6,7 @@ use App\Models\UserModel;
 use App\Models\ProductModel;
 use App\Models\OrderModel;
 use App\Models\AnnouncementModel;
+use App\Models\ViolationModel;
 
 class Admin extends BaseController
 {
@@ -13,13 +14,15 @@ class Admin extends BaseController
     protected $productModel;
     protected $orderModel;
     protected $announcementModel;
-    
+    protected $violationModel;
+
     public function __construct()
     {
         $this->userModel = new UserModel();
         $this->productModel = new ProductModel();
         $this->orderModel = new OrderModel();
         $this->announcementModel = new AnnouncementModel();
+        $this->violationModel = new ViolationModel();
     }
     
     /**
@@ -27,6 +30,17 @@ class Admin extends BaseController
      */
     public function dashboard()
     {
+        // Calculate revenue from completed orders this month
+        $db = \Config\Database::connect();
+        $currentMonth = date('Y-m');
+        $revenue = $db->table('orders')
+                      ->selectSum('total_price')
+                      ->where('status', 'completed')
+                      ->where('DATE_FORMAT(created_at, "%Y-%m")', $currentMonth)
+                      ->get()
+                      ->getRow()
+                      ->total_price ?? 0;
+
         $data = [
             'title' => 'Admin Dashboard',
             'statistics' => [
@@ -41,12 +55,20 @@ class Admin extends BaseController
                     'total' => $this->orderModel->countAll(),
                     'pending' => $this->orderModel->where('status', 'pending')->countAllResults(false),
                     'completed' => $this->orderModel->where('status', 'completed')->countAllResults()
-                ]
+                ],
+                'violations' => [
+                    'total' => $this->violationModel->countAll(),
+                    'pending' => $this->violationModel->where('status', 'pending')->countAllResults(false),
+                    'reviewed' => $this->violationModel->where('status', 'reviewed')->countAllResults(false),
+                    'resolved' => $this->violationModel->where('status', 'resolved')->countAllResults()
+                ],
+                'revenue' => $revenue
             ],
             'recent_orders' => $this->orderModel->getRecentOrders(5),
-            'recent_users' => $this->userModel->orderBy('created_at', 'DESC')->findAll(5)
+            'recent_users' => $this->userModel->orderBy('created_at', 'DESC')->findAll(5),
+            'recent_violations' => $this->violationModel->getViolationsForAdmin('pending')
         ];
-        
+
         return view('admin/dashboard', $data);
     }
     
@@ -127,6 +149,27 @@ class Admin extends BaseController
     }
     
     /**
+     * Change User Role
+     */
+    public function changeUserRole($id)
+    {
+        $newRole = $this->request->getPost('role');
+
+        if (!in_array($newRole, ['farmer', 'buyer', 'admin'])) {
+            return redirect()->back()
+                ->with('error', 'Invalid role specified.');
+        }
+
+        if ($this->userModel->update($id, ['role' => $newRole])) {
+            return redirect()->back()
+                ->with('success', 'User role updated successfully.');
+        } else {
+            return redirect()->back()
+                ->with('error', 'Failed to update user role.');
+        }
+    }
+
+    /**
      * Delete User
      */
     public function deleteUser($id)
@@ -136,7 +179,7 @@ class Admin extends BaseController
             return redirect()->back()
                 ->with('error', 'You cannot delete your own account.');
         }
-        
+
         if ($this->userModel->delete($id)) {
             return redirect()->to('/admin/users')
                 ->with('success', 'User deleted.');
@@ -223,6 +266,75 @@ class Admin extends BaseController
         } else {
             return redirect()->back()
                 ->with('error', 'Failed to delete product.');
+        }
+    }
+    
+    /**
+     * Orders Management
+     */
+    public function orders()
+    {
+        $status = $this->request->getGet('status');
+        
+        $orders = $this->orderModel->getAllOrdersForAdmin($status);
+        
+        $data = [
+            'title' => 'Order Management',
+            'orders' => $orders,
+            'current_status' => $status,
+            'statistics' => [
+                'total' => $this->orderModel->countAll(),
+                'pending' => $this->orderModel->where('status', 'pending')->countAllResults(false),
+                'confirmed' => $this->orderModel->where('status', 'confirmed')->countAllResults(false),
+                'processing' => $this->orderModel->where('status', 'processing')->countAllResults(false),
+                'completed' => $this->orderModel->where('status', 'completed')->countAllResults(false),
+                'cancelled' => $this->orderModel->where('status', 'cancelled')->countAllResults(false)
+            ]
+        ];
+        
+        return view('admin/orders', $data);
+    }
+    
+    /**
+     * Order Detail
+     */
+    public function orderDetail($id)
+    {
+        $order = $this->orderModel->getOrderWithDetails($id);
+        
+        if (!$order) {
+            return redirect()->to('/admin/orders')
+                ->with('error', 'Order not found.');
+        }
+        
+        $data = [
+            'title' => 'Order: ' . $order['order_number'],
+            'order' => $order
+        ];
+        
+        return view('admin/order_detail', $data);
+    }
+    
+    /**
+     * Update Order Status
+     */
+    public function updateOrderStatus($id)
+    {
+        $status = $this->request->getPost('status');
+        
+        $validStatuses = ['pending', 'confirmed', 'processing', 'completed', 'cancelled'];
+        
+        if (!in_array($status, $validStatuses)) {
+            return redirect()->back()
+                ->with('error', 'Invalid status specified.');
+        }
+        
+        if ($this->orderModel->updateStatus($id, $status)) {
+            return redirect()->back()
+                ->with('success', 'Order status updated successfully.');
+        } else {
+            return redirect()->back()
+                ->with('error', 'Failed to update order status.');
         }
     }
     
@@ -382,7 +494,133 @@ class Admin extends BaseController
         $data = [
             'title' => 'System Settings'
         ];
-        
+
         return view('admin/settings', $data);
+    }
+
+    /**
+     * Violations Management
+     */
+    public function violations()
+    {
+        $status = $this->request->getGet('status');
+
+        $violations = $this->violationModel->getViolationsForAdmin($status);
+
+        // Get statistics using fresh queries to avoid query builder state issues
+        $db = \Config\Database::connect();
+        
+        $data = [
+            'title' => 'Violation Reports',
+            'violations' => $violations,
+            'current_status' => $status,
+            'statistics' => [
+                'violations' => [
+                    'total' => $this->violationModel->countAll(),
+                    'pending' => $db->table('violations')->where('status', 'pending')->countAllResults(),
+                    'reviewed' => $db->table('violations')->where('status', 'reviewed')->countAllResults(),
+                    'resolved' => $db->table('violations')->where('status', 'resolved')->countAllResults()
+                ]
+            ]
+        ];
+
+        return view('admin/violations', $data);
+    }
+
+    /**
+     * Update Violation Status
+     */
+    public function updateViolationStatus($id)
+    {
+        $status = $this->request->getPost('status');
+
+        if (!in_array($status, ['pending', 'reviewed', 'resolved'])) {
+            return redirect()->back()
+                ->with('error', 'Invalid status specified.');
+        }
+
+        if ($this->violationModel->updateStatus($id, $status, session()->get('user_id'))) {
+            return redirect()->back()
+                ->with('success', 'Violation status updated successfully.');
+        } else {
+            return redirect()->back()
+                ->with('error', 'Failed to update violation status.');
+        }
+    }
+
+    /**
+     * Delete Reported Item
+     */
+    public function deleteReportedItem($violationId)
+    {
+        $violation = $this->violationModel->find($violationId);
+
+        if (!$violation) {
+            return redirect()->back()
+                ->with('error', 'Violation report not found.');
+        }
+
+        $deleted = false;
+        $itemType = '';
+
+        switch ($violation['reported_type']) {
+            case 'forum_post':
+                $deleted = $this->deleteForumPost($violation['reported_id']);
+                $itemType = 'forum post';
+                break;
+            case 'forum_comment':
+                $deleted = $this->deleteForumComment($violation['reported_id']);
+                $itemType = 'forum comment';
+                break;
+            case 'product':
+                $deleted = $this->deleteProduct($violation['reported_id']);
+                $itemType = 'product';
+                break;
+            case 'user':
+                // For user reports, perhaps suspend instead of delete
+                $deleted = $this->userModel->update($violation['reported_id'], ['status' => 'inactive']);
+                $itemType = 'user account';
+                break;
+        }
+
+        if ($deleted) {
+            // Mark violation as resolved
+            $this->violationModel->updateStatus($violationId, 'resolved', session()->get('user_id'));
+            return redirect()->back()
+                ->with('success', ucfirst($itemType) . ' deleted successfully.');
+        } else {
+            return redirect()->back()
+                ->with('error', 'Failed to delete ' . $itemType . '.');
+        }
+    }
+
+    /**
+     * Delete Forum Post (Admin)
+     */
+    private function deleteForumPost($postId)
+    {
+        $db = \Config\Database::connect();
+        return $db->table('forum_posts')->delete(['id' => $postId]);
+    }
+
+    /**
+     * Delete Forum Comment (Admin)
+     */
+    private function deleteForumComment($commentId)
+    {
+        $db = \Config\Database::connect();
+        return $db->table('forum_comments')->delete(['id' => $commentId]);
+    }
+
+    /**
+     * Update Settings
+     */
+    public function updateSettings()
+    {
+        // This is a placeholder for settings functionality
+        // In a real application, you would save these to a settings table or config file
+
+        return redirect()->back()
+            ->with('success', 'Settings updated successfully!');
     }
 }

@@ -9,7 +9,7 @@
                 <i data-lucide="sprout" class="w-8 h-8 text-white"></i>
             </div>
             <h1 class="text-3xl font-bold text-gray-900">Register as Farmer</h1>
-            <p class="text-gray-600 mt-2">Join AgriConnect and start selling your produce</p>
+            <p class="text-gray-600 mt-2">Join Farmart and start selling your produce</p>
         </div>
         
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-8">

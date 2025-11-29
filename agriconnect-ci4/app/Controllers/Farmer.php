@@ -30,7 +30,7 @@ class Farmer extends BaseController
                 'products' => $this->productModel->getFarmerStatistics($farmerId),
                 'orders' => $this->orderModel->getFarmerStatistics($farmerId)
             ],
-            'recent_orders' => $this->orderModel->getOrdersByFarmer($farmerId, null)->slice(0, 5)
+            'recent_orders' => array_slice($this->orderModel->getOrdersByFarmer($farmerId, null), 0, 5)
         ];
         
         return view('farmer/dashboard', $data);
@@ -105,17 +105,25 @@ class Farmer extends BaseController
     }
     
     /**
+     * Show products list (alias for inventory)
+     */
+    public function products()
+    {
+        return $this->inventory();
+    }
+
+    /**
      * Show inventory/products list
      */
     public function inventory()
     {
         $farmerId = session()->get('user_id');
-        
+
         $data = [
-            'title' => 'My Inventory',
+            'title' => 'My Products',
             'products' => $this->productModel->getProductsByFarmer($farmerId)
         ];
-        
+
         return view('farmer/inventory', $data);
     }
     

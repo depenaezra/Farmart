@@ -33,10 +33,49 @@
     </div>
 </section>
 
+<!-- Navigation Cards -->
+<section class="py-12 md:py-16 bg-mint-light">
+    <div class="container mx-auto px-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+            <a href="/marketplace" class="bg-white rounded-xl shadow-md border-2 border-gray-200 hover:border-primary transition-all p-6 text-center">
+                <div class="flex flex-col items-center">
+                    <i data-lucide="store" class="w-12 h-12 text-green-600 mb-3"></i>
+                    <h3 class="text-lg font-semibold text-gray-900">Marketplace</h3>
+                    <p class="text-sm text-gray-600 mt-1">Browse products</p>
+                </div>
+            </a>
+
+            <a href="/announcements" class="bg-white rounded-xl shadow-md border-2 border-gray-200 hover:border-primary transition-all p-6 text-center">
+                <div class="flex flex-col items-center">
+                    <i data-lucide="megaphone" class="w-12 h-12 text-green-600 mb-3"></i>
+                    <h3 class="text-lg font-semibold text-gray-900">Announcements</h3>
+                    <p class="text-sm text-gray-600 mt-1">Latest updates</p>
+                </div>
+            </a>
+
+            <a href="/forum" class="bg-white rounded-xl shadow-md border-2 border-gray-200 hover:border-primary transition-all p-6 text-center">
+                <div class="flex flex-col items-center">
+                    <i data-lucide="message-circle" class="w-12 h-12 text-green-600 mb-3"></i>
+                    <h3 class="text-lg font-semibold text-gray-900">Forum</h3>
+                    <p class="text-sm text-gray-600 mt-1">Community discussions</p>
+                </div>
+            </a>
+
+            <a href="/weather" class="bg-white rounded-xl shadow-md border-2 border-gray-200 hover:border-primary transition-all p-6 text-center">
+                <div class="flex flex-col items-center">
+                    <i data-lucide="cloud-sun" class="w-12 h-12 text-green-600 mb-3"></i>
+                    <h3 class="text-lg font-semibold text-gray-900">Weather</h3>
+                    <p class="text-sm text-gray-600 mt-1">Local forecasts</p>
+                </div>
+            </a>
+        </div>
+    </div>
+</section>
+
 <!-- Features Section -->
 <section class="py-12 md:py-16 bg-white">
     <div class="container mx-auto px-4">
-        <h2 class="text-3xl font-bold text-center mb-12">Why Choose AgriConnect?</h2>
+        <h2 class="text-3xl font-bold text-center mb-12">Why Choose Farmart?</h2>
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div class="text-center p-6">
@@ -68,7 +107,7 @@
 
 <!-- Featured Products -->
 <?php if (!empty($featured_products)): ?>
-<section class="py-12 md:py-16 bg-gray-50">
+<section class="py-12 md:py-16 bg-mint-light">
     <div class="container mx-auto px-4">
         <div class="flex justify-between items-center mb-8">
             <h2 class="text-3xl font-bold">Featured Products</h2>
@@ -118,7 +157,7 @@
 <!-- Call to Action -->
 <section class="py-12 md:py-16 bg-primary text-white">
     <div class="container mx-auto px-4 text-center">
-        <h2 class="text-3xl font-bold mb-4">Ready to Join AgriConnect?</h2>
+        <h2 class="text-3xl font-bold mb-4">Ready to Join Farmart?</h2>
         <p class="text-xl mb-8 text-white/90">Whether you're a farmer or a buyer, join our community today!</p>
         
         <div class="flex flex-col sm:flex-row gap-4 justify-center">

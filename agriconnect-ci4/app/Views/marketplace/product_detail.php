@@ -4,186 +4,230 @@
 
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-4xl mx-auto">
-        <!-- Breadcrumb -->
-        <nav class="flex mb-6" aria-label="Breadcrumb">
-            <ol class="inline-flex items-center space-x-1 md:space-x-3">
-                <li class="inline-flex items-center">
-                    <a href="/marketplace" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-primary">
-                        <i data-lucide="home" class="w-4 h-4 mr-2"></i>
-                        Marketplace
-                    </a>
-                </li>
-                <li>
-                    <div class="flex items-center">
-                        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400 mx-1"></i>
-                        <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2"><?= esc($product['name']) ?></span>
-                    </div>
-                </li>
-            </ol>
-        </nav>
+        <!-- Back Button -->
+        <a href="/marketplace" class="inline-flex items-center text-primary hover:text-primary-hover mb-6">
+            <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+            Back to Marketplace
+        </a>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <!-- Product Image -->
-            <div class="space-y-4">
+            <div class="bg-white rounded-xl shadow-md border-2 border-gray-200 overflow-hidden">
                 <?php if ($product['image_url']): ?>
-                    <img src="<?= esc($product['image_url']) ?>" alt="<?= esc($product['name']) ?>" class="w-full h-96 object-cover rounded-xl shadow-lg">
+                    <img src="<?= esc($product['image_url']) ?>" alt="<?= esc($product['name']) ?>" class="w-full h-96 object-cover">
                 <?php else: ?>
-                    <div class="w-full h-96 bg-gradient-to-br from-green-100 to-green-200 rounded-xl shadow-lg flex items-center justify-center">
+                    <div class="w-full h-96 bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
                         <i data-lucide="package" class="w-24 h-24 text-green-600"></i>
                     </div>
                 <?php endif; ?>
             </div>
 
             <!-- Product Details -->
-            <div class="space-y-6">
-                <div>
-                    <div class="inline-block px-3 py-1 bg-primary/10 text-primary text-sm font-semibold rounded-full mb-3">
-                        <?= ucfirst(esc($product['category'])) ?>
-                    </div>
-                    <h1 class="text-3xl font-bold text-gray-900 mb-2"><?= esc($product['name']) ?></h1>
-                    <p class="text-primary text-4xl font-bold mb-4">
-                        ₱<?= number_format($product['price'], 2) ?>
-                        <span class="text-lg text-gray-600">/ <?= esc($product['unit']) ?></span>
-                    </p>
-
-                    <div class="space-y-2 text-gray-600">
-                        <div class="flex items-center">
-                            <i data-lucide="map-pin" class="w-5 h-5 mr-2 text-gray-400"></i>
-                            <span>Location: <?= esc($product['location'] ?? 'Nasugbu') ?></span>
-                        </div>
-                        <div class="flex items-center">
-                            <i data-lucide="user" class="w-5 h-5 mr-2 text-gray-400"></i>
-                            <span>Farmer: <?= esc($product['farmer_name']) ?></span>
-                        </div>
-                        <div class="flex items-center">
-                            <i data-lucide="package-check" class="w-5 h-5 mr-2 text-gray-400"></i>
-                            <span>Stock: <?= esc($product['stock_quantity']) ?> <?= esc($product['unit']) ?> available</span>
-                        </div>
-                        <div class="flex items-center">
-                            <i data-lucide="calendar" class="w-5 h-5 mr-2 text-gray-400"></i>
-                            <span>Listed: <?= date('M j, Y', strtotime($product['created_at'])) ?></span>
-                        </div>
-                    </div>
+            <div class="bg-white rounded-xl shadow-md border-2 border-gray-200 p-6">
+                <div class="inline-block px-3 py-1 bg-primary/10 text-primary text-sm font-semibold rounded mb-4">
+                    <?= ucfirst(esc($product['category'])) ?>
                 </div>
 
-                <!-- Description -->
-                <?php if (!empty($product['description'])): ?>
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Description</h3>
-                        <p class="text-gray-700 leading-relaxed"><?= nl2br(esc($product['description'])) ?></p>
+                <h1 class="text-3xl font-bold text-gray-900 mb-4"><?= esc($product['name']) ?></h1>
+
+                <div class="text-primary text-4xl font-bold mb-6">
+                    ₱<?= number_format($product['price'], 2) ?>
+                    <span class="text-lg text-gray-600">/ <?= esc($product['unit']) ?></span>
+                </div>
+
+                <div class="space-y-3 mb-6">
+                    <div class="flex items-center text-gray-600">
+                        <i data-lucide="map-pin" class="w-5 h-5 mr-3"></i>
+                        <span>Location: <?= esc($product['farmer_location'] ?? 'Nasugbu') ?></span>
                     </div>
+                    <div class="flex items-center text-gray-600">
+                        <i data-lucide="user" class="w-5 h-5 mr-3"></i>
+                        <span>Farmer: <?= esc($product['farmer_name']) ?></span>
+                    </div>
+                    <div class="flex items-center text-gray-600">
+                        <i data-lucide="phone" class="w-5 h-5 mr-3"></i>
+                        <span>Contact: <?= esc($product['farmer_phone']) ?></span>
+                    </div>
+                    <div class="flex items-center text-gray-600">
+                        <i data-lucide="package-check" class="w-5 h-5 mr-3"></i>
+                        <span>Stock: <?= esc($product['stock_quantity']) ?> <?= esc($product['unit']) ?> available</span>
+                    </div>
+                    <?php if ($product['cooperative']): ?>
+                    <div class="flex items-center text-gray-600">
+                        <i data-lucide="users" class="w-5 h-5 mr-3"></i>
+                        <span>Cooperative: <?= esc($product['cooperative']) ?></span>
+                    </div>
+                    <?php endif; ?>
+                </div>
+
+                <?php if ($product['description']): ?>
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-2">Description</h3>
+                    <p class="text-gray-700 leading-relaxed"><?= nl2br(esc($product['description'])) ?></p>
+                </div>
                 <?php endif; ?>
 
-                <!-- Add to Cart Form -->
-                <?php if (session()->get('logged_in') && in_array(session()->get('user_role'), ['buyer', 'admin'])): ?>
-                    <form action="/cart/add" method="POST" class="space-y-4">
-                        <?= csrf_field() ?>
-                        <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
-
-                        <div>
-                            <label for="quantity" class="block text-sm font-semibold text-gray-700 mb-2">Quantity</label>
-                            <div class="flex items-center space-x-3">
-                                <button type="button" onclick="decrementQuantity()" class="w-10 h-10 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-50">
-                                    <i data-lucide="minus" class="w-4 h-4"></i>
+                <!-- Action Buttons -->
+                <div class="flex gap-3">
+                    <?php if ($product['farmer_id'] == session()->get('user_id')): ?>
+                        <!-- Edit and Delete buttons for own product -->
+                        <a href="/farmer/products/edit/<?= $product['id'] ?>" class="flex-1 bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition-colors font-semibold text-center">
+                            <i data-lucide="edit" class="w-5 h-5 inline mr-2"></i>
+                            Edit Product
+                        </a>
+                        <form action="/farmer/products/delete/<?= $product['id'] ?>" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this product?')">
+                            <button type="submit" class="bg-red-500 text-white py-3 px-6 rounded-lg hover:bg-red-600 transition-colors font-semibold">
+                                <i data-lucide="trash-2" class="w-5 h-5 inline mr-2"></i>
+                                Delete Product
+                            </button>
+                        </form>
+                    <?php else: ?>
+                        <!-- Add to Cart Form (if authenticated as buyer) -->
+                        <?php if (session()->get('user_role') === 'buyer'): ?>
+                        <form action="/cart/add" method="POST" class="flex-1">
+                            <?= csrf_field() ?>
+                            <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
+                            <div class="flex gap-2">
+                                <div class="flex items-center gap-2 bg-gray-100 rounded-lg px-3">
+                                    <label for="quantity" class="text-sm font-medium text-gray-700">Qty:</label>
+                                    <input 
+                                        type="number" 
+                                        id="quantity" 
+                                        name="quantity" 
+                                        value="1" 
+                                        min="1" 
+                                        max="<?= $product['stock_quantity'] ?>"
+                                        class="w-16 px-2 py-2 border-0 bg-transparent text-center focus:ring-0 focus:outline-none"
+                                        required
+                                    >
+                                    <span class="text-sm text-gray-600"><?= esc($product['unit']) ?></span>
+                                </div>
+                                <button type="submit" class="flex-1 bg-primary text-white py-3 px-6 rounded-lg hover:bg-primary-hover transition-colors font-semibold">
+                                    <i data-lucide="shopping-cart" class="w-5 h-5 inline mr-2"></i>
+                                    Add to Cart
                                 </button>
-                                <input
-                                    type="number"
-                                    id="quantity"
-                                    name="quantity"
-                                    value="1"
-                                    min="1"
-                                    max="<?= $product['stock_quantity'] ?>"
-                                    class="w-20 text-center px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
-                                >
-                                <button type="button" onclick="incrementQuantity()" class="w-10 h-10 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-50">
-                                    <i data-lucide="plus" class="w-4 h-4"></i>
-                                </button>
-                                <span class="text-gray-600"><?= esc($product['unit']) ?></span>
                             </div>
-                        </div>
+                        </form>
+                        <?php elseif (!session()->has('user_id')): ?>
+                        <a href="/auth/login" class="flex-1 block bg-primary text-white py-3 px-6 rounded-lg hover:bg-primary-hover transition-colors font-semibold text-center">
+                            <i data-lucide="log-in" class="w-5 h-5 inline mr-2"></i>
+                            Login to Purchase
+                        </a>
+                        <?php endif; ?>
 
-                        <button
-                            type="submit"
-                            class="w-full bg-primary text-white py-3 px-6 rounded-lg hover:bg-primary-hover transition-colors font-semibold flex items-center justify-center"
-                            <?= $product['stock_quantity'] < 1 ? 'disabled class="opacity-50 cursor-not-allowed"' : '' ?>
-                        >
-                            <i data-lucide="shopping-cart" class="w-5 h-5 mr-2"></i>
-                            Add to Cart
+                        <!-- Report Button (if authenticated and not admin) -->
+                        <?php if (session()->get('user_id') && session()->get('user_role') !== 'admin'): ?>
+                        <button onclick="reportPost(<?= $product['id'] ?>, 'product')" class="bg-red-100 text-red-700 py-3 px-4 rounded-lg hover:bg-red-200 transition-colors font-semibold" title="Report this product">
+                            <i data-lucide="flag" class="w-5 h-5"></i>
                         </button>
-                    </form>
-                <?php else: ?>
-                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                        <div class="flex items-center">
-                            <i data-lucide="alert-circle" class="w-5 h-5 text-yellow-600 mr-2"></i>
-                            <p class="text-yellow-800">
-                                Please <a href="/auth/login" class="underline hover:text-yellow-900">login as a buyer</a> to add items to your cart.
-                            </p>
-                        </div>
-                    </div>
-                <?php endif; ?>
-
-                <!-- Farmer Contact -->
-                <div class="bg-gray-50 rounded-lg p-4">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Contact Farmer</h3>
-                    <p class="text-gray-600 mb-3">Interested in this product? Get in touch with the farmer directly.</p>
-                    <a href="/messages/compose?to=<?= $product['farmer_id'] ?>" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                        <i data-lucide="message-circle" class="w-4 h-4 mr-2"></i>
-                        Send Message
-                    </a>
+                        <?php endif; ?>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
 
         <!-- Other Products from Same Farmer -->
         <?php if (!empty($other_products)): ?>
-            <div class="mt-12">
-                <h2 class="text-2xl font-bold text-gray-900 mb-6">More from <?= esc($product['farmer_name']) ?></h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <?php foreach ($other_products as $other_product): ?>
-                        <div class="bg-white rounded-xl shadow-md border-2 border-gray-200 hover:border-primary transition-all overflow-hidden">
-                            <?php if ($other_product['image_url']): ?>
-                                <img src="<?= esc($other_product['image_url']) ?>" alt="<?= esc($other_product['name']) ?>" class="w-full h-32 object-cover">
-                            <?php else: ?>
-                                <div class="w-full h-32 bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
-                                    <i data-lucide="package" class="w-8 h-8 text-green-600"></i>
-                                </div>
-                            <?php endif; ?>
-
-                            <div class="p-4">
-                                <h3 class="text-lg font-semibold mb-1"><?= esc($other_product['name']) ?></h3>
-                                <p class="text-primary font-bold mb-2">
-                                    ₱<?= number_format($other_product['price'], 2) ?>
-                                    <span class="text-sm text-gray-600">/ <?= esc($other_product['unit']) ?></span>
-                                </p>
-                                <a href="/marketplace/product/<?= $other_product['id'] ?>" class="block w-full bg-gray-100 text-gray-700 py-2 rounded-lg text-center hover:bg-gray-200 transition-colors text-sm">
-                                    View Details
-                                </a>
-                            </div>
+        <div class="mt-12">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">More from <?= esc($product['farmer_name']) ?></h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <?php foreach ($other_products as $other): ?>
+                <div class="bg-white rounded-xl shadow-md border-2 border-gray-200 hover:border-primary transition-all overflow-hidden">
+                    <?php if ($other['image_url']): ?>
+                        <img src="<?= esc($other['image_url']) ?>" alt="<?= esc($other['name']) ?>" class="w-full h-32 object-cover">
+                    <?php else: ?>
+                        <div class="w-full h-32 bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
+                            <i data-lucide="package" class="w-8 h-8 text-green-600"></i>
                         </div>
-                    <?php endforeach; ?>
+                    <?php endif; ?>
+
+                    <div class="p-4">
+                        <h3 class="text-lg font-semibold mb-1"><?= esc($other['name']) ?></h3>
+                        <p class="text-primary font-bold">
+                            ₱<?= number_format($other['price'], 2) ?>
+                            <span class="text-sm text-gray-600">/ <?= esc($other['unit']) ?></span>
+                        </p>
+                        <a href="/marketplace/product/<?= $other['id'] ?>" class="block w-full bg-gray-100 text-gray-700 py-2 rounded-lg text-center hover:bg-gray-200 transition-colors mt-2 text-sm">
+                            View Details
+                        </a>
+                    </div>
                 </div>
+                <?php endforeach; ?>
             </div>
+        </div>
         <?php endif; ?>
     </div>
 </div>
 
+<!-- Report Modal -->
+<div id="reportModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg max-w-md w-full p-6">
+            <h3 class="text-lg font-semibold mb-4">Report Content</h3>
+            <form id="reportForm">
+                <input type="hidden" id="reportedType" name="reported_type">
+                <input type="hidden" id="reportedId" name="reported_id">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Reason</label>
+                    <select id="reportReason" name="reason" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
+                        <option value="">Select a reason</option>
+                        <option value="spam">Spam</option>
+                        <option value="inappropriate">Inappropriate content</option>
+                        <option value="harassment">Harassment</option>
+                        <option value="false_information">False information</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Description (optional)</label>
+                    <textarea id="reportDescription" name="description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Provide more details..."></textarea>
+                </div>
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeReportModal()" class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300">Cancel</button>
+                    <button type="submit" class="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700">Submit Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
-function incrementQuantity() {
-    const input = document.getElementById('quantity');
-    const max = parseInt(input.getAttribute('max'));
-    const current = parseInt(input.value);
-    if (current < max) {
-        input.value = current + 1;
-    }
+function reportPost(id, type) {
+    document.getElementById('reportedId').value = id;
+    document.getElementById('reportedType').value = type;
+    document.getElementById('reportModal').classList.remove('hidden');
 }
 
-function decrementQuantity() {
-    const input = document.getElementById('quantity');
-    const current = parseInt(input.value);
-    if (current > 1) {
-        input.value = current - 1;
-    }
+function closeReportModal() {
+    document.getElementById('reportModal').classList.add('hidden');
+    document.getElementById('reportForm').reset();
 }
+
+document.getElementById('reportForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+
+    fetch('/report', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            closeReportModal();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('An error occurred. Please try again.');
+    });
+});
 </script>
 
 <?= $this->endSection() ?>

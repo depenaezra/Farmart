@@ -17,28 +17,97 @@ class Messages extends BaseController
     }
     
     /**
-     * Messages index - redirect to inbox
+     * Messages index - show messenger
      */
     public function index()
     {
-        return redirect()->to('/messages/inbox');
+        $userId = session()->get('user_id');
+        $conversations = $this->messageModel->getConversations($userId);
+        
+        // Get all users for new conversation
+        $users = $this->userModel->where('id !=', $userId)
+                                 ->where('status', 'active')
+                                 ->findAll();
+        
+        $data = [
+            'title' => 'Messages',
+            'conversations' => $conversations,
+            'users' => $users,
+            'unread_count' => $this->messageModel->getUnreadCount($userId)
+        ];
+        
+        return view('messages/messenger', $data);
     }
     
     /**
-     * Inbox
+     * Inbox - redirect to messenger
      */
     public function inbox()
     {
+        return redirect()->to('/messages');
+    }
+    
+    /**
+     * Get conversation messages (AJAX)
+     */
+    public function getConversation($otherUserId = null)
+    {
+        if (!$this->request->isAJAX() && !$otherUserId) {
+            return redirect()->to('/messages');
+        }
+        
         $userId = session()->get('user_id');
-        $messages = $this->messageModel->getInbox($userId);
+        $otherUserId = $otherUserId ?? $this->request->getPost('other_user_id');
+        
+        if (!$otherUserId) {
+            return $this->response->setJSON(['error' => 'User ID required']);
+        }
+        
+        // Verify other user exists
+        $otherUser = $this->userModel->find($otherUserId);
+        if (!$otherUser) {
+            return $this->response->setJSON(['error' => 'User not found']);
+        }
+        
+        // Get conversation messages
+        $messages = $this->messageModel->getConversation($userId, $otherUserId, 100);
+        
+        // Mark messages as read
+        foreach ($messages as $msg) {
+            if ($msg['receiver_id'] == $userId && !$msg['is_read']) {
+                $this->messageModel->markAsRead($msg['id']);
+            }
+        }
+        
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON([
+                'success' => true,
+                'messages' => $messages,
+                'other_user' => [
+                    'id' => $otherUser['id'],
+                    'name' => $otherUser['name'],
+                    'role' => $otherUser['role'] ?? ''
+                ]
+            ]);
+        }
+        
+        // Non-AJAX request - show messenger with conversation
+        $conversations = $this->messageModel->getConversations($userId);
+        $users = $this->userModel->where('id !=', $userId)
+                                 ->where('status', 'active')
+                                 ->findAll();
         
         $data = [
-            'title' => 'Inbox',
+            'title' => 'Messages',
+            'conversations' => $conversations,
+            'users' => $users,
+            'selected_user_id' => $otherUserId,
+            'selected_user' => $otherUser,
             'messages' => $messages,
             'unread_count' => $this->messageModel->getUnreadCount($userId)
         ];
         
-        return view('messages/inbox', $data);
+        return view('messages/messenger', $data);
     }
     
     /**
@@ -58,29 +127,19 @@ class Messages extends BaseController
     }
     
     /**
-     * Compose message form
+     * Compose message form - redirect to messenger with user selected
      */
     public function compose()
     {
         $receiverId = $this->request->getGet('to');
-        $receiver = null;
         
         if ($receiverId) {
-            $receiver = $this->userModel->find($receiverId);
+            // Redirect to messenger with conversation open
+            return redirect()->to('/messages/conversation/' . $receiverId);
         }
         
-        // Get all users except current user
-        $users = $this->userModel->where('id !=', session()->get('user_id'))
-                                 ->where('status', 'active')
-                                 ->findAll();
-        
-        $data = [
-            'title' => 'Compose Message',
-            'users' => $users,
-            'receiver' => $receiver
-        ];
-        
-        return view('messages/compose', $data);
+        // No user selected, just show messenger
+        return redirect()->to('/messages');
     }
     
     /**
@@ -108,9 +167,22 @@ class Messages extends BaseController
         $message = $this->request->getPost('message');
         
         if ($this->messageModel->sendMessage($senderId, $receiverId, $subject, $message)) {
-            return redirect()->to('/messages/sent')
+            // If AJAX request, return JSON
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'Message sent successfully!'
+                ]);
+            }
+            return redirect()->to('/messages/conversation/' . $receiverId)
                 ->with('success', 'Message sent successfully!');
         } else {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'error' => 'Failed to send message.'
+                ]);
+            }
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Failed to send message.');

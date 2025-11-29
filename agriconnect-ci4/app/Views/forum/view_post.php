@@ -3,135 +3,236 @@
 <?= $this->section('content') ?>
 
 <div class="container mx-auto px-4 py-8">
-    <!-- Back Button -->
-    <div class="mb-6">
-        <a href="/forum" class="text-primary hover:text-primary-hover font-semibold inline-flex items-center">
-            <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
-            Back to Forum
-        </a>
-    </div>
+    <div class="max-w-4xl mx-auto">
+        <!-- Back Button -->
+        <div class="mb-6">
+            <a href="/forum" class="inline-flex items-center text-primary hover:text-primary-hover transition-colors">
+                <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                Back to Forum
+            </a>
+        </div>
 
-    <!-- Post Content -->
-    <div class="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-8">
-        <div class="mb-4">
-            <h1 class="text-3xl font-bold text-gray-900 mb-4"><?= esc($post['title']) ?></h1>
+        <!-- Post Content -->
+        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden mb-8">
+            <div class="p-6">
+                <!-- Post Header -->
+                <div class="mb-4">
+                    <div class="flex items-center text-xs text-gray-500 mb-3">
+                        <span class="font-medium text-gray-700"><?= esc($post['author_name']) ?></span>
+                        <?php if (!empty($post['author_role'])): ?>
+                            <span class="ml-2 inline-block px-2 py-0.5 bg-primary/10 text-primary text-xs font-semibold rounded">
+                                <?= ucfirst(esc($post['author_role'])) ?>
+                            </span>
+                        <?php endif; ?>
+                        <span class="mx-1">•</span>
+                        <span><?= date('M d, Y', strtotime($post['created_at'])) ?></span>
+                        <span class="mx-1">•</span>
+                        <span><?= date('H:i', strtotime($post['created_at'])) ?></span>
+                        <?php if (!empty($post['category'])): ?>
+                            <span class="mx-1">•</span>
+                            <span class="inline-block px-2 py-0.5 bg-primary/10 text-primary text-xs font-semibold rounded">
+                                <?= ucfirst(esc($post['category'])) ?>
+                            </span>
+                        <?php endif; ?>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-900 mb-4">
+                        <?= esc($post['title']) ?>
+                    </h1>
+                </div>
 
-            <div class="flex items-center text-sm text-gray-600 mb-4 space-x-4">
-                <span class="flex items-center">
-                    <i data-lucide="user" class="w-4 h-4 mr-1"></i>
-                    <?= esc($post['author_name']) ?>
-                    <?php if ($post['author_role'] === 'admin'): ?>
-                        <span class="ml-1 px-2 py-1 bg-primary/10 text-primary text-xs font-semibold rounded">Admin</span>
-                    <?php elseif ($post['author_role'] === 'farmer'): ?>
-                        <span class="ml-1 px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded">Farmer</span>
+                <!-- Post Content -->
+                <div class="text-gray-700 leading-relaxed whitespace-pre-line mb-4">
+                    <?= nl2br(esc($post['content'])) ?>
+                </div>
+
+                <!-- Reddit-style Action Buttons at Bottom -->
+                <div class="flex items-center gap-4 pt-4 border-t border-gray-200">
+                    <!-- Like Button (Leaf Emoji) - Toggleable -->
+                    <?php if (session()->get('user_id')): ?>
+                        <form action="/forum/post/<?= $post['id'] ?>/like" method="POST" class="inline">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded transition-colors group <?= (isset($post['user_liked']) && $post['user_liked']) ? 'text-green-600 hover:bg-green-50' : 'text-gray-700 hover:bg-gray-100' ?>" title="<?= (isset($post['user_liked']) && $post['user_liked']) ? 'Click to unlike' : 'Click to like' ?>">
+                                <span class="text-lg group-hover:scale-110 transition-transform">🍃</span>
+                                <span><?= $post['likes'] ?? 0 ?></span>
+                            </button>
+                        </form>
+                    <?php else: ?>
+                        <div class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-400">
+                            <span class="text-lg">🍃</span>
+                            <span><?= $post['likes'] ?? 0 ?></span>
+                        </div>
                     <?php endif; ?>
-                </span>
-                <span class="flex items-center">
-                    <i data-lucide="calendar" class="w-4 h-4 mr-1"></i>
-                    <?= date('M d, Y H:i', strtotime($post['created_at'])) ?>
-                </span>
-                <span class="flex items-center">
-                    <i data-lucide="heart" class="w-4 h-4 mr-1"></i>
-                    <?= $post['likes'] ?> likes
-                </span>
-            </div>
-        </div>
 
-        <div class="prose max-w-none">
-            <?= nl2br(esc($post['content'])) ?>
-        </div>
+                    <!-- Comment Button (Cherry Emoji) -->
+                    <a href="#comments" class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded transition-colors group">
+                        <span class="text-lg group-hover:scale-110 transition-transform">🍒</span>
+                        <span><?= count($comments) ?></span>
+                        <span>Comments</span>
+                    </a>
 
-        <!-- Post Actions (if logged in and not admin) -->
-        <?php if (session()->get('user_id') && session()->get('user_role') !== 'admin'): ?>
-            <div class="mt-6 pt-4 border-t border-gray-200">
-                <form action="/forum/post/<?= $post['id'] ?>/like" method="POST" class="inline">
-                    <button type="submit" class="text-primary hover:text-primary-hover font-semibold inline-flex items-center">
-                        <i data-lucide="heart" class="w-4 h-4 mr-1"></i>
-                        Like Post
-                    </button>
-                </form>
-
-                <?php if (session()->get('user_id') == $post['user_id'] || session()->get('user_role') == 'admin'): ?>
-                    <form action="/forum/post/<?= $post['id'] ?>/delete" method="POST" class="inline ml-4"
-                          onsubmit="return confirm('Are you sure you want to delete this post?')">
-                        <button type="submit" class="text-red-600 hover:text-red-800 font-semibold inline-flex items-center">
-                            <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i>
-                            Delete Post
+                    <!-- Report Button -->
+                    <?php if (session()->get('user_id') && session()->get('user_role') !== 'admin'): ?>
+                        <button onclick="reportPost(<?= $post['id'] ?>, 'forum_post')" class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded transition-colors group ml-auto" title="Report this post">
+                            <i data-lucide="flag" class="w-5 h-5 group-hover:text-red-500"></i>
+                            <span>Report</span>
                         </button>
-                    </form>
-                <?php endif; ?>
-            </div>
-        <?php endif; ?>
-    </div>
+                    <?php endif; ?>
 
-    <!-- Comments Section -->
-    <div class="bg-white rounded-lg shadow-md border border-gray-200 p-6">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">Comments (<?= count($comments) ?>)</h2>
-
-        <!-- Comments List -->
-        <?php if (empty($comments)): ?>
-            <div class="text-center py-8">
-                <i data-lucide="message-square" class="w-12 h-12 text-gray-400 mx-auto mb-4"></i>
-                <p class="text-gray-600">No comments yet. Be the first to comment!</p>
+                    <!-- Delete Button (for post author/admin) -->
+                    <?php if (session()->get('user_id') && (session()->get('user_id') == $post['user_id'] || session()->get('user_role') == 'admin')): ?>
+                        <form action="/forum/post/<?= $post['id'] ?>/delete" method="POST" class="inline ml-auto" onsubmit="return confirm('Are you sure you want to delete this post?')">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded transition-colors">
+                                <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                <span>Delete</span>
+                            </button>
+                        </form>
+                    <?php endif; ?>
+                </div>
             </div>
-        <?php else: ?>
-            <div class="space-y-6">
-                <?php foreach ($comments as $comment): ?>
-                    <div class="border-b border-gray-100 pb-6 last:border-b-0 last:pb-0">
-                        <div class="flex items-start space-x-3">
-                            <div class="flex-shrink-0">
-                                <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                                    <i data-lucide="user" class="w-5 h-5 text-primary"></i>
-                                </div>
-                            </div>
-                            <div class="flex-1">
-                                <div class="flex items-center space-x-2 mb-2">
-                                    <span class="font-semibold text-gray-900"><?= esc($comment['author_name']) ?></span>
-                                    <?php if ($comment['author_role'] === 'admin'): ?>
-                                        <span class="px-2 py-1 bg-primary/10 text-primary text-xs font-semibold rounded">Admin</span>
-                                    <?php elseif ($comment['author_role'] === 'farmer'): ?>
-                                        <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded">Farmer</span>
-                                    <?php endif; ?>
+        </div>
+
+        <!-- Comments Section -->
+        <div id="comments" class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div class="p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-6">
+                    Comments (<?= count($comments) ?>)
+                </h3>
+
+                <?php if (empty($comments)): ?>
+                    <div class="text-center py-8">
+                        <i data-lucide="message-square-off" class="w-12 h-12 text-gray-400 mx-auto mb-4"></i>
+                        <p class="text-gray-600">No comments yet. Be the first to comment!</p>
+                    </div>
+                <?php else: ?>
+                    <div class="space-y-6 mb-8">
+                        <?php foreach ($comments as $comment): ?>
+                            <div class="border-l-4 border-gray-200 pl-6">
+                                <div class="flex items-start justify-between mb-2">
+                                    <div class="flex items-center">
+                                        <span class="font-semibold text-gray-900 mr-2"><?= esc($comment['author_name']) ?></span>
+                                        <?php if (!empty($comment['author_role'])): ?>
+                                            <span class="inline-block px-2 py-1 bg-primary/10 text-primary text-xs font-semibold rounded">
+                                                <?= ucfirst(esc($comment['author_role'])) ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
                                     <span class="text-sm text-gray-500">
                                         <?= date('M d, Y H:i', strtotime($comment['created_at'])) ?>
                                     </span>
                                 </div>
-                                <p class="text-gray-700"><?= nl2br(esc($comment['comment'])) ?></p>
+                                <div class="text-gray-700 whitespace-pre-line">
+                                    <?= nl2br(esc($comment['comment'])) ?>
+                                </div>
                             </div>
-                        </div>
+                        <?php endforeach; ?>
                     </div>
-                <?php endforeach; ?>
-            </div>
-        <?php endif; ?>
+                <?php endif; ?>
 
-        <!-- Add Comment Form (if logged in) -->
-        <?php if (session()->get('user_id')): ?>
-            <div class="mt-8 pt-6 border-t border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Add a Comment</h3>
-
-                <form action="/forum/post/<?= $post['id'] ?>/comment" method="POST">
-                    <div class="mb-4">
-                        <textarea
-                            name="comment"
-                            rows="4"
-                            placeholder="Share your thoughts..."
-                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                            required
-                        ></textarea>
+                <!-- Add Comment Form -->
+                <?php if (session()->get('user_id')): ?>
+                    <div class="border-t border-gray-200 pt-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-4">Add a Comment</h4>
+                        <form action="/forum/post/<?= $post['id'] ?>/comment" method="POST">
+                            <?= csrf_field() ?>
+                            <div class="mb-4">
+                                <textarea
+                                    name="comment"
+                                    rows="4"
+                                    placeholder="Share your thoughts..."
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                    required
+                                ></textarea>
+                            </div>
+                            <button type="submit" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-hover font-semibold transition-colors">
+                                <i data-lucide="send" class="w-4 h-4 inline mr-2"></i>
+                                Post Comment
+                            </button>
+                        </form>
                     </div>
-
-                    <button type="submit" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-hover font-semibold">
-                        <i data-lucide="send" class="w-4 h-4 mr-2 inline"></i>
-                        Post Comment
-                    </button>
-                </form>
+                <?php else: ?>
+                    <div class="border-t border-gray-200 pt-6 text-center">
+                        <p class="text-gray-600 mb-4">Login to join the discussion</p>
+                        <a href="/auth/login" class="inline-block bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-hover font-semibold transition-colors">
+                            <i data-lucide="log-in" class="w-4 h-4 inline mr-2"></i>
+                            Login
+                        </a>
+                    </div>
+                <?php endif; ?>
             </div>
-        <?php else: ?>
-            <div class="mt-8 pt-6 border-t border-gray-200 text-center">
-                <p class="text-gray-600 mb-4">Please <a href="/auth/login" class="text-primary hover:text-primary-hover font-semibold">log in</a> to join the discussion.</p>
-            </div>
-        <?php endif; ?>
+        </div>
     </div>
 </div>
+
+<!-- Report Modal -->
+<div id="reportModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg max-w-md w-full p-6">
+            <h3 class="text-lg font-semibold mb-4">Report Content</h3>
+            <form id="reportForm">
+                <input type="hidden" id="reportedType" name="reported_type">
+                <input type="hidden" id="reportedId" name="reported_id">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Reason</label>
+                    <select id="reportReason" name="reason" class="w-full px-3 py-2 border border-gray-300 rounded-lg" required>
+                        <option value="">Select a reason</option>
+                        <option value="spam">Spam</option>
+                        <option value="inappropriate">Inappropriate content</option>
+                        <option value="harassment">Harassment</option>
+                        <option value="false_information">False information</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Description (optional)</label>
+                    <textarea id="reportDescription" name="description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Provide more details..."></textarea>
+                </div>
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeReportModal()" class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300">Cancel</button>
+                    <button type="submit" class="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700">Submit Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function reportPost(id, type) {
+    document.getElementById('reportedId').value = id;
+    document.getElementById('reportedType').value = type;
+    document.getElementById('reportModal').classList.remove('hidden');
+}
+
+function closeReportModal() {
+    document.getElementById('reportModal').classList.add('hidden');
+    document.getElementById('reportForm').reset();
+}
+
+document.getElementById('reportForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+
+    fetch('/report', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            closeReportModal();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('An error occurred. Please try again.');
+    });
+});
+</script>
 
 <?= $this->endSection() ?>

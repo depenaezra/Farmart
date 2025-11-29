@@ -7,7 +7,7 @@
                     <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                         <i data-lucide="sprout" class="w-5 h-5 text-white"></i>
                     </div>
-                    <h3 class="text-lg font-bold">AgriConnect</h3>
+                    <h3 class="text-lg font-bold">Farmart</h3>
                 </div>
                 <p class="text-gray-400 text-sm">
                     Connecting Nasugbu farmers directly with local buyers. Fresh produce, fair prices, strong community.
@@ -58,7 +58,7 @@
         <hr class="border-gray-700 my-6">
         
         <div class="flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
-            <p>&copy; <?= date('Y') ?> AgriConnect. All rights reserved.</p>
+            <p>&copy; <?= date('Y') ?> Farmart. All rights reserved.</p>
             <p class="mt-2 md:mt-0">
                 Built for Nasugbu farming community
             </p>

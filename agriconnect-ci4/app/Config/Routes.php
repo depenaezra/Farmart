@@ -13,6 +13,9 @@ use CodeIgniter\Router\RouteCollection;
 // Landing page
 $routes->get('/', 'Home::index');
 
+// Dashboard (redirects based on user role)
+$routes->get('/dashboard', 'Home::dashboard', ['filter' => 'auth']);
+
 // Marketplace
 $routes->get('/marketplace', 'Marketplace::index');
 $routes->get('/marketplace/product/(:num)', 'Marketplace::product/$1');
@@ -20,6 +23,8 @@ $routes->get('/marketplace/search', 'Marketplace::search');
 
 // Weather
 $routes->get('/weather', 'Weather::index');
+$routes->get('/weather/api', 'Weather::getWeather');
+$routes->get('/weather/update-cache', 'Weather::updateCache'); // For cron job
 
 // Announcements
 $routes->get('/announcements', 'Announcements::index');
@@ -102,12 +107,24 @@ $routes->group('checkout', ['filter' => 'auth:buyer,admin'], function($routes) {
 });
 
 // ============================================================
+// PROFILE ROUTES (Protected - All authenticated users)
+// ============================================================
+
+$routes->group('profile', ['filter' => 'auth'], function($routes) {
+    $routes->get('/', 'Profile::index');
+    $routes->get('edit', 'Profile::edit');
+    $routes->post('update', 'Profile::update');
+});
+
+// ============================================================
 // MESSAGING ROUTES (Protected - All authenticated users)
 // ============================================================
 
 $routes->group('messages', ['filter' => 'auth'], function($routes) {
     $routes->get('/', 'Messages::index');
     $routes->get('inbox', 'Messages::inbox');
+    $routes->get('conversation/(:num)', 'Messages::getConversation/$1');
+    $routes->post('conversation', 'Messages::getConversation');
     $routes->get('sent', 'Messages::sent');
     $routes->get('compose', 'Messages::compose');
     $routes->post('compose', 'Messages::send');
@@ -151,6 +168,11 @@ $routes->group('admin', ['filter' => 'auth:admin'], function($routes) {
     $routes->post('products/(:num)/reject', 'Admin::rejectProduct/$1');
     $routes->post('products/(:num)/delete', 'Admin::deleteProduct/$1');
     
+    // Orders Management
+    $routes->get('orders', 'Admin::orders');
+    $routes->get('orders/(:num)', 'Admin::orderDetail/$1');
+    $routes->post('orders/(:num)/update-status', 'Admin::updateOrderStatus/$1');
+    
     // Announcements
     $routes->get('announcements', 'Admin::announcements');
     $routes->get('announcements/create', 'Admin::createAnnouncement');
@@ -158,14 +180,25 @@ $routes->group('admin', ['filter' => 'auth:admin'], function($routes) {
     $routes->get('announcements/edit/(:num)', 'Admin::editAnnouncement/$1');
     $routes->post('announcements/edit/(:num)', 'Admin::editAnnouncementProcess/$1');
     $routes->post('announcements/delete/(:num)', 'Admin::deleteAnnouncement/$1');
-    
+
+    // Violations
+    $routes->get('violations', 'Admin::violations');
+    $routes->post('violations/(:num)/status', 'Admin::updateViolationStatus/$1');
+    $routes->post('violations/(:num)/delete', 'Admin::deleteReportedItem/$1');
+
     // Analytics
     $routes->get('analytics', 'Admin::analytics');
-    
+
     // Settings
     $routes->get('settings', 'Admin::settings');
     $routes->post('settings', 'Admin::updateSettings');
 });
+
+// ============================================================
+// REPORTING ROUTES (Protected - Authenticated users)
+// ============================================================
+
+$routes->post('report', 'Report::submit', ['filter' => 'auth']);
 
 // ============================================================
 // API ROUTES (Optional - for AJAX)
@@ -176,7 +209,7 @@ $routes->group('api', function($routes) {
     $routes->get('products', 'Api\Products::index');
     $routes->get('products/(:num)', 'Api\Products::show/$1');
     $routes->get('products/search', 'Api\Products::search');
-    
+
     // Cart (requires auth)
     $routes->post('cart/add', 'Api\Cart::add', ['filter' => 'auth']);
     $routes->get('cart/count', 'Api\Cart::count', ['filter' => 'auth']);
@@ -187,5 +220,5 @@ $routes->group('api', function($routes) {
 // ============================================================
 
 $routes->set404Override(function() {
-    return view('errors/404');
+    return view('errors/html/error_404');
 });

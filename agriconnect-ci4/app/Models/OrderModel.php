@@ -146,20 +146,20 @@ class OrderModel extends Model
     public function getFarmerStatistics($farmerId)
     {
         $db = \Config\Database::connect();
-        
+
         return [
-            'total_orders' => $this->where('farmer_id', $farmerId)->countAllResults(false),
-            'pending' => $this->where('farmer_id', $farmerId)->where('status', 'pending')->countAllResults(false),
-            'processing' => $this->where('farmer_id', $farmerId)->where('status', 'processing')->countAllResults(false),
-            'completed' => $this->where('farmer_id', $farmerId)->where('status', 'completed')->countAllResults(false),
-            'cancelled' => $this->where('farmer_id', $farmerId)->where('status', 'cancelled')->countAllResults(false),
+            'total_orders' => $db->table('orders')->where('farmer_id', $farmerId)->countAllResults(),
+            'pending' => $db->table('orders')->where('farmer_id', $farmerId)->where('status', 'pending')->countAllResults(),
+            'processing' => $db->table('orders')->where('farmer_id', $farmerId)->where('status', 'processing')->countAllResults(),
+            'completed' => $db->table('orders')->where('farmer_id', $farmerId)->where('status', 'completed')->countAllResults(),
+            'cancelled' => $db->table('orders')->where('farmer_id', $farmerId)->where('status', 'cancelled')->countAllResults(),
             'total_sales' => $db->table('orders')
-                               ->selectSum('total_price')
-                               ->where('farmer_id', $farmerId)
-                               ->where('status', 'completed')
-                               ->get()
-                               ->getRow()
-                               ->total_price ?? 0
+                                ->selectSum('total_price')
+                                ->where('farmer_id', $farmerId)
+                                ->where('status', 'completed')
+                                ->get()
+                                ->getRow()
+                                ->total_price ?? 0
         ];
     }
     

@@ -130,8 +130,20 @@ class AuthController extends BaseController
         ];
         
         if ($this->userModel->save($data)) {
-            return redirect()->to('/auth/login')
-                ->with('success', 'Registration successful! Please login.');
+            $userId = $this->userModel->insertID();
+            $user = $this->userModel->find($userId);
+
+            // Set session
+            session()->set([
+                'user_id' => $user['id'],
+                'user_name' => $user['name'],
+                'user_email' => $user['email'],
+                'user_role' => $user['role'],
+                'logged_in' => true
+            ]);
+
+            return redirect()->to('/marketplace')
+                ->with('success', 'Registration successful! Welcome to the marketplace.');
         } else {
             return redirect()->back()
                 ->withInput()
@@ -180,8 +192,20 @@ class AuthController extends BaseController
         ];
         
         if ($this->userModel->save($data)) {
-            return redirect()->to('/auth/login')
-                ->with('success', 'Registration successful! Please login.');
+            $userId = $this->userModel->insertID();
+            $user = $this->userModel->find($userId);
+
+            // Set session
+            session()->set([
+                'user_id' => $user['id'],
+                'user_name' => $user['name'],
+                'user_email' => $user['email'],
+                'user_role' => $user['role'],
+                'logged_in' => true
+            ]);
+
+            return redirect()->to('/marketplace')
+                ->with('success', 'Registration successful! Welcome to the marketplace.');
         } else {
             return redirect()->back()
                 ->withInput()
