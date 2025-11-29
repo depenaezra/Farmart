@@ -72,7 +72,7 @@
                 <?php else: ?>
                     <!-- Not logged in -->
                     <a href="/auth/login" class="text-gray-700 hover:text-primary font-medium">Login</a>
-                    <a href="/auth/register-farmer" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover font-medium">
+                    <a href="/auth/register-buyer" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover font-medium">
                         Register
                     </a>
                 <?php endif; ?>
@@ -114,8 +114,7 @@
             <?php else: ?>
                 <hr class="my-2">
                 <a href="/auth/login" class="block py-2 text-gray-700 hover:text-primary">Login</a>
-                <a href="/auth/register-farmer" class="block py-2 text-gray-700 hover:text-primary">Register as Farmer</a>
-                <a href="/auth/register-buyer" class="block py-2 text-gray-700 hover:text-primary">Register as Buyer</a>
+                <a href="/auth/register-buyer" class="block py-2 text-gray-700 hover:text-primary">Register</a>
             <?php endif; ?>
         </div>
     </div>
