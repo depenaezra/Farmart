@@ -187,8 +187,49 @@ class Forum extends BaseController
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s')
         ];
-        
+
+        // Handle optional image upload (field name: image)
+        $file = $this->request->getFile('image');
+        if ($file && $file->isValid() && !$file->hasMoved()) {
+            $uploadPath = FCPATH . 'uploads/forum/';
+            if (!is_dir($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+            $newName = $file->getRandomName();
+            $file->move($uploadPath, $newName);
+            // store relative path to use in views
+            $data['image_url'] = 'uploads/forum/' . $newName;
+        }
+
+        // Insert post
         if ($db->table('forum_posts')->insert($data)) {
+            $postId = $db->insertID();
+
+            // Extract mentions like @username and populate forum_mentions
+            $content = $data['content'] ?? '';
+            if (preg_match_all('/@([A-Za-z0-9_\-\.]+)/', $content, $matches)) {
+                $usernames = array_unique($matches[1]);
+                foreach ($usernames as $uname) {
+                    $u = $db->table('users')
+                        ->select('id')
+                        ->where('username', $uname)
+                        ->orWhere('name', $uname)
+                        ->get()
+                        ->getRowArray();
+                    if ($u && isset($u['id'])) {
+                        try {
+                            $db->table('forum_mentions')->insert([
+                                'post_id' => $postId,
+                                'mentioned_user_id' => $u['id'],
+                                'created_at' => date('Y-m-d H:i:s')
+                            ]);
+                        } catch (\Exception $e) {
+                            // ignore duplicate/constraint errors
+                        }
+                    }
+                }
+            }
+
             return redirect()->to('/forum')
                 ->with('success', 'Post created successfully!');
         } else {
@@ -222,11 +263,36 @@ class Forum extends BaseController
             'comment' => $this->request->getPost('comment'),
             'created_at' => date('Y-m-d H:i:s')
         ];
-        
+
         if ($db->table('forum_comments')->insert($data)) {
+            $insertId = $db->insertID();
+
+            // If AJAX request, return rendered comment HTML so client can append
+            if ($this->request->isAJAX()) {
+                $comment = $db->table('forum_comments')
+                    ->select('forum_comments.*, users.name as author_name, users.role as author_role')
+                    ->join('users', 'users.id = forum_comments.user_id')
+                    ->where('forum_comments.id', $insertId)
+                    ->get()
+                    ->getRowArray();
+
+                $html = view('forum/_comment', ['comment' => $comment]);
+                $count = $db->table('forum_comments')->where('post_id', $postId)->countAllResults();
+
+                return $this->response->setJSON([
+                    'success' => true,
+                    'html' => $html,
+                    'comment_count' => $count
+                ]);
+            }
+
             return redirect()->back()
                 ->with('success', 'Comment added!');
         } else {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['success' => false, 'message' => 'Failed to add comment.']);
+            }
+
             return redirect()->back()
                 ->with('error', 'Failed to add comment.');
         }

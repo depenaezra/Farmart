@@ -14,7 +14,7 @@
         </div>
 
         <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-            <form action="/forum/create" method="POST">
+            <form action="/forum/create" method="POST" enctype="multipart/form-data">
                 <?= csrf_field() ?>
 
                 <div class="space-y-6">
@@ -69,6 +69,13 @@
                             <p class="text-red-500 text-sm mt-1"><?= $errors['content'] ?></p>
                         <?php endif; ?>
                         <p class="text-sm text-gray-500 mt-1">Minimum 20 characters. Be respectful and helpful to fellow farmers.</p>
+                    </div>
+
+                    <!-- Image Upload -->
+                    <div>
+                        <label for="image" class="block text-sm font-semibold text-gray-700 mb-2">Attach Photo (optional)</label>
+                        <input type="file" id="image" name="image" accept="image/*" class="w-full">
+                        <p class="text-sm text-gray-500 mt-1">Optional: add a photo to illustrate your post (jpg, png).</p>
                     </div>
                 </div>
 

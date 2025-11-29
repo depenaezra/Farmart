@@ -18,7 +18,7 @@
                 <!-- Post Header -->
                 <div class="mb-4">
                     <div class="flex items-center text-xs text-gray-500 mb-3">
-                        <span class="font-medium text-gray-700"><?= esc($post['author_name']) ?></span>
+                        <a href="/users/<?= $post['user_id'] ?>" class="font-medium text-gray-700 hover:underline"><?= esc($post['author_name']) ?></a>
                         <?php if (!empty($post['author_role'])): ?>
                             <span class="ml-2 inline-block px-2 py-0.5 bg-primary/10 text-primary text-xs font-semibold rounded">
                                 <?= ucfirst(esc($post['author_role'])) ?>
@@ -99,41 +99,24 @@
                     Comments (<?= count($comments) ?>)
                 </h3>
 
-                <?php if (empty($comments)): ?>
-                    <div class="text-center py-8">
-                        <i data-lucide="message-square-off" class="w-12 h-12 text-gray-400 mx-auto mb-4"></i>
-                        <p class="text-gray-600">No comments yet. Be the first to comment!</p>
-                    </div>
-                <?php else: ?>
-                    <div class="space-y-6 mb-8">
+                <div id="commentsList" class="space-y-6 mb-8">
+                    <?php if (empty($comments)): ?>
+                        <div class="text-center py-8">
+                            <i data-lucide="message-square-off" class="w-12 h-12 text-gray-400 mx-auto mb-4"></i>
+                            <p class="text-gray-600">No comments yet. Be the first to comment!</p>
+                        </div>
+                    <?php else: ?>
                         <?php foreach ($comments as $comment): ?>
-                            <div class="border-l-4 border-gray-200 pl-6">
-                                <div class="flex items-start justify-between mb-2">
-                                    <div class="flex items-center">
-                                        <span class="font-semibold text-gray-900 mr-2"><?= esc($comment['author_name']) ?></span>
-                                        <?php if (!empty($comment['author_role'])): ?>
-                                            <span class="inline-block px-2 py-1 bg-primary/10 text-primary text-xs font-semibold rounded">
-                                                <?= ucfirst(esc($comment['author_role'])) ?>
-                                            </span>
-                                        <?php endif; ?>
-                                    </div>
-                                    <span class="text-sm text-gray-500">
-                                        <?= date('M d, Y H:i', strtotime($comment['created_at'])) ?>
-                                    </span>
-                                </div>
-                                <div class="text-gray-700 whitespace-pre-line">
-                                    <?= nl2br(esc($comment['comment'])) ?>
-                                </div>
-                            </div>
+                            <?= view('forum/_comment', ['comment' => $comment]) ?>
                         <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
+                    <?php endif; ?>
+                </div>
 
                 <!-- Add Comment Form -->
                 <?php if (session()->get('user_id')): ?>
                     <div class="border-t border-gray-200 pt-6">
                         <h4 class="text-lg font-semibold text-gray-900 mb-4">Add a Comment</h4>
-                        <form action="/forum/post/<?= $post['id'] ?>/comment" method="POST">
+                        <form id="commentForm" action="/forum/post/<?= $post['id'] ?>/comment" method="POST">
                             <?= csrf_field() ?>
                             <div class="mb-4">
                                 <textarea
@@ -261,6 +244,65 @@ document.getElementById('reportForm').addEventListener('submit', function(e) {
         } catch (e) {
             alert('An error occurred. Please try again.');
         }
+    });
+});
+</script>
+
+<script>
+// AJAX comment submission
+document.addEventListener('DOMContentLoaded', function() {
+    const commentForm = document.getElementById('commentForm');
+    if (!commentForm) return;
+
+    commentForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const url = form.action;
+        const fd = new FormData(form);
+
+        fetch(url, {
+            method: 'POST',
+            body: fd,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data && data.success) {
+                const commentsList = document.getElementById('commentsList');
+                if (commentsList) {
+                    const temp = document.createElement('div');
+                    temp.innerHTML = data.html;
+                    commentsList.appendChild(temp.firstElementChild);
+                }
+
+                // Update comments count
+                const heading = document.querySelector('#comments h3');
+                if (heading && data.comment_count !== undefined) {
+                    heading.textContent = 'Comments (' + data.comment_count + ')';
+                }
+
+                // Clear textarea
+                form.reset();
+
+                try {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Comment posted',
+                        timer: 1400,
+                        showConfirmButton: false
+                    });
+                } catch (e) {
+                    // ignore
+                }
+            } else {
+                try { Swal.fire({ icon: 'error', title: 'Error', text: data.message || 'Failed to post comment.' }); } catch (e) { alert(data.message || 'Failed to post comment.'); }
+            }
+        })
+        .catch(err => {
+            try { Swal.fire({ icon: 'error', title: 'Error', text: 'An error occurred.' }); } catch (e) { alert('An error occurred.'); }
+        });
     });
 });
 </script>

@@ -101,14 +101,26 @@
             <?php endif; ?>
         </div>
     <?php else: ?>
-        <div class="space-y-4">
+            <div class="space-y-4 flex flex-col items-center">
             <?php foreach ($posts as $post): ?>
-                <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover:border-gray-300 transition-colors">
+                    <?php $postData = htmlspecialchars(json_encode([
+                        'id' => $post['id'],
+                        'title' => $post['title'],
+                        'author_name' => $post['author_name'] ?? '',
+                        'author_id' => $post['user_id'] ?? null,
+                        'created_at' => $post['created_at'] ?? '',
+                        'content' => $post['content'] ?? '',
+                        'image_url' => $post['image_url'] ?? null,
+                        'likes' => $post['likes'] ?? 0,
+                        'comment_count' => $post['comment_count'] ?? 0,
+                    ]), ENT_QUOTES, 'UTF-8'); ?>
+
+                    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover:border-gray-300 transition-colors w-full max-w-3xl">
                     <div class="p-4">
                         <!-- Post Header -->
                         <div class="mb-3">
                             <div class="flex items-center text-xs text-gray-500 mb-2">
-                                <span class="font-medium text-gray-700"><?= esc($post['author_name']) ?></span>
+                                <a href="/users/<?= $post['user_id'] ?>" class="font-medium text-gray-700 hover:underline"><?= esc($post['author_name']) ?></a>
                                 <span class="mx-1">•</span>
                                 <span><?= date('M d, Y', strtotime($post['created_at'])) ?></span>
                                 <?php if (!empty($post['category'])): ?>
@@ -125,10 +137,22 @@
                             </h2>
                         </div>
 
-                        <!-- Post Content Preview -->
-                        <div class="text-gray-700 text-sm mb-4 line-clamp-3">
-                            <?= esc(substr($post['content'], 0, 300)) ?><?= strlen($post['content']) > 300 ? '...' : '' ?>
-                        </div>
+                            <!-- Image (if any) -->
+                            <?php if (!empty($post['image_url'])): ?>
+                                <div class="mb-4">
+                                    <img src="<?= esc($post['image_url']) ?>" alt="<?= esc($post['title']) ?>" class="w-full h-64 object-cover rounded-lg">
+                                </div>
+                            <?php endif; ?>
+
+                            <!-- Post Content Preview -->
+                            <?php $plain = trim(strip_tags($post['content'])); ?>
+                            <?php if (strlen($plain) >= 50): ?>
+                                <div class="text-gray-700 text-sm mb-4">
+                                    <?= esc(substr($plain, 0, 50)) ?>... <a href="#" class="text-primary view-more" data-post='<?= $postData ?>'>View more</a>
+                                </div>
+                            <?php else: ?>
+                                <div class="text-gray-700 text-sm mb-4"><?= esc($plain) ?></div>
+                            <?php endif; ?>
 
                         <!-- Reddit-style Action Buttons at Bottom -->
                         <div class="flex items-center gap-4 pt-3 border-t border-gray-100">
@@ -149,7 +173,7 @@
                             <?php endif; ?>
 
                             <!-- Comment Button (Cherry Emoji) -->
-                            <a href="/forum/post/<?= $post['id'] ?>" class="flex items-center gap-1.5 px-2 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded transition-colors group">
+                            <a href="/forum/post/<?= $post['id'] ?>" class="open-post-modal flex items-center gap-1.5 px-2 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded transition-colors group" data-post='<?= $postData ?>'>
                                 <span class="text-base group-hover:scale-110 transition-transform">🍒</span>
                                 <span class="font-medium"><?= $post['comment_count'] ?? 0 ?></span>
                                 <span class="hidden sm:inline">Comments</span>
@@ -270,5 +294,145 @@ document.getElementById('reportForm').addEventListener('submit', function(e) {
     });
 });
 </script>
+
+<!-- Post Detail Modal (improved design: light blur backdrop, focused popup) -->
+<div id="postModal" class="fixed inset-0 bg-black/10 backdrop-blur-sm hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div id="postModalCard" class="bg-white rounded-lg max-w-3xl w-full p-0 overflow-hidden shadow-xl transform transition-all">
+            <div class="p-4 border-b flex items-start justify-between">
+                <div>
+                    <h3 id="postModalTitle" class="text-lg font-semibold"></h3>
+                    <div id="postModalMeta" class="text-xs text-gray-500"></div>
+                </div>
+                <button id="postModalClose" class="text-gray-500 hover:text-gray-800 ml-4 text-2xl leading-none">&times;</button>
+            </div>
+            <div id="postModalBody" class="p-4 max-h-[70vh] overflow-auto">
+                <div id="postModalInner"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// small helper to escape text for HTML insertion
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return String(unsafe)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+async function openPostModalFromData(data){
+    try{
+        const post = (typeof data === 'string') ? JSON.parse(data) : data;
+        const id = post.id;
+
+        const modal = document.getElementById('postModal');
+        const card = document.getElementById('postModalCard');
+        const inner = document.getElementById('postModalInner');
+
+        // Show modal and animate in
+        modal.classList.remove('hidden');
+        card.classList.remove('animate__fadeOutUp');
+        card.classList.add('animate__animated', 'animate__zoomIn');
+
+        // populate modal header from embedded data so author link is available immediately
+        const headerTitleEl = document.getElementById('postModalTitle');
+        const headerMetaEl = document.getElementById('postModalMeta');
+        if (headerTitleEl) headerTitleEl.innerText = post.title || '';
+        if (headerMetaEl) {
+            const date = post.created_at ? new Date(post.created_at) : null;
+            const authorLink = post.author_id ? `<a href="/users/${post.author_id}" class="text-primary hover:underline">${escapeHtml(post.author_name || '')}</a>` : escapeHtml(post.author_name || '');
+            headerMetaEl.innerHTML = authorLink + (date ? ' • ' + date.toLocaleString() : '') + (post.category ? ' • ' + escapeHtml(post.category) : '');
+        }
+
+        // Try fetching full post page so we can include comments and exact layout
+        try {
+            const resp = await fetch('/forum/post/' + encodeURIComponent(id));
+            if (!resp.ok) throw new Error('Fetch failed');
+            const html = await resp.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+
+
+            // Select the main post container and comments container from the page
+            const postContainer = doc.querySelector('.bg-white.rounded-lg.border');
+            const commentsNode = doc.getElementById('comments');
+
+            inner.innerHTML = '';
+            if (postContainer) {
+                // Clone post and remove its internal title/meta to avoid duplicate info
+                const clone = postContainer.cloneNode(true);
+                const innerTitle = clone.querySelector('h1, h2, h3');
+                if (innerTitle) innerTitle.remove();
+                const innerMeta = clone.querySelector('.text-xs.text-gray-500');
+                if (innerMeta) innerMeta.remove();
+                inner.appendChild(clone);
+            }
+            if (commentsNode) inner.appendChild(commentsNode.cloneNode(true));
+
+            // Re-initialize lucide icons inside modal
+            lucide.createIcons();
+
+        } catch (err) {
+            // Fallback: render basic data with mentions linked (header already populated above)
+            // ensure meta includes linked author (already set from embedded data)
+            let raw = post.content || '';
+            let safe = escapeHtml(raw);
+            safe = safe.replace(/@([a-zA-Z0-9_\-\.]+)/g, function(match, u){ return `<a href="/users/${u}" class="text-primary">@${u}</a>`; });
+            inner.innerHTML = `<div class="mb-4 text-gray-800">${safe}</div>`;
+            console.warn('Could not fetch full post, using embedded data', err);
+        }
+
+        // Wire close button
+        document.getElementById('postModalClose').onclick = closePostModal;
+
+    } catch(e) {
+        console.error('Invalid post data for modal', e, data);
+    }
+}
+
+function closePostModal(){
+    const modal = document.getElementById('postModal');
+    const card = document.getElementById('postModalCard');
+    // animate out
+    card.classList.remove('animate__zoomIn');
+    card.classList.add('animate__animated', 'animate__fadeOutUp');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        card.classList.remove('animate__fadeOutUp');
+    }, 260);
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+    // Wire view-more links
+    document.querySelectorAll('.view-more').forEach(el => {
+        el.addEventListener('click', function(e){
+            e.preventDefault();
+            const data = el.getAttribute('data-post');
+            openPostModalFromData(data);
+        });
+    });
+
+    // Wire comment/open-post buttons
+    document.querySelectorAll('.open-post-modal').forEach(el => {
+        el.addEventListener('click', function(e){
+            e.preventDefault();
+            const data = el.getAttribute('data-post');
+            openPostModalFromData(data);
+        });
+    });
+
+    // Close modal when clicking outside card
+    document.getElementById('postModal').addEventListener('click', function(e){
+        if (e.target.id === 'postModal') closePostModal();
+    });
+});
+</script>
+
+*** End Patch
 
 <?= $this->endSection() ?>
