@@ -196,8 +196,8 @@
                                             switch($order['status']) {
                                                 case 'pending': echo 'bg-yellow-100 text-yellow-800'; break;
                                                 case 'confirmed': echo 'bg-blue-100 text-blue-800'; break;
-                                                case 'shipped': echo 'bg-purple-100 text-purple-800'; break;
-                                                case 'delivered': echo 'bg-green-100 text-green-800'; break;
+                                                case 'processing': echo 'bg-purple-100 text-purple-800'; break;
+                                                case 'completed': echo 'bg-green-100 text-green-800'; break;
                                                 case 'cancelled': echo 'bg-red-100 text-red-800'; break;
                                                 default: echo 'bg-gray-100 text-gray-800';
                                             }

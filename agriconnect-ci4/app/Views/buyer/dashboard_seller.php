@@ -4,8 +4,8 @@
 
 <div class="container mx-auto px-4 py-8">
     <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">Welcome back, <?= esc($userName) ?>!</h1>
-        <p class="text-gray-600">Here's an overview of your farming business</p>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Seller Dashboard</h1>
+        <p class="text-gray-600">Welcome back, <?= esc($userName) ?>! Manage the products you sell and track your performance.</p>
     </div>
 
     <!-- Statistics Cards -->
@@ -16,7 +16,7 @@
                     <i data-lucide="package" class="w-6 h-6 text-green-600"></i>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Total Products</p>
+                    <p class="text-sm font-medium text-gray-600">Active Listings</p>
                     <p class="text-2xl font-bold text-gray-900"><?= $statistics['products']['total_products'] ?? 0 ?></p>
                 </div>
             </div>
@@ -40,7 +40,7 @@
                     <i data-lucide="dollar-sign" class="w-6 h-6 text-yellow-600"></i>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Revenue</p>
+                    <p class="text-sm font-medium text-gray-600">Sales Revenue</p>
                     <p class="text-2xl font-bold text-gray-900">₱<?= number_format($statistics['orders']['total_sales'] ?? 0, 2) ?></p>
                 </div>
             </div>
@@ -63,7 +63,7 @@
     <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6 mb-8">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <a href="/farmer/products/add" class="flex items-center p-4 bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors">
+            <a href="/buyer/products/add" class="flex items-center p-4 bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors">
                 <i data-lucide="plus-circle" class="w-8 h-8 text-primary mr-3"></i>
                 <div>
                     <p class="font-semibold text-gray-900">Add Product</p>
@@ -71,15 +71,15 @@
                 </div>
             </a>
 
-            <a href="/farmer/inventory" class="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
+            <a href="/buyer/inventory" class="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
                 <i data-lucide="package" class="w-8 h-8 text-green-600 mr-3"></i>
                 <div>
-                    <p class="font-semibold text-gray-900">Manage Inventory</p>
-                    <p class="text-sm text-gray-600">Update stock and products</p>
+                    <p class="font-semibold text-gray-900">Manage Listings</p>
+                    <p class="text-sm text-gray-600">Update stock and product details</p>
                 </div>
             </a>
 
-            <a href="/farmer/orders" class="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+            <a href="/buyer/sales/orders" class="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
                 <i data-lucide="clipboard-list" class="w-8 h-8 text-blue-600 mr-3"></i>
                 <div>
                     <p class="font-semibold text-gray-900">View Orders</p>
@@ -92,15 +92,15 @@
     <!-- Recent Orders -->
     <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
         <div class="flex items-center justify-between mb-6">
-            <h3 class="text-lg font-semibold text-gray-900">Recent Orders</h3>
-            <a href="/farmer/orders" class="text-primary hover:text-primary-hover font-medium">View All</a>
+            <h3 class="text-lg font-semibold text-gray-900">Recent Orders from Your Listings</h3>
+            <a href="/buyer/sales/orders" class="text-primary hover:text-primary-hover font-medium">View All</a>
         </div>
 
         <?php if (empty($recent_orders)): ?>
             <div class="text-center py-8">
                 <i data-lucide="shopping-bag" class="w-12 h-12 text-gray-400 mx-auto mb-4"></i>
                 <p class="text-gray-600">No orders yet</p>
-                <p class="text-sm text-gray-500 mt-1">Your orders will appear here</p>
+                <p class="text-sm text-gray-500 mt-1">Orders placed on your products will appear here</p>
             </div>
         <?php else: ?>
             <div class="space-y-4">
@@ -133,7 +133,7 @@
                                 ?>">
                                 <?= ucfirst($order['status']) ?>
                             </span>
-                            <a href="/farmer/orders/<?= $order['id'] ?>" class="ml-4 text-primary hover:text-primary-hover">
+                            <a href="/buyer/sales/orders/<?= $order['id'] ?>" class="ml-4 text-primary hover:text-primary-hover">
                                 <i data-lucide="eye" class="w-4 h-4"></i>
                             </a>
                         </div>
@@ -145,3 +145,5 @@
 </div>
 
 <?= $this->endSection() ?>
+
+

@@ -17,7 +17,7 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-600">Total Orders</p>
-                    <p class="text-2xl font-bold text-gray-900"><?= $statistics['total'] ?? 0 ?></p>
+                    <p class="text-2xl font-bold text-gray-900"><?= $statistics['total_orders'] ?? 0 ?></p>
                 </div>
             </div>
         </div>
@@ -40,8 +40,8 @@
                     <i data-lucide="truck" class="w-6 h-6 text-purple-600"></i>
                 </div>
                 <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">In Transit</p>
-                    <p class="text-2xl font-bold text-gray-900"><?= $statistics['shipped'] ?? 0 ?></p>
+                    <p class="text-sm font-medium text-gray-600">Processing</p>
+                    <p class="text-2xl font-bold text-gray-900"><?= $statistics['processing'] ?? 0 ?></p>
                 </div>
             </div>
         </div>
@@ -53,7 +53,7 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-600">Completed</p>
-                    <p class="text-2xl font-bold text-gray-900"><?= $statistics['delivered'] ?? 0 ?></p>
+                    <p class="text-2xl font-bold text-gray-900"><?= $statistics['completed'] ?? 0 ?></p>
                 </div>
             </div>
         </div>
@@ -71,11 +71,11 @@
             <a href="/buyer/orders?status=confirmed" class="px-4 py-2 rounded-lg font-semibold <?= $current_status === 'confirmed' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
                 Confirmed
             </a>
-            <a href="/buyer/orders?status=shipped" class="px-4 py-2 rounded-lg font-semibold <?= $current_status === 'shipped' ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
-                Shipped
+            <a href="/buyer/orders?status=processing" class="px-4 py-2 rounded-lg font-semibold <?= $current_status === 'processing' ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
+                Processing
             </a>
-            <a href="/buyer/orders?status=delivered" class="px-4 py-2 rounded-lg font-semibold <?= $current_status === 'delivered' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
-                Delivered
+            <a href="/buyer/orders?status=completed" class="px-4 py-2 rounded-lg font-semibold <?= $current_status === 'completed' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
+                Completed
             </a>
             <a href="/buyer/orders?status=cancelled" class="px-4 py-2 rounded-lg font-semibold <?= $current_status === 'cancelled' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
                 Cancelled
@@ -117,8 +117,8 @@
                                     switch($order['status']) {
                                         case 'pending': echo 'bg-yellow-100 text-yellow-800'; break;
                                         case 'confirmed': echo 'bg-blue-100 text-blue-800'; break;
-                                        case 'shipped': echo 'bg-purple-100 text-purple-800'; break;
-                                        case 'delivered': echo 'bg-green-100 text-green-800'; break;
+                                        case 'processing': echo 'bg-purple-100 text-purple-800'; break;
+                                        case 'completed': echo 'bg-green-100 text-green-800'; break;
                                         case 'cancelled': echo 'bg-red-100 text-red-800'; break;
                                         default: echo 'bg-gray-100 text-gray-800';
                                     }

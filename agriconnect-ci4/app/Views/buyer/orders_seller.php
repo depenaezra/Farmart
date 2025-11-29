@@ -4,29 +4,32 @@
 
 <div class="container mx-auto px-4 py-8">
     <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">My Orders</h1>
-        <p class="text-gray-600">Track and manage your customer orders</p>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Sales Orders</h1>
+        <p class="text-gray-600">Track and manage the orders placed on your listings</p>
     </div>
 
     <!-- Status Filter -->
     <div class="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-8">
         <div class="flex flex-wrap gap-2">
-            <a href="/farmer/orders" class="px-4 py-2 rounded-lg font-semibold <?= empty($current_status) ? 'bg-primary text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
+            <a href="/buyer/sales/orders" class="px-4 py-2 rounded-lg font-semibold <?= empty($current_status) ? 'bg-primary text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
                 All Orders
             </a>
-            <a href="/farmer/orders?status=pending" class="px-4 py-2 rounded-lg font-semibold <?= $current_status === 'pending' ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
+            <a href="/buyer/sales/orders?status=pending" class="px-4 py-2 rounded-lg font-semibold <?= $current_status === 'pending' ? 'bg-yellow-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
                 Pending
             </a>
-            <a href="/farmer/orders?status=confirmed" class="px-4 py-2 rounded-lg font-semibold <?= $current_status === 'confirmed' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
+            <a href="/buyer/sales/orders?status=confirmed" class="px-4 py-2 rounded-lg font-semibold <?= $current_status === 'confirmed' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
                 Confirmed
             </a>
-            <a href="/farmer/orders?status=processing" class="px-4 py-2 rounded-lg font-semibold <?= $current_status === 'processing' ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
+            <a href="/buyer/sales/orders?status=processing" class="px-4 py-2 rounded-lg font-semibold <?= $current_status === 'processing' ? 'bg-indigo-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
                 Processing
             </a>
-            <a href="/farmer/orders?status=completed" class="px-4 py-2 rounded-lg font-semibold <?= $current_status === 'completed' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
+            <a href="/buyer/sales/orders?status=processing" class="px-4 py-2 rounded-lg font-semibold <?= $current_status === 'processing' ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
+                Processing
+            </a>
+            <a href="/buyer/sales/orders?status=completed" class="px-4 py-2 rounded-lg font-semibold <?= $current_status === 'completed' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
                 Completed
             </a>
-            <a href="/farmer/orders?status=cancelled" class="px-4 py-2 rounded-lg font-semibold <?= $current_status === 'cancelled' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
+            <a href="/buyer/sales/orders?status=cancelled" class="px-4 py-2 rounded-lg font-semibold <?= $current_status === 'cancelled' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
                 Cancelled
             </a>
         </div>
@@ -38,7 +41,7 @@
             <i data-lucide="shopping-bag" class="w-16 h-16 text-gray-400 mx-auto mb-4"></i>
             <p class="text-xl text-gray-600">No orders found</p>
             <p class="text-gray-500 mt-2">
-                <?= empty($current_status) ? 'You haven\'t received any orders yet' : 'No orders with this status' ?>
+                <?= empty($current_status) ? 'You have not received any orders yet' : 'No orders with this status' ?>
             </p>
         </div>
     <?php else: ?>
@@ -74,7 +77,6 @@
                             </div>
                         </div>
 
-                        <!-- Order Item -->
                         <div class="border-t border-gray-200 pt-4">
                             <h4 class="font-semibold text-gray-900 mb-3">Order Item</h4>
                             <div class="flex items-center justify-between py-2">
@@ -101,7 +103,6 @@
                             </div>
                         </div>
 
-                        <!-- Actions -->
                         <div class="border-t border-gray-200 pt-4 mt-4">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center text-sm text-gray-600">
@@ -109,33 +110,21 @@
                                     Delivery: <?= esc($order['delivery_address']) ?>
                                 </div>
                                 <div class="flex gap-2">
-                                    <a href="/farmer/orders/<?= $order['id'] ?>" class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                                    <a href="/buyer/sales/orders/<?= $order['id'] ?>" class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
                                         <i data-lucide="eye" class="w-4 h-4 mr-2"></i>
                                         View Details
                                     </a>
 
-                                    <?php if ($order['status'] === 'pending'): ?>
-                                        <form action="/farmer/orders/<?= $order['id'] ?>/update-status" method="POST" class="inline">
-                                            <input type="hidden" name="status" value="confirmed">
-                                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors">
-                                                <i data-lucide="check" class="w-4 h-4 mr-2"></i>
-                                                Confirm Order
-                                            </button>
-                                        </form>
-                                    <?php elseif ($order['status'] === 'confirmed'): ?>
-                                        <form action="/farmer/orders/<?= $order['id'] ?>/update-status" method="POST" class="inline">
-                                            <input type="hidden" name="status" value="processing">
-                                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors">
-                                                <i data-lucide="package" class="w-4 h-4 mr-2"></i>
-                                                Start Processing
-                                            </button>
-                                        </form>
-                                    <?php elseif ($order['status'] === 'processing'): ?>
-                                        <form action="/farmer/orders/<?= $order['id'] ?>/update-status" method="POST" class="inline">
-                                            <input type="hidden" name="status" value="completed">
-                                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors">
-                                                <i data-lucide="check-circle" class="w-4 h-4 mr-2"></i>
-                                                Mark Completed
+                                    <?php if (in_array($order['status'], ['pending', 'confirmed', 'processing'])): ?>
+                                        <form action="/buyer/sales/orders/<?= $order['id'] ?>/update-status" method="POST" class="inline-flex items-center gap-2">
+                                            <?= csrf_field() ?>
+                                            <select name="status" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
+                                                <option value="confirmed" <?= $order['status'] === 'confirmed' ? 'selected' : '' ?>>Confirm</option>
+                                                <option value="processing" <?= $order['status'] === 'processing' ? 'selected' : '' ?>>Processing</option>
+                                                <option value="completed" <?= $order['status'] === 'completed' ? 'selected' : '' ?>>Mark Completed</option>
+                                            </select>
+                                            <button type="submit" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover transition-colors text-sm font-semibold">
+                                                Update
                                             </button>
                                         </form>
                                     <?php endif; ?>
@@ -149,4 +138,14 @@
     <?php endif; ?>
 </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+});
+</script>
+
 <?= $this->endSection() ?>
+
+

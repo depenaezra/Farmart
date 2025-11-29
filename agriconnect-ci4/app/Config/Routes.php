@@ -84,7 +84,19 @@ $routes->group('farmer', ['filter' => 'auth:farmer,admin'], function($routes) {
 // ============================================================
 
 $routes->group('buyer', ['filter' => 'auth:buyer,admin'], function($routes) {
-    // Orders
+    // Seller dashboard & products (buyer as seller)
+    $routes->get('dashboard', 'Buyer::dashboard');
+    $routes->get('products', 'Buyer::products');
+    $routes->get('products/add', 'Buyer::addProduct');
+    $routes->post('products/add', 'Buyer::addProductProcess');
+    $routes->get('inventory', 'Buyer::inventory');
+    
+    // Seller orders management
+    $routes->get('sales/orders', 'Buyer::sellerOrders');
+    $routes->get('sales/orders/(:num)', 'Buyer::sellerOrderDetail/$1');
+    $routes->post('sales/orders/(:num)/update-status', 'Buyer::updateSellerOrderStatus/$1');
+
+    // Orders (as buyer)
     $routes->get('orders', 'Buyer::orders');
     $routes->get('orders/(:num)', 'Buyer::orderDetail/$1');
     $routes->post('orders/(:num)/cancel', 'Buyer::cancelOrder/$1');

@@ -5,9 +5,9 @@
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-4xl mx-auto">
         <!-- Back Button -->
-        <a href="/farmer/orders" class="inline-flex items-center text-primary hover:text-primary-hover mb-6">
+        <a href="/buyer/sales/orders" class="inline-flex items-center text-primary hover:text-primary-hover mb-6">
             <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
-            Back to Orders
+            Back to Sales Orders
         </a>
 
         <!-- Order Header -->
@@ -15,7 +15,7 @@
             <div class="flex items-center justify-between mb-4">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900 mb-2">
-                        Order #<?= esc($order['order_number']) ?>
+                        Sales Order #<?= esc($order['order_number'] ?? $order['id']) ?>
                     </h1>
                     <p class="text-sm text-gray-600">
                         Received on <?= date('F d, Y \a\t H:i', strtotime($order['created_at'])) ?>
@@ -74,7 +74,7 @@
                                 </span>
                                 <span>
                                     <i data-lucide="dollar-sign" class="w-4 h-4 inline mr-1"></i>
-                                    Unit Price: ₱<?= number_format($order['total_price'] / $order['quantity'], 2) ?>
+                                    Unit Price: ₱<?= number_format($order['total_price'] / max(1, $order['quantity']), 2) ?>
                                 </span>
                             </div>
                         </div>
@@ -171,7 +171,7 @@
                     <?php if (in_array($order['status'], ['pending', 'confirmed', 'processing'])): ?>
                         <div class="mb-6">
                             <h3 class="text-sm font-semibold text-gray-900 mb-3">Update Status</h3>
-                            <form action="/farmer/orders/<?= $order['id'] ?>/update-status" method="POST">
+                            <form action="/buyer/sales/orders/<?= $order['id'] ?>/update-status" method="POST">
                                 <?= csrf_field() ?>
                                 <select name="status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent mb-3">
                                     <option value="confirmed" <?= $order['status'] === 'confirmed' ? 'selected' : '' ?>>Confirmed</option>
@@ -244,7 +244,6 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Lucide icons
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
@@ -252,4 +251,5 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <?= $this->endSection() ?>
+
 

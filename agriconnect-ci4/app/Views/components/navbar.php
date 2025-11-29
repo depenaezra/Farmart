@@ -31,16 +31,25 @@
                             
                             <?php if ($role === 'farmer'): ?>
                                 <a href="/farmer/dashboard" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-t-lg">
-                                    <i data-lucide="layout-dashboard" class="w-4 h-4 inline mr-2"></i>Dashboard
+                                    <i data-lucide="layout-dashboard" class="w-4 h-4 inline mr-2"></i>Farmer Dashboard
                                 </a>
                                 <a href="/farmer/inventory" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                                    <i data-lucide="package" class="w-4 h-4 inline mr-2"></i>My Products
+                                    <i data-lucide="package" class="w-4 h-4 inline mr-2"></i>My Farm Products
                                 </a>
                                 <a href="/farmer/orders" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
-                                    <i data-lucide="shopping-bag" class="w-4 h-4 inline mr-2"></i>Orders
+                                    <i data-lucide="shopping-bag" class="w-4 h-4 inline mr-2"></i>Farm Orders
                                 </a>
                             <?php elseif ($role === 'buyer'): ?>
-                                <a href="/buyer/orders" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-t-lg">
+                                <a href="/buyer/dashboard" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-t-lg">
+                                    <i data-lucide="layout-dashboard" class="w-4 h-4 inline mr-2"></i>Seller Dashboard
+                                </a>
+                                <a href="/buyer/inventory" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                    <i data-lucide="package" class="w-4 h-4 inline mr-2"></i>My Listings
+                                </a>
+                                <a href="/buyer/sales/orders" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                    <i data-lucide="clipboard-list" class="w-4 h-4 inline mr-2"></i>Sales Orders
+                                </a>
+                                <a href="/buyer/orders" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
                                     <i data-lucide="shopping-bag" class="w-4 h-4 inline mr-2"></i>My Orders
                                 </a>
                                 <a href="/cart" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
@@ -97,11 +106,14 @@
                 <div class="text-sm text-gray-500 mb-2">Logged in as: <?= esc(session()->get('user_name')) ?></div>
                 
                 <?php $role = session()->get('user_role'); ?>
-                <?php if ($role === 'farmer'): ?>
-                    <a href="/farmer/dashboard" class="block py-2 text-gray-700 hover:text-primary">Dashboard</a>
-                    <a href="/farmer/inventory" class="block py-2 text-gray-700 hover:text-primary">My Products</a>
-                    <a href="/farmer/orders" class="block py-2 text-gray-700 hover:text-primary">Orders</a>
+                    <?php if ($role === 'farmer'): ?>
+                    <a href="/farmer/dashboard" class="block py-2 text-gray-700 hover:text-primary">Farmer Dashboard</a>
+                    <a href="/farmer/inventory" class="block py-2 text-gray-700 hover:text-primary">My Farm Products</a>
+                    <a href="/farmer/orders" class="block py-2 text-gray-700 hover:text-primary">Farm Orders</a>
                 <?php elseif ($role === 'buyer'): ?>
+                    <a href="/buyer/dashboard" class="block py-2 text-gray-700 hover:text-primary">Seller Dashboard</a>
+                    <a href="/buyer/inventory" class="block py-2 text-gray-700 hover:text-primary">My Listings</a>
+                    <a href="/buyer/sales/orders" class="block py-2 text-gray-700 hover:text-primary">Sales Orders</a>
                     <a href="/buyer/orders" class="block py-2 text-gray-700 hover:text-primary">My Orders</a>
                     <a href="/cart" class="block py-2 text-gray-700 hover:text-primary">Cart</a>
                 <?php elseif ($role === 'admin'): ?>

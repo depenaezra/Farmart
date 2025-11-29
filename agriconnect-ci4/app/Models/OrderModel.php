@@ -169,18 +169,30 @@ class OrderModel extends Model
     public function getBuyerStatistics($buyerId)
     {
         $db = \Config\Database::connect();
-        
+
+        $count = function (?string $status = null) use ($db, $buyerId) {
+            $builder = $db->table('orders')->where('buyer_id', $buyerId);
+            if ($status !== null) {
+                $builder->where('status', $status);
+            }
+            return $builder->countAllResults();
+        };
+
+        $totalSpentRow = $db->table('orders')
+            ->selectSum('total_price')
+            ->where('buyer_id', $buyerId)
+            ->where('status', 'completed')
+            ->get()
+            ->getRow();
+
         return [
-            'total_orders' => $this->where('buyer_id', $buyerId)->countAllResults(false),
-            'pending' => $this->where('buyer_id', $buyerId)->where('status', 'pending')->countAllResults(false),
-            'completed' => $this->where('buyer_id', $buyerId)->where('status', 'completed')->countAllResults(false),
-            'total_spent' => $db->table('orders')
-                               ->selectSum('total_price')
-                               ->where('buyer_id', $buyerId)
-                               ->where('status', 'completed')
-                               ->get()
-                               ->getRow()
-                               ->total_spent ?? 0
+            'total_orders' => $count(),
+            'pending'      => $count('pending'),
+            'confirmed'    => $count('confirmed'),
+            'processing'   => $count('processing'),
+            'completed'    => $count('completed'),
+            'cancelled'    => $count('cancelled'),
+            'total_spent'  => $totalSpentRow->total_price ?? 0,
         ];
     }
     

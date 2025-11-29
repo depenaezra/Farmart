@@ -28,8 +28,8 @@
                             case 'pending': echo 'bg-yellow-100 text-yellow-800'; break;
                             case 'confirmed': echo 'bg-blue-100 text-blue-800'; break;
                             case 'processing': echo 'bg-purple-100 text-purple-800'; break;
-                            case 'shipped': echo 'bg-indigo-100 text-indigo-800'; break;
-                            case 'delivered': echo 'bg-green-100 text-green-800'; break;
+                            case 'processing': echo 'bg-purple-100 text-purple-800'; break;
+                            case 'completed': echo 'bg-green-100 text-green-800'; break;
                             case 'cancelled': echo 'bg-red-100 text-red-800'; break;
                             default: echo 'bg-gray-100 text-gray-800';
                         }
@@ -221,22 +221,22 @@
                                 </div>
                             <?php endif; ?>
                             
-                            <?php if (in_array($order['status'], ['shipped', 'delivered'])): ?>
+                            <?php if (in_array($order['status'], ['processing', 'completed'])): ?>
                                 <div class="flex items-start">
                                     <div class="w-2 h-2 bg-purple-500 rounded-full mt-1.5 mr-3"></div>
                                     <div>
-                                        <p class="font-medium text-gray-900">Shipped</p>
-                                        <p class="text-gray-500 text-xs">In transit</p>
+                                        <p class="font-medium text-gray-900">Processing</p>
+                                        <p class="text-gray-500 text-xs">Order is being prepared</p>
                                     </div>
                                 </div>
                             <?php endif; ?>
                             
-                            <?php if ($order['status'] === 'delivered'): ?>
+                            <?php if ($order['status'] === 'completed'): ?>
                                 <div class="flex items-start">
                                     <div class="w-2 h-2 bg-green-500 rounded-full mt-1.5 mr-3"></div>
                                     <div>
-                                        <p class="font-medium text-gray-900">Delivered</p>
-                                        <p class="text-gray-500 text-xs">Order completed</p>
+                                        <p class="font-medium text-gray-900">Completed</p>
+                                        <p class="text-gray-500 text-xs">Order fulfilled</p>
                                     </div>
                                 </div>
                             <?php endif; ?>
