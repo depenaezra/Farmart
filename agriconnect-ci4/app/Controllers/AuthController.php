@@ -78,11 +78,16 @@ class AuthController extends BaseController
             'user_role' => $user['role'],
             'logged_in' => true
         ]);
-        
+
         // Redirect to appropriate homepage
-        $redirectUrl = session()->get('redirect_url') ?? $this->getUserHomePage($user['role']);
+        // Admin users always go to admin dashboard, ignoring any redirect_url
+        if ($user['role'] === 'admin') {
+            $redirectUrl = '/admin/dashboard';
+        } else {
+            $redirectUrl = session()->get('redirect_url') ?? $this->getUserHomePage($user['role']);
+        }
         session()->remove('redirect_url');
-        
+
         return redirect()->to($redirectUrl)
             ->with('success', 'Welcome back, ' . $user['name'] . '!');
     }
