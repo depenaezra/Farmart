@@ -39,7 +39,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label for="site_name" class="block text-sm font-medium text-gray-700 mb-2">Site Name</label>
-                        <input type="text" id="site_name" name="site_name" value="AgriConnect"
+                        <input type="text" id="site_name" name="site_name" value="Farmart"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
                         <p class="mt-1 text-sm text-gray-500">The name displayed throughout the application</p>
                     </div>

@@ -1,4 +1,4 @@
-<nav class="bg-white shadow-md sticky top-0 z-50">
+<nav class="bg-white bg-opacity-95 shadow-md sticky top-0 z-50 backdrop-blur-sm">
     <div class="container mx-auto px-4">
         <div class="flex items-center justify-between h-16">
             <!-- Logo -->
@@ -6,7 +6,7 @@
                 <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
                     <i data-lucide="sprout" class="w-6 h-6 text-white"></i>
                 </div>
-                <span class="text-xl font-bold text-primary">AgriConnect</span>
+                <span class="text-xl font-bold text-primary">Farmart</span>
             </a>
             
             <!-- Desktop Navigation -->
@@ -26,7 +26,7 @@
                         </button>
 
                         <!-- Dropdown -->
-                        <div id="user-menu-dropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible transition-all duration-200">
+                        <div id="user-menu-dropdown" class="absolute right-0 mt-2 w-48 bg-white bg-opacity-95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 opacity-0 invisible transition-all duration-200">
                             <?php $role = session()->get('user_role'); ?>
                             
                             <?php if ($role === 'farmer'): ?>
