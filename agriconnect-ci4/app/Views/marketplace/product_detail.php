@@ -75,7 +75,7 @@
                             <i data-lucide="edit" class="w-5 h-5 inline mr-2"></i>
                             Edit Product
                         </a>
-                        <form action="/farmer/products/delete/<?= $product['id'] ?>" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this product?')">
+                        <form action="/farmer/products/delete/<?= $product['id'] ?>" method="POST" class="inline swal-confirm-form" data-confirm="Are you sure you want to delete this product?">
                             <button type="submit" class="bg-red-500 text-white py-3 px-6 rounded-lg hover:bg-red-600 transition-colors font-semibold">
                                 <i data-lucide="trash-2" class="w-5 h-5 inline mr-2"></i>
                                 Delete Product
@@ -218,14 +218,46 @@ document.getElementById('reportForm').addEventListener('submit', function(e) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(data.message);
+            try {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: data.message || 'Success',
+                    showCloseButton: true,
+                    showClass: { popup: 'animate__animated animate__bounceIn' },
+                    hideClass: { popup: 'animate__animated animate__fadeOutUp' },
+                    timer: 2000
+                });
+            } catch (e) {
+                alert(data.message);
+            }
             closeReportModal();
         } else {
-            alert('Error: ' + data.message);
+            try {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message || 'An error occurred',
+                    showCloseButton: true,
+                    showClass: { popup: 'animate__animated animate__shakeX' },
+                    hideClass: { popup: 'animate__animated animate__fadeOutUp' }
+                });
+            } catch (e) {
+                alert('Error: ' + data.message);
+            }
         }
     })
     .catch(error => {
-        alert('An error occurred. Please try again.');
+        try {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'An error occurred. Please try again.',
+                showCloseButton: true
+            });
+        } catch (e) {
+            alert('An error occurred. Please try again.');
+        }
     });
 });
 </script>

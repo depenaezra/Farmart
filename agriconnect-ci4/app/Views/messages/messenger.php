@@ -303,14 +303,34 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Reload page to show new message
                     window.location.reload();
                 } else {
-                    alert(data.error || 'Failed to send message');
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i data-lucide="send" class="w-5 h-5 mr-2"></i> Send';
-                }
+                        try {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: data.error || 'Failed to send message',
+                                showCloseButton: true,
+                                showClass: { popup: 'animate__animated animate__shakeX' },
+                                hideClass: { popup: 'animate__animated animate__fadeOutUp' }
+                            });
+                        } catch (e) {
+                            alert(data.error || 'Failed to send message');
+                        }
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i data-lucide="send" class="w-5 h-5 mr-2"></i> Send';
+                    }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Failed to send message. Please try again.');
+                try {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to send message. Please try again.',
+                        showCloseButton: true
+                    });
+                } catch (e) {
+                    alert('Failed to send message. Please try again.');
+                }
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i data-lucide="send" class="w-5 h-5 mr-2"></i> Send';
             });

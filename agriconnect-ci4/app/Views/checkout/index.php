@@ -64,7 +64,7 @@
 
                     <!-- Display validation errors -->
                     <?php if (session()->has('errors')): ?>
-                        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <div role="alert" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                             <ul class="text-sm text-red-700 space-y-1">
                                 <?php foreach (session()->get('errors') as $error): ?>
                                     <li>• <?= esc($error) ?></li>

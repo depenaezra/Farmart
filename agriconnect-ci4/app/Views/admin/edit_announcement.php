@@ -22,7 +22,7 @@
                 <?= csrf_field() ?>
 
                 <?php if (session()->has('errors')): ?>
-                    <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div role="alert" class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
                         <div class="flex">
                             <i data-lucide="alert-circle" class="w-5 h-5 text-red-400 mr-3"></i>
                             <div>
@@ -38,7 +38,7 @@
                 <?php endif; ?>
 
                 <?php if (session()->has('error')): ?>
-                    <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div role="alert" class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
                         <div class="flex">
                             <i data-lucide="alert-circle" class="w-5 h-5 text-red-400 mr-3"></i>
                             <div class="text-sm text-red-700">

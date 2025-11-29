@@ -136,29 +136,26 @@
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Actions</h3>
                     <div class="space-y-3">
                         <?php if ($product['status'] === 'pending'): ?>
-                            <form method="post" action="/admin/products/approve/<?= $product['id'] ?>">
+                            <form method="post" action="/admin/products/approve/<?= $product['id'] ?>" class="swal-confirm-form" data-confirm="Are you sure you want to approve this product?">
                                 <?= csrf_field() ?>
-                                <button type="submit" class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                                        onclick="return confirm('Are you sure you want to approve this product?')">
+                                <button type="submit" class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                                     <i data-lucide="check" class="w-4 h-4 inline mr-2"></i>
                                     Approve Product
                                 </button>
                             </form>
 
-                            <form method="post" action="/admin/products/reject/<?= $product['id'] ?>">
+                            <form method="post" action="/admin/products/reject/<?= $product['id'] ?>" class="swal-confirm-form" data-confirm="Are you sure you want to reject this product?">
                                 <?= csrf_field() ?>
-                                <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                                        onclick="return confirm('Are you sure you want to reject this product?')">
+                                <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
                                     <i data-lucide="x" class="w-4 h-4 inline mr-2"></i>
                                     Reject Product
                                 </button>
                             </form>
                         <?php endif; ?>
 
-                        <form method="post" action="/admin/products/delete/<?= $product['id'] ?>">
+                        <form method="post" action="/admin/products/delete/<?= $product['id'] ?>" class="swal-confirm-form" data-confirm="Are you sure you want to delete this product? This action cannot be undone.">
                             <?= csrf_field() ?>
-                            <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                                    onclick="return confirm('Are you sure you want to delete this product? This action cannot be undone.')">
+                            <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
                                 <i data-lucide="trash-2" class="w-4 h-4 inline mr-2"></i>
                                 Delete Product
                             </button>

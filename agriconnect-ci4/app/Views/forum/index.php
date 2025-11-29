@@ -229,14 +229,44 @@ document.getElementById('reportForm').addEventListener('submit', function(e) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(data.message);
+            try {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: data.message || 'Report submitted',
+                    showCloseButton: true,
+                    showClass: { popup: 'animate__animated animate__bounceIn' },
+                    hideClass: { popup: 'animate__animated animate__fadeOutUp' },
+                    timer: 2000
+                });
+            } catch (e) {
+                alert(data.message);
+            }
             closeReportModal();
         } else {
-            alert('Error: ' + data.message);
+            try {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message || 'An error occurred',
+                    showCloseButton: true
+                });
+            } catch (e) {
+                alert('Error: ' + data.message);
+            }
         }
     })
     .catch(error => {
-        alert('An error occurred. Please try again.');
+        try {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'An error occurred. Please try again.',
+                showCloseButton: true
+            });
+        } catch (e) {
+            alert('An error occurred. Please try again.');
+        }
     });
 });
 </script>

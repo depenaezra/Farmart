@@ -169,7 +169,7 @@
                                     </a>
 
                                     <?php if ($order['status'] === 'pending'): ?>
-                                        <form action="/buyer/orders/<?= $order['id'] ?>/cancel" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to cancel this order?')">
+                                        <form action="/buyer/orders/<?= $order['id'] ?>/cancel" method="POST" class="inline swal-confirm-form" data-confirm="Are you sure you want to cancel this order?">
                                             <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors">
                                                 <i data-lucide="x-circle" class="w-4 h-4 mr-2"></i>
                                                 Cancel Order

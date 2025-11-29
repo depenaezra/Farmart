@@ -73,7 +73,7 @@
                                     <i data-lucide="eye" class="w-4 h-4 mr-1"></i>
                                     View
                                 </a>
-                                <form action="/messages/delete/<?= $message['id'] ?>" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this message?')">
+                                <form action="/messages/delete/<?= $message['id'] ?>" method="POST" class="inline swal-confirm-form" data-confirm="Are you sure you want to delete this message?">
                                     <?= csrf_field() ?>
                                     <button type="submit" class="inline-flex items-center px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors">
                                         <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i>

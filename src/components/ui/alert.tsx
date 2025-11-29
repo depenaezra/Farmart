@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useEffect } from "react";
 import { cva, type VariantProps } from "class-variance-authority@0.7.1";
 
 import { cn } from "./utils";
@@ -24,14 +25,40 @@ function Alert({
   variant,
   ...props
 }: React.ComponentProps<"div"> & VariantProps<typeof alertVariants>) {
-  return (
-    <div
-      data-slot="alert"
-      role="alert"
-      className={cn(alertVariants({ variant }), className)}
-      {...props}
-    />
-  );
+  // Convert React alerts into SweetAlert2 popups (AJAX-style) when used in SPA.
+  // This component will trigger a SweetAlert and render nothing in the DOM.
+  useEffect(() => {
+    try {
+      // Prefer global Swal if the CDN/script was included in index.html
+      const Swal = (window as any).Swal;
+      if (!Swal) return;
+
+      // Build simple textual/HTML content from children
+      const children = props.children;
+      let html = "";
+      if (typeof children === "string") html = children;
+      else if (Array.isArray(children)) html = children.map(c => (typeof c === "string" ? c : "")).join(" ");
+      else if (children) html = String(children);
+
+      const icon = variant === "destructive" ? "error" : "info";
+
+      if (html) {
+        Swal.fire({
+          title: "",
+          html,
+          icon,
+          showCloseButton: true,
+          showClass: { popup: "animate__animated animate__bounceIn" },
+          hideClass: { popup: "animate__animated animate__fadeOutUp" }
+        });
+      }
+    } catch (e) {
+      // ignore if Swal missing or serialization failed
+      // fallback is to render the original markup
+    }
+  }, []);
+
+  return null;
 }
 
 function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {

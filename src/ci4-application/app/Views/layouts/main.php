@@ -28,6 +28,10 @@
     
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SweetAlert2 + animations -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
         body {
@@ -87,7 +91,74 @@
     <script>
         lucide.createIcons();
     </script>
-    
+</pre>
+    <script>
+        document.addEventListener('DOMContentLoaded', function(){
+            const container = document.querySelector('.container.mx-auto');
+            const alerts = container ? container.querySelectorAll('[role="alert"]') : [];
+            alerts.forEach(el => {
+                const cls = el.className || '';
+                let icon = 'info';
+                let title = '';
+                if (/green|success/.test(cls)) { icon = 'success'; title = 'Success'; }
+                else if (/red|error/.test(cls)) { icon = 'error'; title = 'Error'; }
+                else if (/warning/.test(cls)) { icon = 'warning'; title = 'Warning'; }
+
+                // Prefer list content for errors, otherwise first paragraph text
+                let html = '';
+                const ul = el.querySelector('ul');
+                if (ul) {
+                    html = '<ul style="text-align:left">' + Array.from(ul.querySelectorAll('li')).map(li => '<li>' + li.innerHTML + '</li>').join('') + '</ul>';
+                } else {
+                    const p = el.querySelector('p');
+                    html = p ? p.innerHTML : el.innerHTML;
+                }
+
+                // Remove original element from DOM
+                el.remove();
+
+                // Show SweetAlert2 popup
+                try {
+                    const isList = !!el.querySelector('ul');
+                    const textOnly = (function(){
+                        const p = el.querySelector('p');
+                        if (p) return p.innerText.trim();
+                        return el.innerText.trim();
+                    })();
+
+                    const useToast = icon === 'success' && !isList && textOnly.length > 0 && textOnly.length < 160;
+
+                    if (useToast) {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: icon,
+                            title: textOnly,
+                            showConfirmButton: false,
+                            timer: 2500,
+                            timerProgressBar: true,
+                            showClass: { popup: 'animate__animated animate__fadeInDown' },
+                            hideClass: { popup: 'animate__animated animate__fadeOutUp' }
+                        });
+                    } else {
+                        Swal.fire({
+                            title: title,
+                            html: html,
+                            icon: icon,
+                            showCloseButton: true,
+                            showClass: { popup: 'animate__animated animate__bounceIn' },
+                            hideClass: { popup: 'animate__animated animate__fadeOutUp' },
+                            timer: icon === 'success' ? 2500 : undefined
+                        });
+                    }
+                } catch (e) {
+                    // If SweetAlert2 isn't available for some reason, silently fallback to keeping alert markup
+                    console.error('SweetAlert2 not available', e);
+                }
+            });
+        });
+    </script>
+
     <?= $this->renderSection('scripts') ?>
 </body>
 </html>

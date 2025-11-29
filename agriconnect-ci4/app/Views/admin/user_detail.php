@@ -79,22 +79,21 @@
 
                 <div class="mt-6 pt-6 border-t border-gray-200">
                     <div class="flex space-x-2">
-                        <form method="post" action="/admin/users/toggle-status/<?= $user['id'] ?>" class="flex-1">
+                        <form method="post" action="/admin/users/toggle-status/<?= $user['id'] ?>" class="flex-1 swal-confirm-form" data-confirm="<?= $user['status'] === 'active' ? 'Are you sure you want to deactivate this user?' : 'Are you sure you want to activate this user?' ?>">
                             <?= csrf_field() ?>
                             <button type="submit" class="w-full px-4 py-2 text-sm font-medium rounded-lg
                                 <?= $user['status'] === 'active' ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-green-100 text-green-700 hover:bg-green-200' ?>
                                 transition-colors"
-                                onclick="return confirm('Are you sure you want to <?= $user['status'] === 'active' ? 'deactivate' : 'activate' ?> this user?')">
+                                >
                                 <i data-lucide="<?= $user['status'] === 'active' ? 'user-x' : 'user-check' ?>" class="w-4 h-4 inline mr-2"></i>
                                 <?= $user['status'] === 'active' ? 'Deactivate' : 'Activate' ?>
                             </button>
                         </form>
 
                         <?php if ($user['id'] != session()->get('user_id')): ?>
-                            <form method="post" action="/admin/users/delete/<?= $user['id'] ?>" class="flex-1">
+                            <form method="post" action="/admin/users/delete/<?= $user['id'] ?>" class="flex-1 swal-confirm-form" data-confirm="Are you sure you want to delete this user? This action cannot be undone.">
                                 <?= csrf_field() ?>
-                                <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
-                                        onclick="return confirm('Are you sure you want to delete this user? This action cannot be undone.')">
+                                <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
                                     <i data-lucide="trash-2" class="w-4 h-4 inline mr-2"></i>
                                     Delete
                                 </button>

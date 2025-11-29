@@ -93,7 +93,7 @@
 
                                 <!-- Remove Button -->
                                 <div class="flex-shrink-0">
-                                    <form action="/cart/remove/<?= esc($item['id']) ?>" method="POST" onsubmit="return confirm('Remove this item from cart?')">
+                                    <form action="/cart/remove/<?= esc($item['id']) ?>" method="POST" class="swal-confirm-form" data-confirm="Remove this item from cart?">
                                         <?= csrf_field() ?>
                                         <button type="submit" class="text-red-500 hover:text-red-700 transition-colors">
                                             <i data-lucide="trash-2" class="w-5 h-5"></i>
@@ -106,7 +106,7 @@
 
                     <!-- Clear Cart -->
                     <div class="p-6 border-t border-gray-200">
-                        <form action="/cart/clear" method="GET" onsubmit="return confirm('Clear entire cart? This cannot be undone.')">
+                        <form action="/cart/clear" method="GET" class="swal-confirm-form" data-confirm="Clear entire cart? This cannot be undone.">
                             <button type="submit" class="text-red-600 hover:text-red-700 text-sm font-medium transition-colors">
                                 <i data-lucide="trash-2" class="w-4 h-4 inline mr-1"></i>
                                 Clear Cart

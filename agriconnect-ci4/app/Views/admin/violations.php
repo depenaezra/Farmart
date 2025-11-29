@@ -128,10 +128,10 @@
                                                 <?php endif; ?>
                                             </div>
                                           </div>
-                                          <div class="modal-footer">
-                                            <form action="/admin/violations/<?= $violation['id'] ?>/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete this reported item?');" class="me-auto">
-                                                <button type="submit" class="btn btn-danger">Delete Item</button>
-                                            </form>
+                                                                                    <div class="modal-footer">
+                                                                                        <form action="/admin/violations/<?= $violation['id'] ?>/delete" method="POST" class="me-auto swal-confirm-form" data-confirm="Are you sure you want to delete this reported item?">
+                                                                                                <button type="submit" class="btn btn-danger">Delete Item</button>
+                                                                                        </form>
                                             <form action="/admin/violations/<?= $violation['id'] ?>/status" method="POST">
                                                 <input type="hidden" name="status" value="reviewed">
                                                 <button type="submit" class="btn btn-success">Keep Item</button>
@@ -168,8 +168,7 @@
                                 <?php endif; ?>
 
                                 <!-- Delete Reported Item Button -->
-                                <form action="/admin/violations/<?= $violation['id'] ?>/delete" method="POST" class="inline"
-                                      onsubmit="return confirm('Are you sure you want to delete this reported item? This action cannot be undone.')">
+                                <form action="/admin/violations/<?= $violation['id'] ?>/delete" method="POST" class="inline swal-confirm-form" data-confirm="Are you sure you want to delete this reported item? This action cannot be undone.">
                                     <button type="submit" class="text-red-600 hover:text-red-800 font-semibold inline-flex items-center">
                                         <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i>
                                         Delete Item

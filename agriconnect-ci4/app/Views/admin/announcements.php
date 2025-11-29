@@ -82,10 +82,9 @@
                                 <a href="/admin/announcements/edit/<?= $announcement['id'] ?>" class="text-primary hover:text-primary-hover">
                                     <i data-lucide="edit" class="w-4 h-4"></i>
                                 </a>
-                                <form method="post" action="/admin/announcements/delete/<?= $announcement['id'] ?>" class="inline">
+                                <form method="post" action="/admin/announcements/delete/<?= $announcement['id'] ?>" class="inline swal-confirm-form" data-confirm="Are you sure you want to delete this announcement?">
                                     <?= csrf_field() ?>
-                                    <button type="submit" class="text-red-600 hover:text-red-800"
-                                            onclick="return confirm('Are you sure you want to delete this announcement?')">
+                                    <button type="submit" class="text-red-600 hover:text-red-800">
                                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                                     </button>
                                 </form>
