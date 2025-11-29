@@ -17,7 +17,7 @@
         </div>
 
         <!-- Message Content -->
-        <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+        <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden mb-40">
             <div class="p-8">
                 <div class="border-b border-gray-200 pb-6 mb-6">
                     <h1 class="text-2xl font-bold text-gray-900 mb-4">
@@ -60,7 +60,7 @@
         </div>
 
         <!-- Reply Form -->
-        <div class="mt-8 bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+        <div class="mt-8 bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden mb-40">
             <div class="p-8">
                 <h3 class="text-xl font-bold text-gray-900 mb-6">Reply to Message</h3>
                 <form action="/messages/reply/<?= $message['id'] ?>" method="POST">

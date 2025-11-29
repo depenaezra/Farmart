@@ -88,8 +88,9 @@ class AuthController extends BaseController
         }
         session()->remove('redirect_url');
 
-        return redirect()->to($redirectUrl)
-            ->with('success', 'Welcome back, ' . $user['name'] . '!');
+        session()->setFlashdata('success', 'Welcome back, ' . $user['name'] . '!');
+
+        return redirect()->to($redirectUrl);
     }
     
     /**
