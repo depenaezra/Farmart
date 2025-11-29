@@ -25,12 +25,12 @@
                 </ul>
             </div>
             
-            <!-- For Farmers -->
+            <!-- Get Started -->
             <div>
-                <h4 class="font-semibold mb-4">For Farmers</h4>
+                <h4 class="font-semibold mb-4">Get Started</h4>
                 <ul class="space-y-2 text-sm">
-                    <li><a href="/auth/register-farmer" class="text-gray-400 hover:text-white">Register as Farmer</a></li>
-                    <li><a href="/auth/login" class="text-gray-400 hover:text-white">Farmer Login</a></li>
+                    <li><a href="/auth/register-buyer" class="text-gray-400 hover:text-white">Register</a></li>
+                    <li><a href="/auth/login" class="text-gray-400 hover:text-white">Login</a></li>
                     <li><a href="/#how-it-works" class="text-gray-400 hover:text-white">How It Works</a></li>
                 </ul>
             </div>

@@ -68,13 +68,9 @@
                 <p class="text-gray-600 text-sm">
                     Don't have an account?
                 </p>
-                <div class="mt-2 space-x-2">
-                    <a href="/auth/register-farmer" class="text-primary hover:text-primary-hover font-semibold">
-                        Register as Farmer
-                    </a>
-                    <span class="text-gray-400">|</span>
+                <div class="mt-2">
                     <a href="/auth/register-buyer" class="text-primary hover:text-primary-hover font-semibold">
-                        Register as Buyer
+                        Register
                     </a>
                 </div>
             </div>
