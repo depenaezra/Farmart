@@ -18,8 +18,8 @@
                     <a href="/marketplace" class="bg-white text-[#2d7a3e] px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 text-center transition-colors">
                         Browse Products
                     </a>
-                    <a href="/auth/register-farmer" class="bg-[#d97706] text-white px-8 py-4 rounded-lg font-semibold hover:bg-[#b45309] text-center transition-colors">
-                        Register as Farmer
+                    <a href="/auth/register-buyer" class="bg-[#d97706] text-white px-8 py-4 rounded-lg font-semibold hover:bg-[#b45309] text-center transition-colors">
+                        Register
                     </a>
                 </div>
             </div>
@@ -161,11 +161,8 @@
         <p class="text-xl mb-8 text-white/90">Whether you're a farmer or a buyer, join our community today!</p>
         
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="/auth/register-farmer" class="bg-white text-primary px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-                I'm a Farmer
-            </a>
-            <a href="/auth/register-buyer" class="bg-accent text-white px-8 py-4 rounded-lg font-semibold hover:bg-accent/90 transition-colors">
-                I'm a Buyer
+            <a href="/auth/register-buyer" class="bg-white text-primary px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                Register
             </a>
         </div>
     </div>

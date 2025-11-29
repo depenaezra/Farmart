@@ -43,9 +43,9 @@ $routes->group('auth', function($routes) {
     $routes->get('login', 'AuthController::login');
     $routes->post('login', 'AuthController::loginProcess');
     
-    // Register
-    $routes->get('register-farmer', 'AuthController::registerFarmer');
-    $routes->post('register-farmer', 'AuthController::registerFarmerProcess');
+    // Register (farmer registration routes redirect to unified buyer registration)
+    $routes->get('register-farmer', 'AuthController::registerBuyer');
+    $routes->post('register-farmer', 'AuthController::registerBuyerProcess');
     $routes->get('register-buyer', 'AuthController::registerBuyer');
     $routes->post('register-buyer', 'AuthController::registerBuyerProcess');
     
