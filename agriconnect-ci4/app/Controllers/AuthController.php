@@ -129,7 +129,7 @@ class AuthController extends BaseController
             'email' => $this->request->getPost('email'),
             'phone' => $this->request->getPost('phone'),
             'password' => $this->request->getPost('password'),
-            'role' => 'farmer',
+            'role' => 'user',
             'location' => $this->request->getPost('location'),
             'cooperative' => $this->request->getPost('cooperative'),
             'status' => 'active'
@@ -192,7 +192,7 @@ class AuthController extends BaseController
             'email' => $this->request->getPost('email'),
             'phone' => $this->request->getPost('phone'),
             'password' => $this->request->getPost('password'),
-            'role' => 'buyer',
+            'role' => 'user',
             'location' => $this->request->getPost('location'),
             'status' => 'active'
         ];
@@ -238,6 +238,8 @@ class AuthController extends BaseController
             case 'farmer':
                 return '/marketplace';
             case 'buyer':
+                return '/marketplace';
+            case 'user':
                 return '/marketplace';
             case 'admin':
                 return '/admin/dashboard';

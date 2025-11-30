@@ -28,7 +28,7 @@ class UserModel extends Model
         'email' => 'required|valid_email|is_unique[users.email,id,{id}]',
         'phone' => 'permit_empty|max_length[20]',
         'password' => 'required|min_length[8]',
-        'role' => 'required|in_list[farmer,buyer,admin]',
+        'role' => 'required|in_list[farmer,buyer,admin,user]',
         'location' => 'permit_empty|max_length[255]',
         'cooperative' => 'permit_empty|max_length[255]'
     ];
