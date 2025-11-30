@@ -60,6 +60,8 @@ class ViolationModel extends Model
         // Fetch reported item details for each violation
         $db = \Config\Database::connect();
         foreach ($violations as &$violation) {
+            $violation['item_exists'] = false; // Track if item still exists
+            
             switch ($violation['reported_type']) {
                 case 'forum_post':
                     $violation['reported_item'] = $db->table('forum_posts')
@@ -67,6 +69,7 @@ class ViolationModel extends Model
                         ->where('id', $violation['reported_id'])
                         ->get()
                         ->getRowArray();
+                    $violation['item_exists'] = !empty($violation['reported_item']);
                     break;
                 case 'product':
                     $violation['reported_item'] = $db->table('products')
@@ -74,6 +77,7 @@ class ViolationModel extends Model
                         ->where('id', $violation['reported_id'])
                         ->get()
                         ->getRowArray();
+                    $violation['item_exists'] = !empty($violation['reported_item']);
                     if ($violation['reported_item'] && $violation['reported_item']['image_url']) {
                         $violation['reported_item']['images'] = [$violation['reported_item']['image_url']];
                         unset($violation['reported_item']['image_url']);
@@ -87,6 +91,7 @@ class ViolationModel extends Model
                         ->where('id', $violation['reported_id'])
                         ->get()
                         ->getRowArray();
+                    $violation['item_exists'] = !empty($violation['reported_item']);
                     break;
             }
         }

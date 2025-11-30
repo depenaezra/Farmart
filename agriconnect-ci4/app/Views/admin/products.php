@@ -4,7 +4,7 @@
 
 <div class="px-4 py-6">
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 mb-2">Product Management</h1>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Product Management</h1>
         <p class="text-gray-600">Moderate and manage all products in the marketplace</p>
     </div>
 
