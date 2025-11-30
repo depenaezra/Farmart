@@ -102,7 +102,7 @@
                         ]), ENT_QUOTES, 'UTF-8'); ?>
 
                         <!-- Facebook-style Post Card -->
-                        <div class="bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+                        <div class="bg-white rounded-lg shadow hover:shadow-md transition-shadow post-card" data-post-id="<?= $post['id'] ?>">
                             <!-- Post Header -->
                             <div class="p-4 pb-3">
                                 <div class="flex items-center gap-3">
@@ -136,12 +136,6 @@
                                             ?>
                                         </div>
                                     </div>
-                                    <!-- More Options -->
-                                    <?php if (session()->get('user_id') && session()->get('user_role') !== 'admin'): ?>
-                                        <button onclick="reportPost(<?= $post['id'] ?>, 'forum_post')" class="p-2 hover:bg-gray-100 rounded-full transition-colors" title="Report">
-                                            <i data-lucide="more-horizontal" class="w-5 h-5 text-gray-500"></i>
-                                        </button>
-                                    <?php endif; ?>
                                 </div>
                             </div>
 
@@ -229,16 +223,106 @@
                                 <?php endif; ?>
 
                                 <!-- Comment Button -->
-                                <a href="/forum/post/<?= $post['id'] ?>" class="open-post-modal flex-1 flex items-center justify-center gap-2 px-4 py-2.5 hover:bg-gray-100 rounded-lg transition-colors text-gray-600 group" data-post='<?= $postData ?>'>
-                                    <i data-lucide="message-circle" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+                                <button class="toggle-post flex-1 flex items-center justify-center gap-2 px-4 py-2.5 hover:bg-gray-100 rounded-lg transition-colors text-gray-600 group" data-post-id="<?= $post['id'] ?>">
+                                    <span class="text-lg group-hover:scale-110 transition-transform">🍒</span>
                                     <span class="text-sm font-medium">Comment</span>
-                                </a>
-
-                                <!-- Share Button -->
-                                <button class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 hover:bg-gray-100 rounded-lg transition-colors text-gray-600 group">
-                                    <i data-lucide="share-2" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
-                                    <span class="text-sm font-medium">Share</span>
                                 </button>
+
+                                <!-- Report Button -->
+                                <button onclick="reportPost(<?= $post['id'] ?>, 'forum_post')" class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 hover:bg-gray-100 rounded-lg transition-colors text-gray-600 group">
+                                    <i data-lucide="flag" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+                                    <span class="text-sm font-medium">Report</span>
+                                </button>
+                            </div>
+
+                            <!-- Expandable Content -->
+                            <div class="post-expanded hidden border-t border-gray-200 pt-4">
+                                <!-- Full Content (if truncated) -->
+                                <?php if (strlen($plain) > 200): ?>
+                                    <div class="px-4 pb-4">
+                                        <p class="text-gray-700 text-sm leading-relaxed">
+                                            <?= nl2br(esc($post['content'])) ?>
+                                        </p>
+                                    </div>
+                                <?php endif; ?>
+
+                                <!-- Comments Section -->
+                                <div class="px-4 pb-4">
+                                    <div class="comments-section">
+                                        <?php if (!empty($post['comments'])): ?>
+                                            <div class="space-y-3 mb-4">
+                                                <?php foreach ($post['comments'] as $comment): ?>
+                                                    <div class="flex gap-3">
+                                                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-green-600 flex items-center justify-center text-white font-semibold text-xs flex-shrink-0">
+                                                            <?= strtoupper(substr($comment['author_name'] ?? 'U', 0, 1)) ?>
+                                                        </div>
+                                                        <div class="flex-1">
+                                                            <div class="bg-gray-100 rounded-lg px-3 py-2">
+                                                                <div class="flex items-center gap-2 mb-1">
+                                                                    <a href="/users/<?= $comment['user_id'] ?>" class="font-semibold text-sm text-gray-900 hover:underline">
+                                                                        <?= esc($comment['author_name']) ?>
+                                                                        <?php if (!empty($comment['author_role'])): ?>
+                                                                            <span class="inline-block px-1.5 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded">
+                                                                                <?= ucfirst(esc($comment['author_role'])) ?>
+                                                                            </span>
+                                                                        <?php endif; ?>
+                                                                    </a>
+                                                                    <span class="text-xs text-gray-500">
+                                                                        <?php
+                                                                        $time = strtotime($comment['created_at']);
+                                                                        $diff = time() - $time;
+                                                                        if ($diff < 60) echo 'Just now';
+                                                                        elseif ($diff < 3600) echo floor($diff / 60) . 'm';
+                                                                        elseif ($diff < 86400) echo floor($diff / 3600) . 'h';
+                                                                        elseif ($diff < 604800) echo floor($diff / 86400) . 'd';
+                                                                        else echo date('M d', $time);
+                                                                        ?>
+                                                                    </span>
+                                                                </div>
+                                                                <p class="text-sm text-gray-700 leading-relaxed">
+                                                                    <?= nl2br(esc($comment['comment'])) ?>
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                <?php endforeach; ?>
+                                            </div>
+
+                                            <?php if (($post['total_comments'] ?? 0) > 5): ?>
+                                                <div class="text-center mb-4">
+                                                    <button class="load-more-comments text-primary hover:text-primary-hover font-medium text-sm" data-post-id="<?= $post['id'] ?>" data-offset="5">
+                                                        View all <?= $post['total_comments'] ?> comments
+                                                    </button>
+                                                </div>
+                                            <?php endif; ?>
+                                        <?php endif; ?>
+
+                                        <!-- Add Comment Form -->
+                                        <?php if (session()->get('user_id')): ?>
+                                            <div class="border-t border-gray-200 pt-4">
+                                                <form class="add-comment-form flex gap-3" data-post-id="<?= $post['id'] ?>">
+                                                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-green-600 flex items-center justify-center text-white font-semibold text-xs flex-shrink-0">
+                                                        <?= strtoupper(substr(session()->get('user_name') ?? 'U', 0, 1)) ?>
+                                                    </div>
+                                                    <div class="flex-1">
+                                                        <div class="flex gap-2">
+                                                            <input
+                                                                type="text"
+                                                                name="comment"
+                                                                placeholder="Write a comment..."
+                                                                class="flex-1 px-3 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                                                                required
+                                                            >
+                                                            <button type="submit" class="bg-primary text-white px-4 py-2 rounded-full hover:bg-primary-hover font-semibold text-sm transition-colors">
+                                                                <i data-lucide="send" class="w-4 h-4"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -291,6 +375,211 @@
 </div>
 
 <script>
+// Toggle post expansion
+document.addEventListener('DOMContentLoaded', function(){
+    // Wire toggle buttons
+    document.querySelectorAll('.toggle-post').forEach(button => {
+        button.addEventListener('click', function(){
+            const postId = this.getAttribute('data-post-id');
+            const postCard = document.querySelector(`.post-card[data-post-id="${postId}"]`);
+            const expanded = postCard.querySelector('.post-expanded');
+
+            if (expanded.classList.contains('hidden')) {
+                expanded.classList.remove('hidden');
+                expanded.classList.add('animate__animated', 'animate__fadeIn');
+            } else {
+                expanded.classList.add('animate__fadeOut');
+                setTimeout(() => {
+                    expanded.classList.add('hidden');
+                    expanded.classList.remove('animate__fadeOut', 'animate__fadeIn', 'animate__animated');
+                }, 300);
+            }
+        });
+    });
+
+    // Wire load more comments buttons
+    document.querySelectorAll('.load-more-comments').forEach(button => {
+        button.addEventListener('click', function(){
+            const postId = this.getAttribute('data-post-id');
+            const offset = parseInt(this.getAttribute('data-offset'));
+            loadMoreComments(postId, offset, this);
+        });
+    });
+
+    // Wire add comment forms
+    document.querySelectorAll('.add-comment-form').forEach(form => {
+        form.addEventListener('submit', function(e){
+            e.preventDefault();
+            const postId = this.getAttribute('data-post-id');
+            const commentInput = this.querySelector('input[name="comment"]');
+            const comment = commentInput.value.trim();
+
+            if (comment) {
+                addComment(postId, comment, this);
+                commentInput.value = '';
+            }
+        });
+    });
+});
+
+// Load more comments via AJAX
+function loadMoreComments(postId, offset, button) {
+    fetch(`/forum/post/${postId}/comments?offset=${offset}&limit=10`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.comments) {
+                const commentsSection = button.closest('.comments-section');
+                const commentsContainer = commentsSection.querySelector('.space-y-3');
+
+                data.comments.forEach(comment => {
+                    const commentHtml = `
+                        <div class="flex gap-3">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-green-600 flex items-center justify-center text-white font-semibold text-xs flex-shrink-0">
+                                ${comment.author_name.charAt(0).toUpperCase()}
+                            </div>
+                            <div class="flex-1">
+                                <div class="bg-gray-100 rounded-lg px-3 py-2">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <a href="/users/${comment.user_id}" class="font-semibold text-sm text-gray-900 hover:underline">
+                                            ${escapeHtml(comment.author_name)}
+                                            ${comment.author_role ? `<span class="inline-block px-1.5 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded">${comment.author_role.charAt(0).toUpperCase() + comment.author_role.slice(1)}</span>` : ''}
+                                        </a>
+                                        <span class="text-xs text-gray-500">${formatTime(comment.created_at)}</span>
+                                    </div>
+                                    <p class="text-sm text-gray-700 leading-relaxed">
+                                        ${comment.comment.replace(/\n/g, '<br>')}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    commentsContainer.insertAdjacentHTML('beforeend', commentHtml);
+                });
+
+                // Update button
+                const newOffset = offset + data.comments.length;
+                if (data.has_more) {
+                    button.setAttribute('data-offset', newOffset);
+                    button.textContent = `Load ${Math.min(10, data.total - newOffset)} more comments`;
+                } else {
+                    button.remove();
+                }
+
+                lucide.createIcons();
+            }
+        })
+        .catch(error => console.error('Error loading comments:', error));
+}
+
+// Add comment via AJAX
+function addComment(postId, comment, form) {
+    const formData = new FormData();
+    formData.append('comment', comment);
+    formData.append('csrf_test_name', document.querySelector('input[name="csrf_test_name"]')?.value || '');
+
+    fetch(`/forum/post/${postId}/comment`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const commentsSection = form.closest('.comments-section');
+            const commentsContainer = commentsSection.querySelector('.space-y-3');
+
+            const commentHtml = `
+                <div class="flex gap-3">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-green-600 flex items-center justify-center text-white font-semibold text-xs flex-shrink-0">
+                        ${data.comment.author_name.charAt(0).toUpperCase()}
+                    </div>
+                    <div class="flex-1">
+                        <div class="bg-gray-100 rounded-lg px-3 py-2">
+                            <div class="flex items-center gap-2 mb-1">
+                                <a href="/users/${data.comment.user_id}" class="font-semibold text-sm text-gray-900 hover:underline">
+                                    ${escapeHtml(data.comment.author_name)}
+                                    ${data.comment.author_role ? `<span class="inline-block px-1.5 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded">${data.comment.author_role.charAt(0).toUpperCase() + data.comment.author_role.slice(1)}</span>` : ''}
+                                </a>
+                                <span class="text-xs text-gray-500">Just now</span>
+                            </div>
+                            <p class="text-sm text-gray-700 leading-relaxed">
+                                ${comment.replace(/\n/g, '<br>')}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            commentsContainer.insertAdjacentHTML('afterbegin', commentHtml);
+
+            // Update comment count in the post stats
+            const postCard = form.closest('.post-card');
+            const commentCountEl = postCard.querySelector('.text-sm.text-gray-500');
+            if (commentCountEl) {
+                const currentText = commentCountEl.textContent;
+                const match = currentText.match(/(\d+)/);
+                if (match) {
+                    const newCount = parseInt(match[1]) + 1;
+                    commentCountEl.innerHTML = commentCountEl.innerHTML.replace(match[0], newCount);
+                }
+            }
+
+            lucide.createIcons();
+
+            try {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Comment posted',
+                    timer: 1400,
+                    showConfirmButton: false
+                });
+            } catch (e) {}
+        } else {
+            try {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message || 'Failed to post comment.'
+                });
+            } catch (e) {
+                alert(data.message || 'Failed to post comment.');
+            }
+        }
+    })
+    .catch(error => {
+        try {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'An error occurred.'
+            });
+        } catch (e) {
+            alert('An error occurred.');
+        }
+    });
+}
+
+// Helper functions
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function formatTime(dateString) {
+    const time = new Date(dateString).getTime();
+    const now = Date.now();
+    const diff = now - time;
+
+    if (diff < 60000) return 'Just now';
+    if (diff < 3600000) return Math.floor(diff / 60000) + 'm';
+    if (diff < 86400000) return Math.floor(diff / 3600000) + 'h';
+    if (diff < 604800000) return Math.floor(diff / 86400000) + 'd';
+    return new Date(time).toLocaleDateString();
+}
+
+// Report functionality
 function reportPost(id, type) {
     document.getElementById('reportedId').value = id;
     document.getElementById('reportedType').value = type;

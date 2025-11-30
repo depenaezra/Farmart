@@ -66,7 +66,7 @@ class Forum extends BaseController
                         ->get()
                         ->getResultArray();
         
-        // Check if current user has liked each post
+        // Check if current user has liked each post and get recent comments
         if ($userId) {
             foreach ($posts as &$post) {
                 $post['user_liked'] = $db->table('forum_likes')
@@ -74,11 +74,41 @@ class Forum extends BaseController
                     ->where('user_id', $userId)
                     ->countAllResults() > 0;
                 $post['likes'] = $post['likes_count'] ?? 0;
+
+                // Get recent comments (first 5, ordered by oldest first)
+                $post['comments'] = $db->table('forum_comments')
+                    ->select('forum_comments.*, users.name as author_name, users.role as author_role')
+                    ->join('users', 'users.id = forum_comments.user_id')
+                    ->where('forum_comments.post_id', $post['id'])
+                    ->orderBy('forum_comments.created_at', 'ASC')
+                    ->limit(5)
+                    ->get()
+                    ->getResultArray();
+
+                // Get total comment count
+                $post['total_comments'] = $db->table('forum_comments')
+                    ->where('post_id', $post['id'])
+                    ->countAllResults();
             }
         } else {
             foreach ($posts as &$post) {
                 $post['user_liked'] = false;
                 $post['likes'] = $post['likes_count'] ?? 0;
+
+                // Get recent comments (first 5, ordered by oldest first)
+                $post['comments'] = $db->table('forum_comments')
+                    ->select('forum_comments.*, users.name as author_name, users.role as author_role')
+                    ->join('users', 'users.id = forum_comments.user_id')
+                    ->where('forum_comments.post_id', $post['id'])
+                    ->orderBy('forum_comments.created_at', 'ASC')
+                    ->limit(5)
+                    ->get()
+                    ->getResultArray();
+
+                // Get total comment count
+                $post['total_comments'] = $db->table('forum_comments')
+                    ->where('post_id', $post['id'])
+                    ->countAllResults();
             }
         }
         
@@ -400,25 +430,67 @@ class Forum extends BaseController
     }
     
     /**
+     * Load more comments for a post (AJAX)
+     */
+    public function loadMoreComments($postId)
+    {
+        if (!$this->request->isAJAX()) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Invalid request']);
+        }
+
+        $db = \Config\Database::connect();
+        $offset = (int) $this->request->getGet('offset') ?? 0;
+        $limit = (int) $this->request->getGet('limit') ?? 10;
+
+        // Check if post exists
+        $post = $db->table('forum_posts')->where('id', $postId)->get()->getRowArray();
+        if (!$post) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Post not found']);
+        }
+
+        $comments = $db->table('forum_comments')
+            ->select('forum_comments.*, users.name as author_name, users.role as author_role')
+            ->join('users', 'users.id = forum_comments.user_id')
+            ->where('forum_comments.post_id', $postId)
+            ->orderBy('forum_comments.created_at', 'ASC')
+            ->limit($limit, $offset)
+            ->get()
+            ->getResultArray();
+
+        $totalComments = $db->table('forum_comments')
+            ->where('post_id', $postId)
+            ->countAllResults();
+
+        $hasMore = ($offset + count($comments)) < $totalComments;
+
+        return $this->response->setJSON([
+            'success' => true,
+            'comments' => $comments,
+            'has_more' => $hasMore,
+            'total' => $totalComments
+        ]);
+    }
+
+    /**
      * Delete post
      */
     public function deletePost($postId)
     {
         $db = \Config\Database::connect();
-        
+
         $post = $db->table('forum_posts')->where('id', $postId)->get()->getRowArray();
-        
+
         if (!$post) {
             return redirect()->to('/forum')
                 ->with('error', 'Post not found.');
         }
-        
+
         // Only post author or admin can delete
         if ($post['user_id'] != session()->get('user_id') && session()->get('user_role') != 'admin') {
             return redirect()->back()
                 ->with('error', 'You do not have permission to delete this post.');
         }
-        
+
         if ($db->table('forum_posts')->delete(['id' => $postId])) {
             return redirect()->to('/forum')
                 ->with('success', 'Post deleted.');
