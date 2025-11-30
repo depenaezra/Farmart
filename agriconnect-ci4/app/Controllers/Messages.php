@@ -147,9 +147,133 @@ class Messages extends BaseController
      */
     public function send()
     {
-        // Simple test - just return success
-        return redirect()->back()
-            ->with('success', 'Test: Method called successfully!');
+        $validation = \Config\Services::validation();
+
+        $rules = [
+            'receiver_id' => 'required|integer',
+            'subject' => 'permit_empty|max_length[255]',
+            'message' => 'permit_empty'
+        ];
+
+        // But ensure at least message or attachments are provided
+        $message = $this->request->getPost('message');
+        $hasFiles = $this->request->getFiles() && isset($this->request->getFiles()['attachments']) &&
+                   is_array($this->request->getFiles()['attachments']) &&
+                   !empty(array_filter($this->request->getFiles()['attachments'], function($file) {
+                       return $file->isValid() && !$file->hasMoved() && !empty($file->getName());
+                   }));
+
+        if (empty(trim($message)) && !$hasFiles) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Please enter a message or attach images.');
+        }
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()
+                ->withInput()
+                ->with('errors', $validation->getErrors());
+        }
+
+        $senderId = session()->get('user_id');
+        $receiverId = $this->request->getPost('receiver_id');
+        $subject = $this->request->getPost('subject');
+        $rawMessage = trim($this->request->getPost('message'));
+
+        // Validate users exist
+        if (!$this->userModel->find($senderId)) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Invalid sender.');
+        }
+
+        if (!$this->userModel->find($receiverId)) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Invalid recipient.');
+        }
+
+        // Handle file uploads
+        $attachments = [];
+        try {
+            $files = $this->request->getFiles();
+
+            if (isset($files['attachments'])) {
+                $uploadPath = FCPATH . 'uploads/messages/';
+
+                // Create directory if it doesn't exist
+                if (!is_dir($uploadPath)) {
+                    mkdir($uploadPath, 0755, true);
+                }
+
+                $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+                $maxSize = 10240 * 1024; // 10MB in bytes
+                $maxWidth = 2048;
+                $maxHeight = 2048;
+
+                foreach ($files['attachments'] as $file) {
+                    if ($file->isValid() && !$file->hasMoved()) {
+                        // Validate file type
+                        if (!in_array($file->getMimeType(), $allowedTypes)) {
+                            return redirect()->back()
+                                ->withInput()
+                                ->with('error', 'Invalid file type. Only images are allowed.');
+                        }
+
+                        // Validate file size
+                        if ($file->getSize() > $maxSize) {
+                            return redirect()->back()
+                                ->withInput()
+                                ->with('error', 'File size too large. Maximum 10MB allowed.');
+                        }
+
+                        // Validate dimensions
+                        $imageInfo = @getimagesize($file->getTempName());
+                        if ($imageInfo && ($imageInfo[0] > $maxWidth || $imageInfo[1] > $maxHeight)) {
+                            return redirect()->back()
+                                ->withInput()
+                                ->with('error', 'Image dimensions too large. Maximum 2048x2048 pixels allowed.');
+                        }
+
+                        $newName = $file->getRandomName();
+                        if ($file->move($uploadPath, $newName)) {
+                            $attachments[] = [
+                                'file_path' => 'uploads/messages/' . $newName,
+                                'file_name' => $file->getName(),
+                                'file_type' => $file->getMimeType(),
+                                'file_size' => $file->getSize()
+                            ];
+                        } else {
+                            return redirect()->back()
+                                ->withInput()
+                                ->with('error', 'Failed to upload file.');
+                        }
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'File upload failed: ' . $e->getMessage());
+        }
+
+        // Set final message content
+        $message = $rawMessage;
+        if (empty($message) && !empty($attachments)) {
+            $attachmentCount = count($attachments);
+            $message = $attachmentCount === 1 ? 'Sent an image' : 'Sent ' . $attachmentCount . ' images';
+        }
+
+        $result = $this->messageModel->sendMessageWithAttachments($senderId, $receiverId, $subject, $message, $attachments);
+
+        if ($result) {
+            return redirect()->to('/messages/conversation/' . $receiverId)
+                ->with('success', 'Message sent successfully!');
+        } else {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Failed to send message.');
+        }
     }
     
     /**
