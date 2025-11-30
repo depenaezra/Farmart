@@ -15,6 +15,15 @@ class MessageModel extends Model
         'message',
         'is_read'
     ];
+
+    protected $attachmentsTable = 'message_attachments';
+    protected $attachmentsAllowedFields = [
+        'message_id',
+        'file_path',
+        'file_name',
+        'file_type',
+        'file_size'
+    ];
     
     protected $useTimestamps = true;
     protected $createdField = 'created_at';
@@ -192,10 +201,7 @@ class MessageModel extends Model
             $data['subject'] = (string) $subject;
         }
         
-        // Add timestamp manually since we're bypassing Model
-        if ($this->useTimestamps && $this->createdField) {
-            $data[$this->createdField] = date('Y-m-d H:i:s');
-        }
+        // Let the database handle the timestamp with DEFAULT CURRENT_TIMESTAMP
         
         if ($builder->insert($data)) {
             return $db->insertID();
@@ -209,17 +215,104 @@ class MessageModel extends Model
      */
     public function getRecentMessages($userId, $limit = 10)
     {
-        return $this->select('messages.*, 
-                              sender.name as sender_name,
-                              receiver.name as receiver_name')
-                    ->join('users as sender', 'sender.id = messages.sender_id')
-                    ->join('users as receiver', 'receiver.id = messages.receiver_id')
-                    ->groupStart()
-                        ->where('messages.sender_id', $userId)
-                        ->orWhere('messages.receiver_id', $userId)
-                    ->groupEnd()
-                    ->orderBy('messages.created_at', 'DESC')
-                    ->limit($limit)
-                    ->findAll();
+        return $this->select('messages.*,
+                               sender.name as sender_name,
+                               receiver.name as receiver_name')
+                     ->join('users as sender', 'sender.id = messages.sender_id')
+                     ->join('users as receiver', 'receiver.id = messages.receiver_id')
+                     ->groupStart()
+                         ->where('messages.sender_id', $userId)
+                         ->orWhere('messages.receiver_id', $userId)
+                     ->groupEnd()
+                     ->orderBy('messages.created_at', 'DESC')
+                     ->limit($limit)
+                     ->findAll();
+    }
+
+    /**
+     * Save message attachments
+     */
+    public function saveAttachments($messageId, $attachments)
+    {
+        if (empty($attachments)) {
+            return true;
+        }
+
+        $db = \Config\Database::connect();
+        $builder = $db->table($this->attachmentsTable);
+
+        $data = [];
+        foreach ($attachments as $attachment) {
+            $data[] = [
+                'message_id' => (int) $messageId,
+                'file_path' => $attachment['file_path'],
+                'file_name' => $attachment['file_name'],
+                'file_type' => $attachment['file_type'],
+                'file_size' => (int) $attachment['file_size'],
+                'created_at' => date('Y-m-d H:i:s')
+            ];
+        }
+
+        return $builder->insertBatch($data);
+    }
+
+    /**
+     * Get message with attachments
+     */
+    public function getMessageWithAttachments($messageId)
+    {
+        $message = $this->getMessageWithDetails($messageId);
+        if ($message) {
+            $message['attachments'] = $this->getMessageAttachments($messageId);
+        }
+        return $message;
+    }
+
+    /**
+     * Get message attachments
+     */
+    public function getMessageAttachments($messageId)
+    {
+        $db = \Config\Database::connect();
+        return $db->table($this->attachmentsTable)
+                  ->where('message_id', $messageId)
+                  ->orderBy('created_at', 'ASC')
+                  ->get()
+                  ->getResultArray();
+    }
+
+    /**
+     * Get conversation messages with attachments
+     */
+    public function getConversationWithAttachments($userId1, $userId2, $limit = 50)
+    {
+        $messages = $this->getConversation($userId1, $userId2, $limit);
+
+        // Add attachments to each message
+        foreach ($messages as &$message) {
+            $message['attachments'] = $this->getMessageAttachments($message['id']);
+        }
+
+        return $messages;
+    }
+
+    /**
+     * Send message with attachments
+     */
+    public function sendMessageWithAttachments($senderId, $receiverId, $subject, $message, $attachments = [])
+    {
+        // Send the message first
+        $messageId = $this->sendMessage($senderId, $receiverId, $subject, $message);
+
+        if ($messageId && !empty($attachments)) {
+            // Save attachments
+            if (!$this->saveAttachments($messageId, $attachments)) {
+                // If attachments fail to save, we could delete the message, but for now just log
+                log_message('error', 'Failed to save attachments for message ID: ' . $messageId);
+                // Don't return false here, as the message was sent successfully
+            }
+        }
+
+        return $messageId;
     }
 }

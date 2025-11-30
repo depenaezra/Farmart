@@ -121,6 +121,7 @@ $routes->group('messages', ['filter' => 'auth'], function($routes) {
     $routes->get('sent', 'Messages::sent');
     $routes->get('compose', 'Messages::compose');
     $routes->post('compose', 'Messages::send');
+    $routes->post('send', 'Messages::send');
     $routes->get('view/(:num)', 'Messages::view/$1');
     $routes->post('reply/(:num)', 'Messages::reply/$1');
     $routes->post('delete/(:num)', 'Messages::delete/$1');
