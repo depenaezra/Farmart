@@ -106,7 +106,7 @@
                 <?php endif; ?>
                 
                 <a href="/messages/inbox" class="block py-2 text-gray-700 hover:text-primary">Messages</a>
-                <a href="/auth/logout" class="block py-2 text-red-600">Logout</a>
+                    <a href="/auth/logout" class="block py-2 text-red-600 hover:bg-red-50">Logout</a>
             <?php else: ?>
                 <hr class="my-2">
                 <a href="/auth/login" class="block py-2 text-gray-700 hover:text-primary">Login</a>

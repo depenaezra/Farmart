@@ -44,6 +44,51 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         }
+        /* Profile sidebar collapse styles */
+        #profile-sidebar-container {
+            transition: width .18s ease;
+        }
+        #profile-sidebar-container.collapsed {
+            width: 5rem; /* ~w-20 */
+        }
+        #profile-sidebar-container .sidebar-text {
+            transition: opacity .12s ease, transform .12s ease;
+        }
+        #profile-sidebar-container.collapsed .sidebar-text {
+            opacity: 0;
+            transform: translateX(-6px);
+            pointer-events: none;
+            display: none;
+        }
+        /* ensure chevron rotation uses Tailwind-compatible class */
+        .rotate-180 { transform: rotate(180deg); }
+        /* Tailwind-style tooltip support for collapsed sidebar items */
+        [data-tooltip] {
+            position: relative;
+        }
+        [data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            margin-left: 8px;
+            padding: 6px 10px;
+            background-color: #1f2937;
+            color: #fff;
+            border-radius: 6px;
+            font-size: 13px;
+            white-space: nowrap;
+            z-index: 40;
+            pointer-events: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        /* Focus ring for keyboard accessibility */
+        button:focus-visible, a:focus-visible {
+            outline: 2px solid #2d7a3e;
+            outline-offset: 2px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col bg-mint-light">
@@ -54,22 +99,22 @@
     <!-- Main Content -->
     <main class="flex-1">
         <div class="flex min-h-screen">
-            <!-- Sidebar for profile and buyer pages -->
             <?php
             $currentUri = uri_string();
-            $showSidebar = (session()->has('logged_in') && session()->get('logged_in') && session()->get('user_role') !== 'admin') &&
-                           (strpos($currentUri, 'profile') === 0 || strpos($currentUri, 'buyer') === 0);
+            $showSidebar = false; // Sidebar content moved to navbar profile dropdown
             ?>
+
+            <!-- Main Content Area -->
+            <div id="main-content" class="flex-1 <?= session()->has('logged_in') && session()->get('logged_in') && session()->get('user_role') !== 'admin' ? 'mr-0' : '' ?>">
+                <?= $this->renderSection('content') ?>
+            </div>
+
+            <!-- Sidebar for profile and buyer pages (rendered on the right) - HIDDEN: moved to navbar -->
             <?php if ($showSidebar): ?>
-                <aside class="w-64 bg-white shadow-md">
+                <aside id="profile-sidebar-container" class="w-64 bg-white shadow-md">
                     <?= $this->include('components/profile_sidebar') ?>
                 </aside>
             <?php endif; ?>
-
-            <!-- Main Content Area -->
-            <div class="flex-1 <?= session()->has('logged_in') && session()->get('logged_in') && session()->get('user_role') !== 'admin' ? 'ml-0' : '' ?>">
-                <?= $this->renderSection('content') ?>
-            </div>
         </div>
     </main>
     
@@ -203,6 +248,81 @@
                         }
                     }
                 });
+            });
+        });
+    </script>
+
+    <script>
+        // Sidebar collapse toggle: persists state in localStorage with responsive behavior
+        document.addEventListener('DOMContentLoaded', function(){
+            const btn = document.getElementById('sidebar-collapse-btn');
+            const container = document.getElementById('profile-sidebar-container');
+            if (!btn || !container) return;
+
+            // Tailwind breakpoints
+            const SM_BREAKPOINT = 640;  // sm
+            const MD_BREAKPOINT = 768;  // md
+            
+            // Restore saved state or auto-collapse on small screens
+            const saved = localStorage.getItem('profileSidebarCollapsed');
+            const chevron = btn.querySelector('i[data-lucide="chevron-left"]');
+            
+            function shouldAutoCollapse() {
+                return window.innerWidth < MD_BREAKPOINT && saved === null;
+            }
+
+            // If user has a saved preference, use it. Otherwise auto-collapse on screens < md (768px).
+            if (saved === 'true' || shouldAutoCollapse()) {
+                container.classList.add('collapsed');
+                if (chevron) chevron.classList.add('rotate-180');
+                btn.setAttribute('aria-expanded', 'false');
+            }
+
+            // Update data-tooltip attributes for collapsed items (CSS handles tooltip display)
+            function updateSidebarTooltips() {
+                const items = container.querySelectorAll('nav a, nav button, nav form button');
+                const collapsed = container.classList.contains('collapsed');
+                items.forEach(el => {
+                    const text = el.innerText || el.textContent || '';
+                    const label = text.trim();
+                    if (collapsed && label.length) {
+                        el.setAttribute('data-tooltip', label);
+                        el.removeAttribute('title');
+                    } else {
+                        el.removeAttribute('data-tooltip');
+                        el.removeAttribute('title');
+                    }
+                });
+            }
+
+            updateSidebarTooltips();
+
+            btn.addEventListener('click', function(){
+                const collapsed = container.classList.toggle('collapsed');
+                localStorage.setItem('profileSidebarCollapsed', collapsed ? 'true' : 'false');
+                if (chevron) chevron.classList.toggle('rotate-180');
+                btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+                updateSidebarTooltips();
+
+                // adjust main content padding when sidebar visible/hidden
+                const main = document.getElementById('main-content');
+                if (main) {
+                    if (collapsed) main.classList.remove('pr-6');
+                    else main.classList.add('pr-6');
+                }
+            });
+
+            // Listen for window resize and auto-collapse if crossing md breakpoint with no saved preference
+            window.addEventListener('resize', function() {
+                if (saved === null) {
+                    const shouldCollapse = window.innerWidth < MD_BREAKPOINT;
+                    const isCollapsed = container.classList.contains('collapsed');
+                    if (shouldCollapse && !isCollapsed) {
+                        btn.click();
+                    } else if (!shouldCollapse && isCollapsed) {
+                        btn.click();
+                    }
+                }
             });
         });
     </script>

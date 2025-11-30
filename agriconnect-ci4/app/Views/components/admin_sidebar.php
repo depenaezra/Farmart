@@ -54,9 +54,6 @@
                 <span class="sidebar-text">My Profile</span>
             </a>
 
-            <a href="/auth/logout" class="sidebar-link flex items-center px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                <i data-lucide="log-out" class="w-5 h-5 mr-3"></i>
-                <span class="sidebar-text">Logout</span>
-            </a>
+            <!-- Logout link removed from sidebar -->
     </nav>
 </div>
