@@ -28,4 +28,7 @@ CREATE TABLE IF NOT EXISTS `forum_mentions` (
 
 -- Note: If your users have a separate "username" column, replace u.name with u.username.
 
+-- Update all existing users to have role 'buyer' to focus on buyer side
+UPDATE users SET role = 'buyer' WHERE role IN ('user', 'farmer');
+
 COMMIT;

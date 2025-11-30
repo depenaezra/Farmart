@@ -49,11 +49,28 @@
 <body class="min-h-screen flex flex-col bg-mint-light">
     
     <?= $this->include('components/navbar') ?>
-    
-    
+
+
     <!-- Main Content -->
     <main class="flex-1">
-        <?= $this->renderSection('content') ?>
+        <div class="flex min-h-screen">
+            <!-- Sidebar for profile and buyer pages -->
+            <?php
+            $currentUri = uri_string();
+            $showSidebar = (session()->has('logged_in') && session()->get('logged_in') && session()->get('user_role') !== 'admin') &&
+                           (strpos($currentUri, 'profile') === 0 || strpos($currentUri, 'buyer') === 0);
+            ?>
+            <?php if ($showSidebar): ?>
+                <aside class="w-64 bg-white shadow-md">
+                    <?= $this->include('components/profile_sidebar') ?>
+                </aside>
+            <?php endif; ?>
+
+            <!-- Main Content Area -->
+            <div class="flex-1 <?= session()->has('logged_in') && session()->get('logged_in') && session()->get('user_role') !== 'admin' ? 'ml-0' : '' ?>">
+                <?= $this->renderSection('content') ?>
+            </div>
+        </div>
     </main>
     
     <?= $this->include('components/footer') ?>

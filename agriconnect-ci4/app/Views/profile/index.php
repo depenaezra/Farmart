@@ -98,7 +98,7 @@
                             </div>
                         <?php endif; ?>
 
-                        <?php if ($user['role'] === 'farmer' && !empty($user['cooperative'])): ?>
+                        <?php if (!empty($user['cooperative'])): ?>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Cooperative/Organization</label>
                                 <p class="text-gray-900"><?= esc($user['cooperative']) ?></p>
