@@ -5,7 +5,48 @@
 <!-- Facebook-style Newsfeed Layout -->
 <div class="bg-mint-light min-h-screen">
     <div class="container mx-auto px-4 py-6">
-        <div class="max-w-2xl mx-auto">
+        <div class="flex gap-6 max-w-6xl mx-auto">
+            <!-- Left Sidebar - Popular Posts -->
+            <div class="w-80 flex-shrink-0">
+                <div class="sticky top-6">
+                    <div class="bg-white rounded-lg shadow p-4 mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Popular Posts</h3>
+                        <?php if (!empty($popular_posts ?? [])): ?>
+                            <div class="space-y-3">
+                                <?php foreach ($popular_posts as $popular_post): ?>
+                                    <div class="border-b border-gray-100 pb-3 last:border-b-0 last:pb-0">
+                                        <a href="/forum/post/<?= $popular_post['id'] ?>" class="block hover:bg-gray-50 p-2 rounded-lg transition-colors">
+                                            <h4 class="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
+                                                <?= esc($popular_post['title']) ?>
+                                            </h4>
+                                            <div class="flex items-center gap-2 text-xs text-gray-500">
+                                                <span>by <?= esc($popular_post['author_name']) ?></span>
+                                                <span>•</span>
+                                                <div class="flex items-center gap-1">
+                                                    <span>🍃</span>
+                                                    <span><?= $popular_post['likes'] ?? 0 ?></span>
+                                                </div>
+                                                <span>•</span>
+                                                <div class="flex items-center gap-1">
+                                                    <span>💬</span>
+                                                    <span><?= $popular_post['comment_count'] ?? 0 ?></span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php else: ?>
+                            <div class="text-center py-6">
+                                <p class="text-gray-500 text-sm">No popular posts yet</p>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="flex-1 max-w-2xl">
             
             <!-- Page Header - Compact -->
             <div class="mb-4">
@@ -169,16 +210,16 @@
                             }
                             ?>
                             <?php if (!empty($images)): ?>
-                                <div class="cursor-pointer open-post-modal" data-post='<?= $postData ?>'>
+                                <div class="image-gallery">
                                     <?php if (count($images) === 1): ?>
-                                        <img src="/<?= esc($images[0]) ?>" alt="<?= esc($post['title']) ?>" class="w-full max-h-96 object-cover">
+                                        <img src="/<?= esc($images[0]) ?>" alt="<?= esc($post['title']) ?>" class="w-full max-h-96 object-cover cursor-pointer image-modal-trigger" data-image="/<?= esc($images[0]) ?>" data-alt="<?= esc($post['title']) ?>">
                                     <?php else: ?>
                                         <div class="grid grid-cols-2 gap-1">
                                             <?php foreach (array_slice($images, 0, 4) as $index => $image): ?>
                                                 <div class="relative <?= count($images) > 4 && $index === 3 ? 'overlay-container' : '' ?>">
-                                                    <img src="/<?= esc($image) ?>" alt="<?= esc($post['title']) ?> - Image <?= $index + 1 ?>" class="w-full h-32 object-cover rounded">
+                                                    <img src="/<?= esc($image) ?>" alt="<?= esc($post['title']) ?> - Image <?= $index + 1 ?>" class="w-full h-32 object-cover rounded cursor-pointer image-modal-trigger" data-image="/<?= esc($image) ?>" data-alt="<?= esc($post['title']) ?> - Image <?= $index + 1 ?>">
                                                     <?php if (count($images) > 4 && $index === 3): ?>
-                                                        <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded">
+                                                        <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded cursor-pointer image-modal-trigger" data-image="/<?= esc($image) ?>" data-alt="+<?= count($images) - 4 ?> more images">
                                                             <span class="text-white font-semibold">+<?= count($images) - 4 ?> more</span>
                                                         </div>
                                                     <?php endif; ?>
@@ -338,6 +379,19 @@
                 </div>
             <?php endif; ?>
 
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div id="imageModal" class="fixed inset-0 bg-black bg-opacity-90 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="relative max-w-4xl max-h-full">
+            <img id="imageModalImg" src="" alt="" class="max-w-full max-h-full object-contain">
+            <button id="imageModalClose" class="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70 transition-colors">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
         </div>
     </div>
 </div>
@@ -371,6 +425,25 @@
                 </div>
             </form>
         </div>
+
+        <!-- Post Options (3 dots) - Only for post owner -->
+        <?php if (session()->get('user_id') && session()->get('user_id') == $post['user_id']): ?>
+            <div class="relative">
+                <button class="post-options-btn p-2 hover:bg-gray-100 rounded-full transition-colors" data-post-id="<?= $post['id'] ?>">
+                    <i data-lucide="more-vertical" class="w-4 h-4 text-gray-500"></i>
+                </button>
+                <div class="post-options-menu absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 hidden z-10 min-w-32">
+                    <a href="/forum/create?edit=<?= $post['id'] ?>" class="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        <i data-lucide="edit" class="w-4 h-4"></i>
+                        Edit Post
+                    </a>
+                    <button onclick="deletePost(<?= $post['id'] ?>)" class="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 w-full text-left">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        Delete Post
+                    </button>
+                </div>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -420,6 +493,49 @@ document.addEventListener('DOMContentLoaded', function(){
             }
         });
     });
+
+    // Wire image modal triggers
+    document.querySelectorAll('.image-modal-trigger').forEach(img => {
+        img.addEventListener('click', function(){
+            const imageSrc = this.getAttribute('data-image');
+            const imageAlt = this.getAttribute('data-alt');
+
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('imageModalImg');
+
+            modalImg.src = imageSrc;
+            modalImg.alt = imageAlt;
+            modal.classList.remove('hidden');
+
+            // Re-initialize lucide icons
+            lucide.createIcons();
+        });
+    });
+
+    // Wire post options (3 dots) buttons
+    document.querySelectorAll('.post-options-btn').forEach(button => {
+        button.addEventListener('click', function(e){
+            e.stopPropagation();
+            const menu = this.nextElementSibling;
+
+            // Close all other menus
+            document.querySelectorAll('.post-options-menu').forEach(m => {
+                if (m !== menu) m.classList.add('hidden');
+            });
+
+            // Toggle this menu
+            menu.classList.toggle('hidden');
+        });
+    });
+
+    // Close menus when clicking outside
+    document.addEventListener('click', function(e){
+        if (!e.target.closest('.post-options-btn')) {
+            document.querySelectorAll('.post-options-menu').forEach(menu => {
+                menu.classList.add('hidden');
+            });
+        }
+    });
 });
 
 // Load more comments via AJAX
@@ -450,6 +566,7 @@ function loadMoreComments(postId, offset, button) {
                                         ${comment.comment.replace(/\n/g, '<br>')}
                                     </p>
                                 </div>
+
                             </div>
                         </div>
                     `;
@@ -577,6 +694,74 @@ function formatTime(dateString) {
     if (diff < 86400000) return Math.floor(diff / 3600000) + 'h';
     if (diff < 604800000) return Math.floor(diff / 86400000) + 'd';
     return new Date(time).toLocaleDateString();
+}
+
+// Image modal functionality
+function closeImageModal() {
+    document.getElementById('imageModal').classList.add('hidden');
+}
+
+// Close image modal when clicking outside or on close button
+document.getElementById('imageModal').addEventListener('click', function(e){
+    if (e.target.id === 'imageModal' || e.target.id === 'imageModalClose') {
+        closeImageModal();
+    }
+});
+
+// Delete post functionality
+function deletePost(postId) {
+    if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+        const formData = new FormData();
+        const csrfInput = document.querySelector('input[name*="csrf"]');
+        if (csrfInput) {
+            formData.append(csrfInput.name, csrfInput.value);
+        }
+
+        fetch(`/forum/post/${postId}/delete`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove the post from the page
+                const postCard = document.querySelector(`.post-card[data-post-id="${postId}"]`);
+                if (postCard) {
+                    postCard.remove();
+                }
+
+                try {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Post deleted',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                } catch (e) {}
+            } else {
+                try {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'Failed to delete post.'
+                    });
+                } catch (e) {
+                    alert(data.message || 'Failed to delete post.');
+                }
+            }
+        })
+        .catch(error => {
+            try {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred.'
+                });
+            } catch (e) {
+                alert('An error occurred.');
+            }
+        });
+    }
 }
 
 // Report functionality

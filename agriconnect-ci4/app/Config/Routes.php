@@ -138,6 +138,7 @@ $routes->group('forum', ['filter' => 'auth'], function($routes) {
     $routes->post('post/(:num)/comment', 'Forum::addComment/$1');
     $routes->post('post/(:num)/like', 'Forum::likePost/$1');
     $routes->post('post/(:num)/delete', 'Forum::deletePost/$1');
+    $routes->get('mentions', 'Forum::getMentions');
 });
 
 // ============================================================

@@ -112,12 +112,25 @@ class Forum extends BaseController
             }
         }
         
+        // Get popular posts (top 5 by engagement: likes + comments)
+        $popularPosts = $db->table('forum_posts')
+            ->select('forum_posts.id, forum_posts.title, forum_posts.created_at, users.name as author_name,
+                     (SELECT COUNT(*) FROM forum_likes WHERE forum_likes.post_id = forum_posts.id) as likes,
+                     (SELECT COUNT(*) FROM forum_comments WHERE forum_comments.post_id = forum_posts.id) as comment_count')
+            ->join('users', 'users.id = forum_posts.user_id')
+            ->orderBy('((SELECT COUNT(*) FROM forum_likes WHERE forum_likes.post_id = forum_posts.id) + (SELECT COUNT(*) FROM forum_comments WHERE forum_comments.post_id = forum_posts.id))', 'DESC')
+            ->orderBy('forum_posts.created_at', 'DESC')
+            ->limit(5)
+            ->get()
+            ->getResultArray();
+
         $data = [
             'title' => 'Community Forum',
             'posts' => $posts,
             'categories' => array_column($categories, 'category'),
             'selected_category' => $category ?? 'all',
-            'selected_sort' => $sort
+            'selected_sort' => $sort,
+            'popular_posts' => $popularPosts
         ];
         
         return view('forum/index', $data);
@@ -273,34 +286,29 @@ class Forum extends BaseController
             $data['image_url'] = json_encode($imageUrls);
         }
 
+        // Handle tagged users
+        $taggedUsers = $this->request->getPost('tagged_users');
+        $taggedUserIds = [];
+        if (!empty($taggedUsers)) {
+            $taggedUserIds = array_map('intval', explode(',', $taggedUsers));
+        }
+
         if ($editId) {
             // Update existing post
             if ($db->table('forum_posts')->update($data, ['id' => $editId])) {
-                // Delete existing mentions and re-extract
+                // Delete existing mentions and add new ones from tagged users
                 $db->table('forum_mentions')->delete(['post_id' => $editId]);
 
-                // Extract mentions like @username and populate forum_mentions
-                $content = $data['content'] ?? '';
-                if (preg_match_all('/@([A-Za-z0-9_\-\.]+)/', $content, $matches)) {
-                    $usernames = array_unique($matches[1]);
-                    foreach ($usernames as $uname) {
-                        $u = $db->table('users')
-                            ->select('id')
-                            ->where('username', $uname)
-                            ->orWhere('name', $uname)
-                            ->get()
-                            ->getRowArray();
-                        if ($u && isset($u['id'])) {
-                            try {
-                                $db->table('forum_mentions')->insert([
-                                    'post_id' => $editId,
-                                    'mentioned_user_id' => $u['id'],
-                                    'created_at' => date('Y-m-d H:i:s')
-                                ]);
-                            } catch (\Exception $e) {
-                                // ignore duplicate/constraint errors
-                            }
-                        }
+                // Add mentions for tagged users
+                foreach ($taggedUserIds as $userId) {
+                    try {
+                        $db->table('forum_mentions')->insert([
+                            'post_id' => $editId,
+                            'mentioned_user_id' => $userId,
+                            'created_at' => date('Y-m-d H:i:s')
+                        ]);
+                    } catch (\Exception $e) {
+                        // ignore duplicate/constraint errors
                     }
                 }
 
@@ -316,28 +324,16 @@ class Forum extends BaseController
             if ($db->table('forum_posts')->insert($data)) {
                 $postId = $db->insertID();
 
-                // Extract mentions like @username and populate forum_mentions
-                $content = $data['content'] ?? '';
-                if (preg_match_all('/@([A-Za-z0-9_\-\.]+)/', $content, $matches)) {
-                    $usernames = array_unique($matches[1]);
-                    foreach ($usernames as $uname) {
-                        $u = $db->table('users')
-                            ->select('id')
-                            ->where('username', $uname)
-                            ->orWhere('name', $uname)
-                            ->get()
-                            ->getRowArray();
-                        if ($u && isset($u['id'])) {
-                            try {
-                                $db->table('forum_mentions')->insert([
-                                    'post_id' => $postId,
-                                    'mentioned_user_id' => $u['id'],
-                                    'created_at' => date('Y-m-d H:i:s')
-                                ]);
-                            } catch (\Exception $e) {
-                                // ignore duplicate/constraint errors
-                            }
-                        }
+                // Add mentions for tagged users
+                foreach ($taggedUserIds as $userId) {
+                    try {
+                        $db->table('forum_mentions')->insert([
+                            'post_id' => $postId,
+                            'mentioned_user_id' => $userId,
+                            'created_at' => date('Y-m-d H:i:s')
+                        ]);
+                    } catch (\Exception $e) {
+                        // ignore duplicate/constraint errors
                     }
                 }
 
@@ -568,5 +564,50 @@ class Forum extends BaseController
             return redirect()->back()
                 ->with('error', 'Failed to delete post.');
         }
+    }
+
+    /**
+     * Get user suggestions for mentions (AJAX)
+     */
+    public function getMentions()
+    {
+        // Temporarily remove AJAX check for debugging
+        // if (!$this->request->isAJAX()) {
+        //     return $this->response->setJSON(['success' => false, 'message' => 'Invalid request']);
+        // }
+
+        $query = $this->request->getGet('q');
+        if (!$query || strlen($query) < 1) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Query too short']);
+        }
+
+        $db = \Config\Database::connect();
+
+        // Get users whose name starts with the query (exclude admins)
+        $users = $db->table('users')
+            ->select('id, name')
+            ->where('role !=', 'admin')
+            ->like('name', $query, 'after')
+            ->limit(10)
+            ->get()
+            ->getResultArray();
+
+        // If no results, try a broader search
+        if (empty($users)) {
+            $users = $db->table('users')
+                ->select('id, name')
+                ->where('role !=', 'admin')
+                ->like('name', $query)
+                ->limit(10)
+                ->get()
+                ->getResultArray();
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'users' => $users,
+            'query' => $query,
+            'count' => count($users)
+        ]);
     }
 }
