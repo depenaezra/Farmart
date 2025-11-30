@@ -290,11 +290,14 @@ class MessageModel extends Model
             return [];
         }
         
-        return $db->table($this->attachmentsTable)
-                  ->where('message_id', $messageId)
-                  ->orderBy('created_at', 'ASC')
-                  ->get()
-                  ->getResultArray();
+        $result = $db->table($this->attachmentsTable)
+                     ->where('message_id', $messageId)
+                     ->orderBy('created_at', 'ASC')
+                     ->get()
+                     ->getResultArray();
+        
+        // Ensure we always return an array
+        return is_array($result) ? $result : [];
     }
 
     /**
@@ -306,7 +309,9 @@ class MessageModel extends Model
 
         // Add attachments to each message
         foreach ($messages as &$message) {
-            $message['attachments'] = $this->getMessageAttachments($message['id']);
+            $attachments = $this->getMessageAttachments($message['id']);
+            // Ensure attachments is always an array
+            $message['attachments'] = is_array($attachments) ? $attachments : [];
         }
 
         return $messages;
@@ -322,10 +327,13 @@ class MessageModel extends Model
 
         if ($messageId && !empty($attachments)) {
             // Save attachments
-            if (!$this->saveAttachments($messageId, $attachments)) {
-                // If attachments fail to save, we could delete the message, but for now just log
-                log_message('error', 'Failed to save attachments for message ID: ' . $messageId);
-                // Don't return false here, as the message was sent successfully
+            $saved = $this->saveAttachments($messageId, $attachments);
+            if (!$saved) {
+                // If attachments fail to save, log the error
+                log_message('error', 'Failed to save attachments for message ID: ' . $messageId . '. Attachments: ' . json_encode($attachments));
+            } else {
+                // Log success for debugging
+                log_message('debug', 'Successfully saved ' . count($attachments) . ' attachment(s) for message ID: ' . $messageId);
             }
         }
 

@@ -31,7 +31,7 @@
                             <i data-lucide="chevron-down" class="w-4 h-4 transition-transform" id="profile-dropdown-icon"></i>
                         </button>
                         <!-- Dropdown -->
-                        <div id="profile-dropdown-menu" class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 hidden z-50">
+                        <div id="profile-dropdown-menu" class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 hidden z-50 max-h-[calc(100vh-80px)] md:max-h-none overflow-y-auto md:overflow-y-visible">
                             <a href="/profile" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-t-lg flex items-center gap-2">
                                 <i data-lucide="user" class="w-4 h-4"></i>Profile
                             </a>

@@ -113,15 +113,23 @@
                                             <?php endif; ?>
                                             <p class="text-sm whitespace-pre-wrap"><?= nl2br(esc($msg['message'])) ?></p>
 
-                                            <?php if (!empty($msg['attachments'])): ?>
+                                            <?php if (!empty($msg['attachments']) && is_array($msg['attachments'])): ?>
                                                 <div class="mt-2 space-y-2">
                                                     <?php foreach ($msg['attachments'] as $attachment): ?>
-                                                        <?php if (strpos($attachment['file_type'], 'image/') === 0): ?>
+                                                        <?php 
+                                                        // Ensure attachment has required fields and is an image
+                                                        if (isset($attachment['file_path']) && isset($attachment['file_type']) && strpos($attachment['file_type'], 'image/') === 0): 
+                                                            $imagePath = '/' . ltrim($attachment['file_path'], '/');
+                                                        ?>
                                                             <div class="rounded-lg overflow-hidden border border-gray-200">
-                                                                <img src="/<?= esc($attachment['file_path']) ?>"
-                                                                     alt="<?= esc($attachment['file_name']) ?>"
+                                                                <img src="<?= esc($imagePath) ?>"
+                                                                     alt="<?= esc($attachment['file_name'] ?? 'Image') ?>"
                                                                      class="w-full h-auto max-w-full cursor-pointer hover:opacity-90 transition-opacity"
-                                                                     onclick="openImageModal('/<?= esc($attachment['file_path']) ?>', '<?= esc($attachment['file_name']) ?>')">
+                                                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+                                                                     onclick="openImageModal('<?= esc($imagePath) ?>', '<?= esc($attachment['file_name'] ?? 'Image') ?>')">
+                                                                <div style="display:none;" class="p-2 text-sm text-gray-500 bg-gray-100 rounded">
+                                                                    Image not found: <?= esc($attachment['file_name'] ?? 'Unknown') ?>
+                                                                </div>
                                                             </div>
                                                         <?php endif; ?>
                                                     <?php endforeach; ?>
