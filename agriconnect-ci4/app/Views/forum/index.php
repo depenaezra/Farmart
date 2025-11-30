@@ -2,33 +2,53 @@
 
 <?= $this->section('content') ?>
 
-<div class="container mx-auto px-4 py-8">
-    <div class="mb-8">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900 mb-2">Community Forum</h1>
-                <p class="text-gray-600">Connect with fellow farmers and share your experiences</p>
+<!-- Facebook-style Newsfeed Layout -->
+<div class="bg-mint-light min-h-screen">
+    <div class="container mx-auto px-4 py-6">
+        <div class="max-w-2xl mx-auto">
+            
+            <!-- Page Header - Compact -->
+            <div class="mb-4">
+                <h1 class="text-2xl font-bold text-gray-900">Community Forum</h1>
             </div>
+
+            <!-- Create Post Box (Facebook-style "What's on your mind?") -->
             <?php if (session()->get('user_id') && session()->get('user_role') !== 'admin'): ?>
-                <a href="/forum/create" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-hover font-semibold transition-colors inline-flex items-center">
-                    <i data-lucide="plus" class="w-5 h-5 inline mr-2"></i>
-                    New Post
-                </a>
+                <div class="bg-white rounded-lg shadow mb-4 p-4">
+                    <a href="/forum/create" class="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <i data-lucide="user" class="w-5 h-5 text-primary"></i>
+                        </div>
+                        <div class="flex-1 bg-gray-100 rounded-full px-4 py-2.5 text-gray-500 cursor-pointer hover:bg-gray-200 transition-colors">
+                            What's on your mind, <?= esc(session()->get('user_name') ?? 'there') ?>?
+                        </div>
+                    </a>
+                    <div class="border-t border-gray-200 mt-3 pt-3 flex items-center justify-around">
+                        <a href="/forum/create" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-lg transition-colors flex-1 justify-center">
+                            <i data-lucide="image" class="w-5 h-5 text-green-600"></i>
+                            <span class="text-sm font-medium text-gray-700">Photo</span>
+                        </a>
+                        <a href="/forum/create" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-lg transition-colors flex-1 justify-center">
+                            <i data-lucide="message-square" class="w-5 h-5 text-blue-600"></i>
+                            <span class="text-sm font-medium text-gray-700">Post</span>
+                        </a>
+                    </div>
+                </div>
             <?php elseif (!session()->has('user_id')): ?>
-                <a href="/auth/login" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-hover font-semibold transition-colors inline-flex items-center">
-                    <i data-lucide="log-in" class="w-5 h-5 inline mr-2"></i>
-                    Login to Post
-                </a>
+                <div class="bg-white rounded-lg shadow mb-4 p-4 text-center">
+                    <p class="text-gray-600 mb-3">Join the conversation!</p>
+                    <a href="/auth/login" class="inline-flex items-center bg-primary text-white px-6 py-2.5 rounded-lg hover:bg-primary-hover font-semibold transition-colors">
+                        <i data-lucide="log-in" class="w-4 h-4 mr-2"></i>
+                        Login to Post
+                    </a>
+                </div>
             <?php endif; ?>
-        </div>
-        
-        <!-- Filters and Sorting -->
-        <div class="bg-white rounded-lg shadow-md border border-gray-200 p-4 mb-6">
-            <div class="flex flex-col sm:flex-row gap-4 items-center">
-                <div class="flex-1 w-full sm:w-auto">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                    <form method="GET" action="/forum" class="inline-block w-full sm:w-auto">
-                        <select name="category" onchange="this.form.submit()" class="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+
+            <!-- Filters - Compact Facebook-style -->
+            <div class="bg-white rounded-lg shadow mb-4 p-3">
+                <div class="flex items-center gap-3 overflow-x-auto">
+                    <form method="GET" action="/forum" class="flex items-center gap-2">
+                        <select name="category" onchange="this.form.submit()" class="text-sm px-3 py-1.5 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary focus:border-transparent bg-gray-50">
                             <option value="all" <?= ($selected_category ?? 'all') === 'all' ? 'selected' : '' ?>>All Categories</option>
                             <?php foreach ($categories ?? [] as $cat): ?>
                                 <option value="<?= esc($cat) ?>" <?= ($selected_category ?? 'all') === $cat ? 'selected' : '' ?>>
@@ -40,13 +60,11 @@
                             <input type="hidden" name="sort" value="<?= esc($selected_sort) ?>">
                         <?php endif; ?>
                     </form>
-                </div>
-                <div class="flex-1 w-full sm:w-auto">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
-                    <form method="GET" action="/forum" class="inline-block w-full sm:w-auto">
-                        <select name="sort" onchange="this.form.submit()" class="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
-                            <option value="latest" <?= ($selected_sort ?? 'latest') === 'latest' ? 'selected' : '' ?>>Latest First</option>
-                            <option value="oldest" <?= ($selected_sort ?? 'latest') === 'oldest' ? 'selected' : '' ?>>Oldest First</option>
+                    <div class="h-6 w-px bg-gray-300"></div>
+                    <form method="GET" action="/forum" class="flex items-center gap-2">
+                        <select name="sort" onchange="this.form.submit()" class="text-sm px-3 py-1.5 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary focus:border-transparent bg-gray-50">
+                            <option value="latest" <?= ($selected_sort ?? 'latest') === 'latest' ? 'selected' : '' ?>>Latest</option>
+                            <option value="oldest" <?= ($selected_sort ?? 'latest') === 'oldest' ? 'selected' : '' ?>>Oldest</option>
                         </select>
                         <?php if (isset($selected_category) && $selected_category !== 'all'): ?>
                             <input type="hidden" name="category" value="<?= esc($selected_category) ?>">
@@ -54,144 +72,190 @@
                     </form>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Forum Stats -->
-    <div class="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-8">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="text-center">
-                <div class="text-2xl font-bold text-primary mb-1"><?= count($posts) ?></div>
-                <div class="text-sm text-gray-600">Total Posts</div>
-            </div>
-            <div class="text-center">
-                <div class="text-2xl font-bold text-primary mb-1">
-                    <?php
-                    $totalComments = 0;
-                    foreach ($posts as $post) {
-                        $totalComments += $post['comment_count'] ?? 0;
-                    }
-                    echo $totalComments;
-                    ?>
+            <!-- Posts Feed -->
+            <?php if (empty($posts)): ?>
+                <div class="bg-white rounded-lg shadow p-12 text-center">
+                    <i data-lucide="message-square-off" class="w-16 h-16 text-gray-400 mx-auto mb-4"></i>
+                    <p class="text-xl text-gray-600 mb-2">No posts yet</p>
+                    <p class="text-gray-500 mb-4">Be the first to start a discussion!</p>
+                    <?php if (session()->get('user_id')): ?>
+                        <a href="/forum/create" class="inline-flex items-center bg-primary text-white px-6 py-2.5 rounded-lg hover:bg-primary-hover font-semibold transition-colors">
+                            <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                            Create First Post
+                        </a>
+                    <?php endif; ?>
                 </div>
-                <div class="text-sm text-gray-600">Total Comments</div>
-            </div>
-            <div class="text-center">
-                <div class="text-2xl font-bold text-primary mb-1">
-                    <?php
-                    $activeUsers = count(array_unique(array_column($posts, 'user_id')));
-                    echo $activeUsers;
-                    ?>
-                </div>
-                <div class="text-sm text-gray-600">Active Members</div>
-            </div>
-        </div>
-    </div>
+            <?php else: ?>
+                <div class="space-y-4">
+                    <?php foreach ($posts as $post): ?>
+                        <?php $postData = htmlspecialchars(json_encode([
+                            'id' => $post['id'],
+                            'title' => $post['title'],
+                            'author_name' => $post['author_name'] ?? '',
+                            'author_id' => $post['user_id'] ?? null,
+                            'created_at' => $post['created_at'] ?? '',
+                            'content' => $post['content'] ?? '',
+                            'image_url' => $post['image_url'] ?? null,
+                            'likes' => $post['likes'] ?? 0,
+                            'comment_count' => $post['comment_count'] ?? 0,
+                        ]), ENT_QUOTES, 'UTF-8'); ?>
 
-    <!-- Posts List -->
-    <?php if (empty($posts)): ?>
-        <div class="text-center py-12">
-            <i data-lucide="message-square-off" class="w-16 h-16 text-gray-400 mx-auto mb-4"></i>
-            <p class="text-xl text-gray-600">No posts yet</p>
-            <p class="text-gray-500 mt-2">Be the first to start a discussion!</p>
-            <?php if (session()->get('user_id')): ?>
-                <a href="/forum/create" class="inline-block mt-4 bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-hover font-semibold transition-colors">
-                    Create First Post
-                </a>
-            <?php endif; ?>
-        </div>
-    <?php else: ?>
-            <div class="space-y-4 flex flex-col items-center">
-            <?php foreach ($posts as $post): ?>
-                    <?php $postData = htmlspecialchars(json_encode([
-                        'id' => $post['id'],
-                        'title' => $post['title'],
-                        'author_name' => $post['author_name'] ?? '',
-                        'author_id' => $post['user_id'] ?? null,
-                        'created_at' => $post['created_at'] ?? '',
-                        'content' => $post['content'] ?? '',
-                        'image_url' => $post['image_url'] ?? null,
-                        'likes' => $post['likes'] ?? 0,
-                        'comment_count' => $post['comment_count'] ?? 0,
-                    ]), ENT_QUOTES, 'UTF-8'); ?>
+                        <!-- Facebook-style Post Card -->
+                        <div class="bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+                            <!-- Post Header -->
+                            <div class="p-4 pb-3">
+                                <div class="flex items-center gap-3">
+                                    <!-- User Avatar -->
+                                    <a href="/users/<?= $post['user_id'] ?>" class="flex-shrink-0">
+                                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-green-600 flex items-center justify-center text-white font-semibold">
+                                            <?= strtoupper(substr($post['author_name'] ?? 'U', 0, 1)) ?>
+                                        </div>
+                                    </a>
+                                    <!-- User Info -->
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-2">
+                                            <a href="/users/<?= $post['user_id'] ?>" class="font-semibold text-gray-900 hover:underline truncate">
+                                                <?= esc($post['author_name']) ?>
+                                            </a>
+                                            <?php if (!empty($post['category'])): ?>
+                                                <span class="inline-flex items-center px-2 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded-full">
+                                                    <?= ucfirst(esc($post['category'])) ?>
+                                                </span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="text-xs text-gray-500">
+                                            <?php
+                                            $time = strtotime($post['created_at']);
+                                            $diff = time() - $time;
+                                            if ($diff < 60) echo 'Just now';
+                                            elseif ($diff < 3600) echo floor($diff / 60) . 'm';
+                                            elseif ($diff < 86400) echo floor($diff / 3600) . 'h';
+                                            elseif ($diff < 604800) echo floor($diff / 86400) . 'd';
+                                            else echo date('M d', $time);
+                                            ?>
+                                        </div>
+                                    </div>
+                                    <!-- More Options -->
+                                    <?php if (session()->get('user_id') && session()->get('user_role') !== 'admin'): ?>
+                                        <button onclick="reportPost(<?= $post['id'] ?>, 'forum_post')" class="p-2 hover:bg-gray-100 rounded-full transition-colors" title="Report">
+                                            <i data-lucide="more-horizontal" class="w-5 h-5 text-gray-500"></i>
+                                        </button>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
 
-                    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover:border-gray-300 transition-colors w-full max-w-3xl">
-                    <div class="p-4">
-                        <!-- Post Header -->
-                        <div class="mb-3">
-                            <div class="flex items-center text-xs text-gray-500 mb-2">
-                                <a href="/users/<?= $post['user_id'] ?>" class="font-medium text-gray-700 hover:underline"><?= esc($post['author_name']) ?></a>
-                                <span class="mx-1">•</span>
-                                <span><?= date('M d, Y', strtotime($post['created_at'])) ?></span>
-                                <?php if (!empty($post['category'])): ?>
-                                    <span class="mx-1">•</span>
-                                    <span class="inline-block px-2 py-0.5 bg-primary/10 text-primary text-xs font-semibold rounded">
-                                        <?= ucfirst(esc($post['category'])) ?>
-                                    </span>
+                            <!-- Post Title & Content -->
+                            <div class="px-4 pb-3">
+                                <h2 class="text-base font-semibold text-gray-900 mb-2">
+                                    <?= esc($post['title']) ?>
+                                </h2>
+                                <?php $plain = trim(strip_tags($post['content'])); ?>
+                                <?php if (strlen($plain) > 200): ?>
+                                    <p class="text-gray-700 text-sm leading-relaxed">
+                                        <?= esc(substr($plain, 0, 200)) ?>...
+                                        <a href="#" class="text-primary font-medium view-more" data-post='<?= $postData ?>'>See more</a>
+                                    </p>
+                                <?php else: ?>
+                                    <p class="text-gray-700 text-sm leading-relaxed"><?= esc($plain) ?></p>
                                 <?php endif; ?>
                             </div>
-                            <h2 class="text-lg font-semibold text-gray-900 mb-2">
-                                <a href="/forum/post/<?= $post['id'] ?>" class="hover:text-primary transition-colors">
-                                    <?= esc($post['title']) ?>
+
+                            <!-- Post Images -->
+                            <?php
+                            $images = [];
+                            if (!empty($post['image_url'])) {
+                                $decoded = json_decode($post['image_url'], true);
+                                if (is_array($decoded)) {
+                                    $images = $decoded;
+                                } else {
+                                    // Backward compatibility for single image
+                                    $images = [$post['image_url']];
+                                }
+                            }
+                            ?>
+                            <?php if (!empty($images)): ?>
+                                <div class="cursor-pointer open-post-modal" data-post='<?= $postData ?>'>
+                                    <?php if (count($images) === 1): ?>
+                                        <img src="/<?= esc($images[0]) ?>" alt="<?= esc($post['title']) ?>" class="w-full max-h-96 object-cover">
+                                    <?php else: ?>
+                                        <div class="grid grid-cols-2 gap-1">
+                                            <?php foreach (array_slice($images, 0, 4) as $index => $image): ?>
+                                                <div class="relative <?= count($images) > 4 && $index === 3 ? 'overlay-container' : '' ?>">
+                                                    <img src="/<?= esc($image) ?>" alt="<?= esc($post['title']) ?> - Image <?= $index + 1 ?>" class="w-full h-32 object-cover rounded">
+                                                    <?php if (count($images) > 4 && $index === 3): ?>
+                                                        <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded">
+                                                            <span class="text-white font-semibold">+<?= count($images) - 4 ?> more</span>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endif; ?>
+
+                            <!-- Engagement Stats -->
+                            <div class="px-4 py-2 flex items-center justify-between text-sm text-gray-500 border-b border-gray-200">
+                                <div class="flex items-center gap-1">
+                                    <?php if (($post['likes'] ?? 0) > 0): ?>
+                                        <span class="text-base">🍃</span>
+                                        <span><?= $post['likes'] ?></span>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <?php if (($post['comment_count'] ?? 0) > 0): ?>
+                                        <span><?= $post['comment_count'] ?> comment<?= $post['comment_count'] != 1 ? 's' : '' ?></span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons (Facebook-style) -->
+                            <div class="px-2 py-1 flex items-center justify-around">
+                                <!-- Like Button -->
+                                <?php if (session()->get('user_id')): ?>
+                                    <form action="/forum/post/<?= $post['id'] ?>/like" method="POST" class="flex-1">
+                                        <?= csrf_field() ?>
+                                        <button type="submit" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 hover:bg-gray-100 rounded-lg transition-colors group <?= (isset($post['user_liked']) && $post['user_liked']) ? 'text-green-600' : 'text-gray-600' ?>">
+                                            <span class="text-lg group-hover:scale-110 transition-transform">🍃</span>
+                                            <span class="text-sm font-medium">Like</span>
+                                        </button>
+                                    </form>
+                                <?php else: ?>
+                                    <div class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-gray-400">
+                                        <span class="text-lg">🍃</span>
+                                        <span class="text-sm font-medium">Like</span>
+                                    </div>
+                                <?php endif; ?>
+
+                                <!-- Comment Button -->
+                                <a href="/forum/post/<?= $post['id'] ?>" class="open-post-modal flex-1 flex items-center justify-center gap-2 px-4 py-2.5 hover:bg-gray-100 rounded-lg transition-colors text-gray-600 group" data-post='<?= $postData ?>'>
+                                    <i data-lucide="message-circle" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+                                    <span class="text-sm font-medium">Comment</span>
                                 </a>
-                            </h2>
-                        </div>
 
-                            <!-- Image (if any) -->
-                            <?php if (!empty($post['image_url'])): ?>
-                                <div class="mb-4">
-                                    <img src="<?= esc($post['image_url']) ?>" alt="<?= esc($post['title']) ?>" class="w-full h-64 object-cover rounded-lg">
-                                </div>
-                            <?php endif; ?>
-
-                            <!-- Post Content Preview -->
-                            <?php $plain = trim(strip_tags($post['content'])); ?>
-                            <?php if (strlen($plain) >= 50): ?>
-                                <div class="text-gray-700 text-sm mb-4">
-                                    <?= esc(substr($plain, 0, 50)) ?>... <a href="#" class="text-primary view-more" data-post='<?= $postData ?>'>View more</a>
-                                </div>
-                            <?php else: ?>
-                                <div class="text-gray-700 text-sm mb-4"><?= esc($plain) ?></div>
-                            <?php endif; ?>
-
-                        <!-- Reddit-style Action Buttons at Bottom -->
-                        <div class="flex items-center gap-4 pt-3 border-t border-gray-100">
-                            <!-- Like Button (Leaf Emoji) - Toggleable -->
-                            <?php if (session()->get('user_id')): ?>
-                                <form action="/forum/post/<?= $post['id'] ?>/like" method="POST" class="inline">
-                                    <?= csrf_field() ?>
-                                    <button type="submit" class="flex items-center gap-1.5 px-2 py-1.5 text-sm rounded transition-colors group <?= (isset($post['user_liked']) && $post['user_liked']) ? 'text-green-600 hover:bg-green-50' : 'text-gray-600 hover:bg-gray-100' ?>" title="<?= (isset($post['user_liked']) && $post['user_liked']) ? 'Click to unlike' : 'Click to like' ?>">
-                                        <span class="text-base group-hover:scale-110 transition-transform">🍃</span>
-                                        <span class="font-medium"><?= $post['likes'] ?? 0 ?></span>
-                                    </button>
-                                </form>
-                            <?php else: ?>
-                                <div class="flex items-center gap-1.5 px-2 py-1.5 text-sm text-gray-400">
-                                    <span class="text-base">🍃</span>
-                                    <span class="font-medium"><?= $post['likes'] ?? 0 ?></span>
-                                </div>
-                            <?php endif; ?>
-
-                            <!-- Comment Button (Cherry Emoji) -->
-                            <a href="/forum/post/<?= $post['id'] ?>" class="open-post-modal flex items-center gap-1.5 px-2 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded transition-colors group" data-post='<?= $postData ?>'>
-                                <span class="text-base group-hover:scale-110 transition-transform">🍒</span>
-                                <span class="font-medium"><?= $post['comment_count'] ?? 0 ?></span>
-                                <span class="hidden sm:inline">Comments</span>
-                            </a>
-
-                            <!-- Report Button -->
-                            <?php if (session()->get('user_id') && session()->get('user_role') !== 'admin'): ?>
-                                <button onclick="reportPost(<?= $post['id'] ?>, 'forum_post')" class="flex items-center gap-1.5 px-2 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded transition-colors group ml-auto" title="Report this post">
-                                    <i data-lucide="flag" class="w-4 h-4 group-hover:text-red-500"></i>
-                                    <span class="hidden sm:inline">Report</span>
+                                <!-- Share Button -->
+                                <button class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 hover:bg-gray-100 rounded-lg transition-colors text-gray-600 group">
+                                    <i data-lucide="share-2" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+                                    <span class="text-sm font-medium">Share</span>
                                 </button>
-                            <?php endif; ?>
+                            </div>
                         </div>
-                    </div>
+                    <?php endforeach; ?>
                 </div>
-            <?php endforeach; ?>
+            <?php endif; ?>
+
+            <!-- Load More / Pagination Placeholder -->
+            <?php if (!empty($posts) && count($posts) >= 10): ?>
+                <div class="mt-6 text-center">
+                    <button class="bg-white text-gray-700 px-6 py-2.5 rounded-lg shadow hover:shadow-md transition-all font-medium">
+                        Load More Posts
+                    </button>
+                </div>
+            <?php endif; ?>
+
         </div>
-    <?php endif; ?>
+    </div>
 </div>
 
 <!-- Report Modal -->
