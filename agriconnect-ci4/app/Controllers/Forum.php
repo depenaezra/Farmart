@@ -188,17 +188,28 @@ class Forum extends BaseController
             'updated_at' => date('Y-m-d H:i:s')
         ];
 
-        // Handle optional image upload (field name: image)
-        $file = $this->request->getFile('image');
-        if ($file && $file->isValid() && !$file->hasMoved()) {
+        // Handle optional multiple image uploads (field name: images[])
+        $files = $this->request->getFiles();
+        $imageUrls = [];
+
+        if (isset($files['images'])) {
             $uploadPath = FCPATH . 'uploads/forum/';
             if (!is_dir($uploadPath)) {
                 mkdir($uploadPath, 0755, true);
             }
-            $newName = $file->getRandomName();
-            $file->move($uploadPath, $newName);
-            // store relative path to use in views
-            $data['image_url'] = 'uploads/forum/' . $newName;
+
+            foreach ($files['images'] as $file) {
+                if ($file->isValid() && !$file->hasMoved()) {
+                    $newName = $file->getRandomName();
+                    $file->move($uploadPath, $newName);
+                    // store relative path to use in views
+                    $imageUrls[] = 'uploads/forum/' . $newName;
+                }
+            }
+        }
+
+        if (!empty($imageUrls)) {
+            $data['image_url'] = json_encode($imageUrls);
         }
 
         // Insert post

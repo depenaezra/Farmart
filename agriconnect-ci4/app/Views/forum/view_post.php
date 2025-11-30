@@ -45,6 +45,33 @@
                     <?= nl2br(esc($post['content'])) ?>
                 </div>
 
+                <!-- Post Images -->
+                <?php
+                $images = [];
+                if (!empty($post['image_url'])) {
+                    $decoded = json_decode($post['image_url'], true);
+                    if (is_array($decoded)) {
+                        $images = $decoded;
+                    } else {
+                        // Backward compatibility for single image
+                        $images = [$post['image_url']];
+                    }
+                }
+                ?>
+                <?php if (!empty($images)): ?>
+                    <div class="mb-4">
+                        <?php if (count($images) === 1): ?>
+                            <img src="/<?= esc($images[0]) ?>" alt="<?= esc($post['title']) ?>" class="w-full max-w-2xl mx-auto rounded-lg shadow-md">
+                        <?php else: ?>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <?php foreach ($images as $index => $image): ?>
+                                    <img src="/<?= esc($image) ?>" alt="<?= esc($post['title']) ?> - Image <?= $index + 1 ?>" class="w-full h-48 object-cover rounded-lg shadow-md">
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+
                 <!-- Reddit-style Action Buttons at Bottom -->
                 <div class="flex items-center gap-4 pt-4 border-t border-gray-200">
                     <!-- Like Button (Leaf Emoji) - Toggleable -->

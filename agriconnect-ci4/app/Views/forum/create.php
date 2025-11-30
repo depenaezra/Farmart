@@ -73,9 +73,12 @@
 
                     <!-- Image Upload -->
                     <div>
-                        <label for="image" class="block text-sm font-semibold text-gray-700 mb-2">Attach Photo (optional)</label>
-                        <input type="file" id="image" name="image" accept="image/*" class="w-full">
-                        <p class="text-sm text-gray-500 mt-1">Optional: add a photo to illustrate your post (jpg, png).</p>
+                        <label for="images" class="block text-sm font-semibold text-gray-700 mb-2">Attach Photos (optional)</label>
+                        <input type="file" id="images" name="images[]" accept="image/*" multiple class="w-full" onchange="previewImages(event)">
+                        <p class="text-sm text-gray-500 mt-1">Optional: add up to 5 photos to illustrate your post (jpg, png, max 5MB each).</p>
+                        <div id="imagePreview" class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4 hidden">
+                            <!-- Images will be added here dynamically -->
+                        </div>
                     </div>
                 </div>
 
@@ -105,5 +108,55 @@
         </div>
     </div>
 </div>
+
+<script>
+function previewImages(event) {
+    const files = event.target.files;
+    const previewContainer = document.getElementById('imagePreview');
+    previewContainer.innerHTML = ''; // Clear previous previews
+
+    if (files.length > 5) {
+        alert('You can only upload up to 5 images.');
+        event.target.value = '';
+        return;
+    }
+
+    if (files.length > 0) {
+        previewContainer.classList.remove('hidden');
+
+        Array.from(files).forEach((file, index) => {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageDiv = document.createElement('div');
+                    imageDiv.className = 'relative';
+                    imageDiv.innerHTML = `
+                        <img src="${e.target.result}" alt="Image Preview ${index + 1}" class="w-full h-32 object-cover rounded-lg border border-gray-300">
+                        <button type="button" onclick="removeImage(${index})" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600">×</button>
+                    `;
+                    previewContainer.appendChild(imageDiv);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    } else {
+        previewContainer.classList.add('hidden');
+    }
+}
+
+function removeImage(index) {
+    const input = document.getElementById('images');
+    const files = Array.from(input.files);
+    files.splice(index, 1);
+
+    // Create new FileList
+    const dt = new DataTransfer();
+    files.forEach(file => dt.items.add(file));
+    input.files = dt.files;
+
+    // Re-trigger preview
+    previewImages({target: input});
+}
+</script>
 
 <?= $this->endSection() ?>
