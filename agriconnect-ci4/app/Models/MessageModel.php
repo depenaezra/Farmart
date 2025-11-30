@@ -87,7 +87,10 @@ class MessageModel extends Model
      */
     public function markAsRead($messageId)
     {
-        return $this->update($messageId, ['is_read' => 1]);
+        $db = \Config\Database::connect();
+        return $db->table($this->table)
+                  ->where('id', $messageId)
+                  ->update(['is_read' => 1]);
     }
     
     /**
@@ -239,6 +242,13 @@ class MessageModel extends Model
         }
 
         $db = \Config\Database::connect();
+        
+        // Check if table exists before inserting
+        if (!$db->tableExists($this->attachmentsTable)) {
+            log_message('warning', 'message_attachments table does not exist. Attachments not saved.');
+            return false;
+        }
+        
         $builder = $db->table($this->attachmentsTable);
 
         $data = [];
@@ -274,6 +284,12 @@ class MessageModel extends Model
     public function getMessageAttachments($messageId)
     {
         $db = \Config\Database::connect();
+        
+        // Check if table exists before querying
+        if (!$db->tableExists($this->attachmentsTable)) {
+            return [];
+        }
+        
         return $db->table($this->attachmentsTable)
                   ->where('message_id', $messageId)
                   ->orderBy('created_at', 'ASC')

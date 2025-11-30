@@ -48,25 +48,29 @@ class Messages extends BaseController
     }
     
     /**
-     * Get conversation messages (AJAX)
+     * Get conversation messages (AJAX or direct)
      */
     public function getConversation($otherUserId = null)
     {
-        if (!$this->request->isAJAX() && !$otherUserId) {
-            return redirect()->to('/messages');
-        }
-        
         $userId = session()->get('user_id');
         $otherUserId = $otherUserId ?? $this->request->getPost('other_user_id');
         
         if (!$otherUserId) {
-            return $this->response->setJSON(['error' => 'User ID required']);
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['error' => 'User ID required']);
+            }
+            return redirect()->to('/messages')
+                ->with('error', 'User ID required');
         }
         
         // Verify other user exists
         $otherUser = $this->userModel->find($otherUserId);
         if (!$otherUser) {
-            return $this->response->setJSON(['error' => 'User not found']);
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['error' => 'User not found']);
+            }
+            return redirect()->to('/messages')
+                ->with('error', 'User not found');
         }
         
         // Get conversation messages with attachments
@@ -131,6 +135,12 @@ class Messages extends BaseController
      */
     public function compose()
     {
+        // Handle POST requests (sending messages)
+        if ($this->request->getMethod() === 'post') {
+            return $this->send();
+        }
+        
+        // Handle GET requests (redirect to conversation)
         $receiverId = $this->request->getGet('to');
         
         if ($receiverId) {
@@ -147,132 +157,139 @@ class Messages extends BaseController
      */
     public function send()
     {
-        $validation = \Config\Services::validation();
+        $userId = session()->get('user_id');
 
-        $rules = [
-            'receiver_id' => 'required|integer',
-            'subject' => 'permit_empty|max_length[255]',
-            'message' => 'permit_empty'
-        ];
-
-        // But ensure at least message or attachments are provided
-        $message = $this->request->getPost('message');
-        $hasFiles = $this->request->getFiles() && isset($this->request->getFiles()['attachments']) &&
-                   is_array($this->request->getFiles()['attachments']) &&
-                   !empty(array_filter($this->request->getFiles()['attachments'], function($file) {
-                       return $file->isValid() && !$file->hasMoved() && !empty($file->getName());
-                   }));
-
-        if (empty(trim($message)) && !$hasFiles) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Please enter a message or attach images.');
+        if (!$userId) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['error' => 'Please login to send messages']);
+            }
+            return redirect()->to('/auth/login')
+                ->with('error', 'Please login to send messages');
         }
 
-        if (!$this->validate($rules)) {
-            return redirect()->back()
-                ->withInput()
-                ->with('errors', $validation->getErrors());
-        }
-
-        $senderId = session()->get('user_id');
         $receiverId = $this->request->getPost('receiver_id');
-        $subject = $this->request->getPost('subject');
-        $rawMessage = trim($this->request->getPost('message'));
+        $message = $this->request->getPost('message');
 
-        // Validate users exist
-        if (!$this->userModel->find($senderId)) {
+        if (!$receiverId) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['error' => 'Receiver ID is required']);
+            }
             return redirect()->back()
-                ->withInput()
-                ->with('error', 'Invalid sender.');
+                ->with('error', 'Receiver ID is required');
         }
 
-        if (!$this->userModel->find($receiverId)) {
+        // Verify receiver exists
+        $receiver = $this->userModel->find($receiverId);
+        if (!$receiver) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['error' => 'Receiver not found']);
+            }
             return redirect()->back()
-                ->withInput()
-                ->with('error', 'Invalid recipient.');
+                ->with('error', 'Receiver not found');
         }
+
+        // Message can be empty if only attachments are sent
+        $message = trim($this->request->getPost('message') ?? '');
 
         // Handle file uploads
+        $files = $this->request->getFiles();
         $attachments = [];
-        try {
-            $files = $this->request->getFiles();
 
-            if (isset($files['attachments'])) {
-                $uploadPath = FCPATH . 'uploads/messages/';
+        if (isset($files['attachments']) && is_array($files['attachments'])) {
+            $uploadPath = FCPATH . 'uploads/messages/';
+            if (!is_dir($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
 
-                // Create directory if it doesn't exist
-                if (!is_dir($uploadPath)) {
-                    mkdir($uploadPath, 0755, true);
-                }
+            foreach ($files['attachments'] as $file) {
+                if ($file->isValid() && !$file->hasMoved()) {
+                    try {
+                        // Get MIME type before moving the file
+                        $mimeType = null;
+                        $isImage = false;
 
-                $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-                $maxSize = 10240 * 1024; // 10MB in bytes
-                $maxWidth = 2048;
-                $maxHeight = 2048;
-
-                foreach ($files['attachments'] as $file) {
-                    if ($file->isValid() && !$file->hasMoved()) {
-                        // Validate file type
-                        if (!in_array($file->getMimeType(), $allowedTypes)) {
-                            return redirect()->back()
-                                ->withInput()
-                                ->with('error', 'Invalid file type. Only images are allowed.');
+                        try {
+                            $mimeType = $file->getMimeType();
+                            $isImage = ($mimeType && strpos($mimeType, 'image/') === 0);
+                        } catch (\Exception $e) {
+                            // Fallback: check file extension if MIME type fails
+                            $extension = strtolower($file->getClientExtension());
+                            $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'];
+                            $isImage = in_array($extension, $imageExtensions);
+                            if ($isImage) {
+                                $mimeType = 'image/' . ($extension === 'jpg' ? 'jpeg' : $extension);
+                            }
                         }
 
-                        // Validate file size
-                        if ($file->getSize() > $maxSize) {
-                            return redirect()->back()
-                                ->withInput()
-                                ->with('error', 'File size too large. Maximum 10MB allowed.');
+                        // Validate it's an image
+                        if ($isImage) {
+                            $newName = $file->getRandomName();
+                            if ($file->move($uploadPath, $newName)) {
+                                $attachments[] = [
+                                    'file_path' => 'uploads/messages/' . $newName,
+                                    'file_name' => $file->getClientName(),
+                                    'file_type' => $mimeType ?: 'image/jpeg',
+                                    'file_size' => $file->getSize()
+                                ];
+                            }
                         }
-
-                        // Validate dimensions
-                        $imageInfo = @getimagesize($file->getTempName());
-                        if ($imageInfo && ($imageInfo[0] > $maxWidth || $imageInfo[1] > $maxHeight)) {
-                            return redirect()->back()
-                                ->withInput()
-                                ->with('error', 'Image dimensions too large. Maximum 2048x2048 pixels allowed.');
-                        }
-
-                        $newName = $file->getRandomName();
-                        if ($file->move($uploadPath, $newName)) {
-                            $attachments[] = [
-                                'file_path' => 'uploads/messages/' . $newName,
-                                'file_name' => $file->getName(),
-                                'file_type' => $file->getMimeType(),
-                                'file_size' => $file->getSize()
-                            ];
-                        } else {
-                            return redirect()->back()
-                                ->withInput()
-                                ->with('error', 'Failed to upload file.');
-                        }
+                    } catch (\Exception $e) {
+                        // Log error but continue with other files
+                        log_message('error', 'Error processing file upload: ' . $e->getMessage());
+                        continue;
                     }
                 }
             }
+        }
+
+        // Validate that we have either a message or attachments
+        if (empty($message) && empty($attachments)) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['error' => 'Please enter a message or attach images']);
+            }
+            return redirect()->back()
+                ->with('error', 'Please enter a message or attach images');
+        }
+
+        // Ensure message is not empty string if we have attachments (use space as placeholder)
+        // Database requires message field, so use a space if only attachments are sent
+        $messageText = !empty(trim($message)) ? $message : (!empty($attachments) ? ' ' : '');
+
+        // Send message with attachments
+        try {
+            $messageId = $this->messageModel->sendMessageWithAttachments(
+                $userId,
+                $receiverId,
+                '', // No subject for chat messages
+                $messageText,
+                $attachments
+            );
+
+            if ($messageId) {
+                if ($this->request->isAJAX()) {
+                    return $this->response->setJSON([
+                        'success' => true,
+                        'message' => 'Message sent successfully',
+                        'message_id' => $messageId
+                    ]);
+                }
+                return redirect()->to('/messages/conversation/' . $receiverId)
+                    ->with('success', 'Message sent successfully');
+            } else {
+                log_message('error', 'Failed to send message. User: ' . $userId . ', Receiver: ' . $receiverId);
+                if ($this->request->isAJAX()) {
+                    return $this->response->setJSON(['error' => 'Failed to send message. Please try again.']);
+                }
+                return redirect()->back()
+                    ->with('error', 'Failed to send message. Please try again.');
+            }
         } catch (\Exception $e) {
+            log_message('error', 'Exception sending message: ' . $e->getMessage());
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['error' => 'Error sending message: ' . $e->getMessage()]);
+            }
             return redirect()->back()
-                ->withInput()
-                ->with('error', 'File upload failed: ' . $e->getMessage());
-        }
-
-        // Set final message content
-        $message = $rawMessage;
-        if (empty($message) && !empty($attachments)) {
-            $attachmentCount = count($attachments);
-            $message = $attachmentCount === 1 ? 'Sent an image' : 'Sent ' . $attachmentCount . ' images';
-        }
-
-        $result = $this->messageModel->sendMessageWithAttachments($senderId, $receiverId, $subject, $message, $attachments);
-
-        if ($result) {
-            return redirect()->to('/messages/conversation/' . $receiverId)
-                ->with('success', 'Message sent successfully!');
-        } else {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Failed to send message.');
+                ->with('error', 'Error sending message. Please try again.');
         }
     }
     
