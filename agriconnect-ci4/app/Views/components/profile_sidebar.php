@@ -10,7 +10,7 @@
             Profile
         </a>
 
-        <a href="/dashboard" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors <?= (uri_string() === 'dashboard') ? 'bg-primary/10 text-primary font-semibold' : 'text-gray-700' ?>">
+        <a href="/buyer/dashboard" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors <?= (uri_string() === 'buyer/dashboard') ? 'bg-primary/10 text-primary font-semibold' : 'text-gray-700' ?>">
             <i data-lucide="grid" class="w-4 h-4"></i>
             Dashboard
         </a>
