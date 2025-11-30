@@ -180,43 +180,74 @@ class Forum extends BaseController
      */
     public function create()
     {
+        $editId = $this->request->getGet('edit');
         $data = [
-            'title' => 'Create New Post'
+            'title' => 'Create New Post',
+            'edit_post' => null
         ];
-        
+
+        // Handle edit mode
+        if ($editId) {
+            $db = \Config\Database::connect();
+            $post = $db->table('forum_posts')->where('id', $editId)->get()->getRowArray();
+
+            // Check if post exists and user owns it
+            if ($post && $post['user_id'] == session()->get('user_id')) {
+                $data['title'] = 'Edit Post';
+                $data['edit_post'] = $post;
+            } else {
+                return redirect()->to('/forum')
+                    ->with('error', 'Post not found or you do not have permission to edit it.');
+            }
+        }
+
         return view('forum/create', $data);
     }
     
     /**
-     * Process create post
+     * Process create/edit post
      */
     public function createProcess()
     {
+        $editId = $this->request->getPost('edit_id');
         $validation = \Config\Services::validation();
-        
+
         $rules = [
             'title' => 'required|min_length[5]|max_length[255]',
             'content' => 'required|min_length[20]',
             'category' => 'permit_empty|max_length[100]'
         ];
-        
+
         if (!$this->validate($rules)) {
             return redirect()->back()
                 ->withInput()
                 ->with('errors', $validation->getErrors());
         }
-        
+
         $db = \Config\Database::connect();
-        
+
+        // Check if editing existing post
+        if ($editId) {
+            $existingPost = $db->table('forum_posts')->where('id', $editId)->get()->getRowArray();
+            if (!$existingPost || $existingPost['user_id'] != session()->get('user_id')) {
+                return redirect()->to('/forum')
+                    ->with('error', 'Post not found or you do not have permission to edit it.');
+            }
+        }
+
         $data = [
-            'user_id' => session()->get('user_id'),
             'title' => $this->request->getPost('title'),
             'content' => $this->request->getPost('content'),
             'category' => $this->request->getPost('category') ?? 'general',
-            'likes' => 0,
-            'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s')
         ];
+
+        // Only set user_id and created_at for new posts
+        if (!$editId) {
+            $data['user_id'] = session()->get('user_id');
+            $data['likes'] = 0;
+            $data['created_at'] = date('Y-m-d H:i:s');
+        }
 
         // Handle optional multiple image uploads (field name: images[])
         $files = $this->request->getFiles();
@@ -242,41 +273,81 @@ class Forum extends BaseController
             $data['image_url'] = json_encode($imageUrls);
         }
 
-        // Insert post
-        if ($db->table('forum_posts')->insert($data)) {
-            $postId = $db->insertID();
+        if ($editId) {
+            // Update existing post
+            if ($db->table('forum_posts')->update($data, ['id' => $editId])) {
+                // Delete existing mentions and re-extract
+                $db->table('forum_mentions')->delete(['post_id' => $editId]);
 
-            // Extract mentions like @username and populate forum_mentions
-            $content = $data['content'] ?? '';
-            if (preg_match_all('/@([A-Za-z0-9_\-\.]+)/', $content, $matches)) {
-                $usernames = array_unique($matches[1]);
-                foreach ($usernames as $uname) {
-                    $u = $db->table('users')
-                        ->select('id')
-                        ->where('username', $uname)
-                        ->orWhere('name', $uname)
-                        ->get()
-                        ->getRowArray();
-                    if ($u && isset($u['id'])) {
-                        try {
-                            $db->table('forum_mentions')->insert([
-                                'post_id' => $postId,
-                                'mentioned_user_id' => $u['id'],
-                                'created_at' => date('Y-m-d H:i:s')
-                            ]);
-                        } catch (\Exception $e) {
-                            // ignore duplicate/constraint errors
+                // Extract mentions like @username and populate forum_mentions
+                $content = $data['content'] ?? '';
+                if (preg_match_all('/@([A-Za-z0-9_\-\.]+)/', $content, $matches)) {
+                    $usernames = array_unique($matches[1]);
+                    foreach ($usernames as $uname) {
+                        $u = $db->table('users')
+                            ->select('id')
+                            ->where('username', $uname)
+                            ->orWhere('name', $uname)
+                            ->get()
+                            ->getRowArray();
+                        if ($u && isset($u['id'])) {
+                            try {
+                                $db->table('forum_mentions')->insert([
+                                    'post_id' => $editId,
+                                    'mentioned_user_id' => $u['id'],
+                                    'created_at' => date('Y-m-d H:i:s')
+                                ]);
+                            } catch (\Exception $e) {
+                                // ignore duplicate/constraint errors
+                            }
                         }
                     }
                 }
-            }
 
-            return redirect()->to('/forum')
-                ->with('success', 'Post created successfully!');
+                return redirect()->to('/forum')
+                    ->with('success', 'Post updated successfully!');
+            } else {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Failed to update post.');
+            }
         } else {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Failed to create post.');
+            // Insert new post
+            if ($db->table('forum_posts')->insert($data)) {
+                $postId = $db->insertID();
+
+                // Extract mentions like @username and populate forum_mentions
+                $content = $data['content'] ?? '';
+                if (preg_match_all('/@([A-Za-z0-9_\-\.]+)/', $content, $matches)) {
+                    $usernames = array_unique($matches[1]);
+                    foreach ($usernames as $uname) {
+                        $u = $db->table('users')
+                            ->select('id')
+                            ->where('username', $uname)
+                            ->orWhere('name', $uname)
+                            ->get()
+                            ->getRowArray();
+                        if ($u && isset($u['id'])) {
+                            try {
+                                $db->table('forum_mentions')->insert([
+                                    'post_id' => $postId,
+                                    'mentioned_user_id' => $u['id'],
+                                    'created_at' => date('Y-m-d H:i:s')
+                                ]);
+                            } catch (\Exception $e) {
+                                // ignore duplicate/constraint errors
+                            }
+                        }
+                    }
+                }
+
+                return redirect()->to('/forum')
+                    ->with('success', 'Post created successfully!');
+            } else {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Failed to create post.');
+            }
         }
     }
     
@@ -308,21 +379,20 @@ class Forum extends BaseController
         if ($db->table('forum_comments')->insert($data)) {
             $insertId = $db->insertID();
 
-            // If AJAX request, return rendered comment HTML so client can append
+            // If AJAX request, return comment data for client-side rendering
             if ($this->request->isAJAX()) {
                 $comment = $db->table('forum_comments')
-                    ->select('forum_comments.*, users.name as author_name, users.role as author_role')
+                    ->select('forum_comments.*, users.name as author_name, users.role as author_role, users.id as user_id')
                     ->join('users', 'users.id = forum_comments.user_id')
                     ->where('forum_comments.id', $insertId)
                     ->get()
                     ->getRowArray();
 
-                $html = view('forum/_comment', ['comment' => $comment]);
                 $count = $db->table('forum_comments')->where('post_id', $postId)->countAllResults();
 
                 return $this->response->setJSON([
                     'success' => true,
-                    'html' => $html,
+                    'comment' => $comment,
                     'comment_count' => $count
                 ]);
             }
