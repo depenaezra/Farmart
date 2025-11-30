@@ -112,6 +112,22 @@
                                                 </p>
                                             <?php endif; ?>
                                             <p class="text-sm whitespace-pre-wrap"><?= nl2br(esc($msg['message'])) ?></p>
+
+                                            <?php if (!empty($msg['attachments'])): ?>
+                                                <div class="mt-2 space-y-2">
+                                                    <?php foreach ($msg['attachments'] as $attachment): ?>
+                                                        <?php if (strpos($attachment['file_type'], 'image/') === 0): ?>
+                                                            <div class="rounded-lg overflow-hidden border border-gray-200">
+                                                                <img src="/<?= esc($attachment['file_path']) ?>"
+                                                                     alt="<?= esc($attachment['file_name']) ?>"
+                                                                     class="w-full h-auto max-w-full cursor-pointer hover:opacity-90 transition-opacity"
+                                                                     onclick="openImageModal('/<?= esc($attachment['file_path']) ?>', '<?= esc($attachment['file_name']) ?>')">
+                                                            </div>
+                                                        <?php endif; ?>
+                                                    <?php endforeach; ?>
+                                                </div>
+                                            <?php endif; ?>
+
                                             <p class="text-xs mt-1 opacity-70">
                                                 <?= date('H:i', strtotime($msg['created_at'])) ?>
                                             </p>
@@ -130,26 +146,49 @@
 
                 <!-- Message Input -->
                 <div class="p-4 border-t border-gray-200 bg-white">
-                    <form id="messageForm" action="/messages/compose" method="POST">
+                    <form id="messageForm" action="/messages/compose" method="POST" enctype="multipart/form-data">
                         <?= csrf_field() ?>
                         <input type="hidden" name="receiver_id" value="<?= $selected_user['id'] ?>">
-                        <div class="flex gap-2">
-                            <input 
-                                type="text" 
-                                id="messageInput" 
-                                name="message" 
-                                placeholder="Type a message..." 
-                                required
-                                class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                                autocomplete="off"
-                            >
-                            <button 
-                                type="submit" 
-                                class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-hover font-semibold transition-colors flex items-center"
-                            >
-                                <i data-lucide="send" class="w-5 h-5 mr-2"></i>
-                                Send
-                            </button>
+                        <div class="space-y-3">
+                            <!-- File Attachments -->
+                            <div class="flex items-center gap-2">
+                                <input
+                                    type="file"
+                                    id="attachmentsInput"
+                                    name="attachments[]"
+                                    multiple
+                                    accept="image/*"
+                                    class="hidden"
+                                >
+                                <button
+                                    type="button"
+                                    id="attachButton"
+                                    class="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+                                >
+                                    <i data-lucide="paperclip" class="w-4 h-4"></i>
+                                    <span class="text-sm">Attach images</span>
+                                </button>
+                                <div id="filePreview" class="flex flex-wrap gap-2"></div>
+                            </div>
+
+                            <!-- Message Input -->
+                            <div class="flex gap-2">
+                                <input
+                                    type="text"
+                                    id="messageInput"
+                                    name="message"
+                                    placeholder="Type a message or attach images..."
+                                    class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                    autocomplete="off"
+                                >
+                                <button
+                                    type="submit"
+                                    class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-hover font-semibold transition-colors flex items-center"
+                                >
+                                    <i data-lucide="send" class="w-5 h-5 mr-2"></i>
+                                    Send
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -168,6 +207,16 @@
                 </div>
             <?php endif; ?>
         </div>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div id="imageModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center">
+    <div class="relative max-w-4xl max-h-screen p-4">
+        <button id="closeImageModal" class="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-75">
+            <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+        <img id="modalImage" src="" alt="" class="max-w-full max-h-full object-contain">
     </div>
 </div>
 
@@ -272,20 +321,74 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Handle file attachment
+    const attachButton = document.getElementById('attachButton');
+    const attachmentsInput = document.getElementById('attachmentsInput');
+    const filePreview = document.getElementById('filePreview');
+
+    if (attachButton && attachmentsInput) {
+        attachButton.addEventListener('click', () => {
+            attachmentsInput.click();
+        });
+
+        attachmentsInput.addEventListener('change', function(e) {
+            filePreview.innerHTML = '';
+            const files = Array.from(e.target.files);
+
+            files.forEach((file, index) => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const previewDiv = document.createElement('div');
+                        previewDiv.className = 'relative';
+                        previewDiv.innerHTML = `
+                            <div class="relative w-16 h-16 rounded-lg overflow-hidden border border-gray-300">
+                                <img src="${e.target.result}" class="w-full h-full object-cover">
+                                <button type="button" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600" onclick="removeAttachment(${index})">
+                                    ×
+                                </button>
+                            </div>
+                        `;
+                        filePreview.appendChild(previewDiv);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+    }
+
+    // Remove attachment function
+    window.removeAttachment = function(index) {
+        const dt = new DataTransfer();
+        const files = Array.from(attachmentsInput.files);
+        files.splice(index, 1);
+        files.forEach(file => dt.items.add(file));
+        attachmentsInput.files = dt.files;
+
+        // Update preview
+        const event = new Event('change');
+        attachmentsInput.dispatchEvent(event);
+    };
+
     // Handle message form submission
     if (messageForm) {
         messageForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            const formData = new FormData(messageForm);
+
             const message = messageInput.value.trim();
-            
-            if (!message) return;
+            const attachments = attachmentsInput.files;
+
+            if (!message.trim() && attachments.length === 0) {
+                alert('Please enter a message or attach images.');
+                return;
+            }
 
             // Disable form
             const submitBtn = messageForm.querySelector('button[type="submit"]');
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 mr-2 animate-spin"></i> Sending...';
+
+            const formData = new FormData(messageForm);
 
             fetch('/messages/compose', {
                 method: 'POST',
@@ -297,9 +400,11 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Clear input
+                    // Clear inputs
                     messageInput.value = '';
-                    
+                    attachmentsInput.value = '';
+                    filePreview.innerHTML = '';
+
                     // Reload page to show new message
                     window.location.reload();
                 } else {
@@ -378,6 +483,31 @@ document.addEventListener('DOMContentLoaded', function() {
                     conv.style.display = 'none';
                 }
             });
+        });
+    }
+
+    // Image modal functionality
+    const imageModal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    const closeImageModal = document.getElementById('closeImageModal');
+
+    window.openImageModal = function(src, alt) {
+        modalImage.src = src;
+        modalImage.alt = alt;
+        imageModal.classList.remove('hidden');
+    };
+
+    if (closeImageModal) {
+        closeImageModal.addEventListener('click', () => {
+            imageModal.classList.add('hidden');
+        });
+    }
+
+    if (imageModal) {
+        imageModal.addEventListener('click', (e) => {
+            if (e.target === imageModal) {
+                imageModal.classList.add('hidden');
+            }
         });
     }
 

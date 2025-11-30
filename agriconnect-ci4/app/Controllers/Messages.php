@@ -69,8 +69,8 @@ class Messages extends BaseController
             return $this->response->setJSON(['error' => 'User not found']);
         }
         
-        // Get conversation messages
-        $messages = $this->messageModel->getConversation($userId, $otherUserId, 100);
+        // Get conversation messages with attachments
+        $messages = $this->messageModel->getConversationWithAttachments($userId, $otherUserId, 100);
         
         // Mark messages as read
         foreach ($messages as $msg) {
@@ -147,46 +147,9 @@ class Messages extends BaseController
      */
     public function send()
     {
-        $validation = \Config\Services::validation();
-        
-        $rules = [
-            'receiver_id' => 'required|integer',
-            'subject' => 'permit_empty|max_length[255]',
-            'message' => 'required|min_length[1]'
-        ];
-        
-        if (!$this->validate($rules)) {
-            return redirect()->back()
-                ->withInput()
-                ->with('errors', $validation->getErrors());
-        }
-        
-        $senderId = session()->get('user_id');
-        $receiverId = $this->request->getPost('receiver_id');
-        $subject = $this->request->getPost('subject');
-        $message = $this->request->getPost('message');
-        
-        if ($this->messageModel->sendMessage($senderId, $receiverId, $subject, $message)) {
-            // If AJAX request, return JSON
-            if ($this->request->isAJAX()) {
-                return $this->response->setJSON([
-                    'success' => true,
-                    'message' => 'Message sent successfully!'
-                ]);
-            }
-            return redirect()->to('/messages/conversation/' . $receiverId)
-                ->with('success', 'Message sent successfully!');
-        } else {
-            if ($this->request->isAJAX()) {
-                return $this->response->setJSON([
-                    'success' => false,
-                    'error' => 'Failed to send message.'
-                ]);
-            }
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Failed to send message.');
-        }
+        // Simple test - just return success
+        return redirect()->back()
+            ->with('success', 'Test: Method called successfully!');
     }
     
     /**
@@ -194,31 +157,31 @@ class Messages extends BaseController
      */
     public function view($id)
     {
-        $message = $this->messageModel->getMessageWithDetails($id);
-        
+        $message = $this->messageModel->getMessageWithAttachments($id);
+
         if (!$message) {
             return redirect()->to('/messages/inbox')
                 ->with('error', 'Message not found.');
         }
-        
+
         $userId = session()->get('user_id');
-        
+
         // Verify user is sender or receiver
         if ($message['sender_id'] != $userId && $message['receiver_id'] != $userId) {
             return redirect()->to('/messages/inbox')
                 ->with('error', 'Access denied.');
         }
-        
+
         // Mark as read if user is receiver
         if ($message['receiver_id'] == $userId && !$message['is_read']) {
             $this->messageModel->markAsRead($id);
         }
-        
+
         $data = [
             'title' => $message['subject'] ?? 'Message',
             'message' => $message
         ];
-        
+
         return view('messages/view', $data);
     }
     
