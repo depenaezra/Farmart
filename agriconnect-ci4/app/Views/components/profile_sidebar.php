@@ -1,4 +1,4 @@
-<div class="bg-white rounded-xl shadow-md border border-gray-200 p-6 sticky top-6">
+<div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
     <div class="mb-4">
         <h3 class="text-lg font-semibold text-gray-900">My Profile</h3>
         <p class="text-sm text-gray-600">Quick links to manage your account</p>

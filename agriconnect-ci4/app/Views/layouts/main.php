@@ -54,11 +54,11 @@
     <!-- Main Content -->
     <main class="flex-1">
         <div class="flex min-h-screen">
-            <!-- Sidebar for buyer pages only -->
+            <!-- Sidebar for profile and buyer pages -->
             <?php
             $currentUri = uri_string();
             $showSidebar = (session()->has('logged_in') && session()->get('logged_in') && session()->get('user_role') !== 'admin') &&
-                           (strpos($currentUri, 'buyer') === 0);
+                           (strpos($currentUri, 'profile') === 0 || strpos($currentUri, 'buyer') === 0);
             ?>
             <?php if ($showSidebar): ?>
                 <aside class="w-64 bg-white shadow-md">

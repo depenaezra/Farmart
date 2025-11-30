@@ -30,12 +30,7 @@
             </div>
         <?php endif; ?>
 
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <!-- Sidebar -->
-            <div class="lg:col-span-1">
-                <?= $this->include('components/profile_sidebar') ?>
-            </div>
-
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Profile Card -->
             <div class="lg:col-span-1">
                 <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
