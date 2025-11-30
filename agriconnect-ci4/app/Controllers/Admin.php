@@ -595,6 +595,27 @@ class Admin extends BaseController
     }
 
     /**
+     * Delete Violation Report
+     */
+    public function deleteViolationReport($id)
+    {
+        $violation = $this->violationModel->find($id);
+
+        if (!$violation) {
+            return redirect()->back()
+                ->with('error', 'Violation report not found.');
+        }
+
+        if ($this->violationModel->delete($id)) {
+            return redirect()->to('/admin/violations')
+                ->with('success', 'Violation report deleted successfully.');
+        } else {
+            return redirect()->back()
+                ->with('error', 'Failed to delete violation report.');
+        }
+    }
+
+    /**
      * Delete Forum Post (Admin)
      */
     private function deleteForumPost($postId)
