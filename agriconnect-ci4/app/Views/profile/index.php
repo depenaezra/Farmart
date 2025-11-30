@@ -30,7 +30,12 @@
             </div>
         <?php endif; ?>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Sidebar -->
+            <div class="lg:col-span-1">
+                <?= $this->include('components/profile_sidebar') ?>
+            </div>
+
             <!-- Profile Card -->
             <div class="lg:col-span-1">
                 <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
@@ -98,7 +103,7 @@
                             </div>
                         <?php endif; ?>
 
-                        <?php if ($user['role'] === 'farmer' && !empty($user['cooperative'])): ?>
+                        <?php if (!empty($user['cooperative'])): ?>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Cooperative/Organization</label>
                                 <p class="text-gray-900"><?= esc($user['cooperative']) ?></p>

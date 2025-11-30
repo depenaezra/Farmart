@@ -57,43 +57,21 @@ $routes->group('auth', function($routes) {
 });
 
 // ============================================================
-// FARMER ROUTES (Protected)
+// BUYER ROUTES (Protected - Unified buyer/seller functionality)
 // ============================================================
 
-$routes->group('farmer', ['filter' => 'auth:farmer,admin'], function($routes) {
-    // Dashboard
-    $routes->get('dashboard', 'Farmer::dashboard');
-    
-    // Products
-    $routes->get('products', 'Farmer::products');
-    $routes->get('products/add', 'Farmer::addProduct');
-    $routes->post('products/add', 'Farmer::addProductProcess');
-    $routes->get('products/edit/(:num)', 'Farmer::editProduct/$1');
-    $routes->post('products/edit/(:num)', 'Farmer::editProductProcess/$1');
-    $routes->post('products/delete/(:num)', 'Farmer::deleteProduct/$1');
-    $routes->post('products/update-stock/(:num)', 'Farmer::updateStock/$1');
-    
-    // Inventory
-    $routes->get('inventory', 'Farmer::inventory');
-    
-    // Orders
-    $routes->get('orders', 'Farmer::orders');
-    $routes->get('orders/(:num)', 'Farmer::orderDetail/$1');
-    $routes->post('orders/(:num)/update-status', 'Farmer::updateOrderStatus/$1');
-});
-
-// ============================================================
-// BUYER ROUTES (Protected)
-// ============================================================
-
-$routes->group('buyer', ['filter' => 'auth:buyer,admin'], function($routes) {
+$routes->group('buyer', ['filter' => 'auth:user,admin'], function($routes) {
     // Seller dashboard & products (buyer as seller)
     $routes->get('dashboard', 'Buyer::dashboard');
     $routes->get('products', 'Buyer::products');
     $routes->get('products/add', 'Buyer::addProduct');
     $routes->post('products/add', 'Buyer::addProductProcess');
+    $routes->get('products/edit/(:num)', 'Buyer::editProduct/$1');
+    $routes->post('products/edit/(:num)', 'Buyer::editProductProcess/$1');
+    $routes->post('products/delete/(:num)', 'Buyer::deleteProduct/$1');
+    $routes->post('products/update-stock/(:num)', 'Buyer::updateStock/$1');
     $routes->get('inventory', 'Buyer::inventory');
-    
+
     // Seller orders management
     $routes->get('sales/orders', 'Buyer::sellerOrders');
     $routes->get('sales/orders/(:num)', 'Buyer::sellerOrderDetail/$1');
@@ -106,7 +84,7 @@ $routes->group('buyer', ['filter' => 'auth:buyer,admin'], function($routes) {
 });
 
 // Cart
-$routes->group('cart', ['filter' => 'auth:buyer,admin'], function($routes) {
+$routes->group('cart', ['filter' => 'auth:user,admin'], function($routes) {
     $routes->get('/', 'Cart::index');
     $routes->post('add', 'Cart::add');
     $routes->post('update/(:segment)', 'Cart::update/$1');
@@ -115,7 +93,7 @@ $routes->group('cart', ['filter' => 'auth:buyer,admin'], function($routes) {
 });
 
 // Checkout
-$routes->group('checkout', ['filter' => 'auth:buyer,admin'], function($routes) {
+$routes->group('checkout', ['filter' => 'auth:user,admin'], function($routes) {
     $routes->get('/', 'Checkout::index');
     $routes->post('place-order', 'Checkout::placeOrder');
     $routes->get('success', 'Checkout::success');

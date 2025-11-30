@@ -237,29 +237,152 @@ class Buyer extends BaseController
     public function cancelOrder($id)
     {
         $order = $this->orderModel->find($id);
-        
+
         // Verify order belongs to current buyer
         if (!$order || $order['buyer_id'] != session()->get('user_id')) {
             return redirect()->to('/buyer/orders')
                 ->with('error', 'Order not found.');
         }
-        
+
         // Only allow cancelling pending orders
         if ($order['status'] !== 'pending') {
             return redirect()->back()
                 ->with('error', 'Only pending orders can be cancelled.');
         }
-        
+
         if ($this->orderModel->updateStatus($id, 'cancelled')) {
             // Restore stock
             $this->productModel = new \App\Models\ProductModel();
             $this->productModel->updateStock($order['product_id'], $order['quantity']);
-            
+
             return redirect()->to('/buyer/orders')
                 ->with('success', 'Order cancelled successfully.');
         } else {
             return redirect()->back()
                 ->with('error', 'Failed to cancel order.');
+        }
+    }
+
+    /**
+     * Show edit product form (buyer as seller)
+     */
+    public function editProduct($id)
+    {
+        $product = $this->productModel->find($id);
+
+        // Check if product belongs to current seller
+        if (!$product || $product['farmer_id'] != session()->get('user_id')) {
+            return redirect()->to('/buyer/inventory')
+                ->with('error', 'Product not found.');
+        }
+
+        $data = [
+            'title' => 'Edit Product',
+            'product' => $product,
+            'errors' => session()->get('errors') ?? [],
+        ];
+
+        return view('buyer/edit_product', $data);
+    }
+
+    /**
+     * Process edit product (buyer as seller)
+     */
+    public function editProductProcess($id)
+    {
+        $product = $this->productModel->find($id);
+
+        // Check if product belongs to current seller
+        if (!$product || $product['farmer_id'] != session()->get('user_id')) {
+            return redirect()->to('/buyer/inventory')
+                ->with('error', 'Product not found.');
+        }
+
+        $validation = \Config\Services::validation();
+
+        $rules = [
+            'name' => 'required|min_length[3]',
+            'price' => 'required|decimal|greater_than[0]',
+            'stock_quantity' => 'required|integer|greater_than_equal_to[0]'
+        ];
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()
+                ->withInput()
+                ->with('errors', $validation->getErrors());
+        }
+
+        $data = [
+            'name' => $this->request->getPost('name'),
+            'description' => $this->request->getPost('description'),
+            'price' => $this->request->getPost('price'),
+            'unit' => $this->request->getPost('unit'),
+            'category' => $this->request->getPost('category'),
+            'stock_quantity' => $this->request->getPost('stock_quantity'),
+            'location' => $this->request->getPost('location')
+        ];
+
+        // Handle new image upload
+        $image = $this->request->getFile('image');
+        if ($image && $image->isValid() && !$image->hasMoved()) {
+            $newName = $image->getRandomName();
+            $image->move(FCPATH . 'uploads/products', $newName);
+            $data['image_url'] = '/uploads/products/' . $newName;
+        }
+
+        // Update status based on stock
+        $data['status'] = $data['stock_quantity'] > 0 ? 'available' : 'out-of-stock';
+
+        if ($this->productModel->update($id, $data)) {
+            return redirect()->to('/buyer/inventory')
+                ->with('success', 'Product updated successfully!');
+        } else {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Failed to update product.');
+        }
+    }
+
+    /**
+     * Delete product (buyer as seller)
+     */
+    public function deleteProduct($id)
+    {
+        $product = $this->productModel->find($id);
+
+        // Check if product belongs to current seller
+        if (!$product || $product['farmer_id'] != session()->get('user_id')) {
+            return redirect()->to('/buyer/inventory')
+                ->with('error', 'Product not found.');
+        }
+
+        if ($this->productModel->delete($id)) {
+            return redirect()->to('/buyer/inventory')
+                ->with('success', 'Product deleted successfully!');
+        } else {
+            return redirect()->back()
+                ->with('error', 'Failed to delete product.');
+        }
+    }
+
+    /**
+     * Update stock quantity (buyer as seller)
+     */
+    public function updateStock($id)
+    {
+        $product = $this->productModel->find($id);
+
+        // Check if product belongs to current seller
+        if (!$product || $product['farmer_id'] != session()->get('user_id')) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Product not found']);
+        }
+
+        $quantity = $this->request->getPost('quantity');
+
+        if ($this->productModel->updateStock($id, $quantity)) {
+            return $this->response->setJSON(['success' => true, 'message' => 'Stock updated successfully']);
+        } else {
+            return $this->response->setJSON(['success' => false, 'message' => 'Failed to update stock']);
         }
     }
 }
