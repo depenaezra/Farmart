@@ -54,6 +54,14 @@
                 <span class="sidebar-text">My Profile</span>
             </a>
 
-            <!-- Logout link removed from sidebar -->
+            <hr class="my-2 border-gray-200">
+
+            <form action="/auth/logout" method="POST" class="m-0">
+                <?= csrf_field() ?>
+                <button type="submit" class="w-full sidebar-link flex items-center px-4 py-3 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-lg transition-colors swal-confirm-form" data-confirm="Log out from your account?">
+                    <i data-lucide="log-out" class="w-5 h-5 mr-3"></i>
+                    <span class="sidebar-text">Logout</span>
+                </button>
+            </form>
     </nav>
 </div>

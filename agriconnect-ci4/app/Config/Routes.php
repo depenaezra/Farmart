@@ -33,6 +33,7 @@ $routes->get('/announcements/(:num)', 'Announcements::view/$1');
 // Forum (public read)
 $routes->get('/forum', 'Forum::index');
 $routes->get('/forum/post/(:num)', 'Forum::viewPost/$1');
+$routes->get('/forum/post/(:num)/comments', 'Forum::loadMoreComments/$1');
 
 // Public user profiles
 $routes->get('/users/(:num)', 'Users::show/$1');
@@ -138,6 +139,7 @@ $routes->group('forum', ['filter' => 'auth'], function($routes) {
     $routes->post('post/(:num)/comment', 'Forum::addComment/$1');
     $routes->post('post/(:num)/like', 'Forum::likePost/$1');
     $routes->post('post/(:num)/delete', 'Forum::deletePost/$1');
+    $routes->get('mentions', 'Forum::getMentions');
 });
 
 // ============================================================
