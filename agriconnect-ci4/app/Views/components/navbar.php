@@ -99,7 +99,10 @@
                 <a href="/buyer/orders" class="block py-2 text-gray-700 hover:text-primary"><i data-lucide="shopping-bag" class="w-6 h-6 mr-2"></i>My Orders</a>
                 <a href="/profile/edit" class="block py-2 text-gray-700 hover:text-primary"><i data-lucide="settings" class="w-6 h-6 mr-2"></i>Account Settings</a>
                 <hr class="my-2">
-                <a href="/auth/logout" class="block py-2 text-red-600"><i data-lucide="log-out" class="w-6 h-6 mr-2"></i>Logout</a>
+                <form action="/auth/logout" method="POST" class="m-0">
+                    <?php echo csrf_field(); ?>
+                    <button type="submit" class="block w-full text-left py-2 text-red-600 hover:text-red-700"><i data-lucide="log-out" class="w-6 h-6 mr-2 inline"></i>Logout</button>
+                </form>
             <?php else: ?>
                 <a href="/auth/login" class="block py-2 text-gray-700 hover:text-primary">Login</a>
                 <a href="/auth/register-buyer" class="block py-2 text-gray-700 hover:text-primary">Register</a>

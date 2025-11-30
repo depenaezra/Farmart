@@ -53,8 +53,9 @@ $routes->group('auth', function($routes) {
     $routes->get('register-buyer', 'AuthController::registerBuyer');
     $routes->post('register-buyer', 'AuthController::registerBuyerProcess');
     
-    // Logout
+    // Logout (both GET and POST)
     $routes->get('logout', 'AuthController::logout');
+    $routes->post('logout', 'AuthController::logout');
 });
 
 // ============================================================

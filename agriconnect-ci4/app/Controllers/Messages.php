@@ -48,25 +48,29 @@ class Messages extends BaseController
     }
     
     /**
-     * Get conversation messages (AJAX)
+     * Get conversation messages (AJAX or direct)
      */
     public function getConversation($otherUserId = null)
     {
-        if (!$this->request->isAJAX() && !$otherUserId) {
-            return redirect()->to('/messages');
-        }
-        
         $userId = session()->get('user_id');
         $otherUserId = $otherUserId ?? $this->request->getPost('other_user_id');
         
         if (!$otherUserId) {
-            return $this->response->setJSON(['error' => 'User ID required']);
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['error' => 'User ID required']);
+            }
+            return redirect()->to('/messages')
+                ->with('error', 'User ID required');
         }
         
         // Verify other user exists
         $otherUser = $this->userModel->find($otherUserId);
         if (!$otherUser) {
-            return $this->response->setJSON(['error' => 'User not found']);
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['error' => 'User not found']);
+            }
+            return redirect()->to('/messages')
+                ->with('error', 'User not found');
         }
         
         // Get conversation messages with attachments
@@ -131,6 +135,12 @@ class Messages extends BaseController
      */
     public function compose()
     {
+        // Handle POST requests (sending messages)
+        if ($this->request->getMethod() === 'post') {
+            return $this->send();
+        }
+        
+        // Handle GET requests (redirect to conversation)
         $receiverId = $this->request->getGet('to');
         
         if ($receiverId) {
@@ -147,9 +157,140 @@ class Messages extends BaseController
      */
     public function send()
     {
-        // Simple test - just return success
-        return redirect()->back()
-            ->with('success', 'Test: Method called successfully!');
+        $userId = session()->get('user_id');
+        
+        if (!$userId) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['error' => 'Please login to send messages']);
+            }
+            return redirect()->to('/auth/login')
+                ->with('error', 'Please login to send messages');
+        }
+        
+        $receiverId = $this->request->getPost('receiver_id');
+        $message = $this->request->getPost('message');
+        
+        if (!$receiverId) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['error' => 'Receiver ID is required']);
+            }
+            return redirect()->back()
+                ->with('error', 'Receiver ID is required');
+        }
+        
+        // Verify receiver exists
+        $receiver = $this->userModel->find($receiverId);
+        if (!$receiver) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['error' => 'Receiver not found']);
+            }
+            return redirect()->back()
+                ->with('error', 'Receiver not found');
+        }
+        
+        // Message can be empty if only attachments are sent
+        $message = trim($this->request->getPost('message') ?? '');
+        
+        // Handle file uploads
+        $files = $this->request->getFiles();
+        $attachments = [];
+        
+        if (isset($files['attachments']) && is_array($files['attachments'])) {
+            $uploadPath = FCPATH . 'uploads/messages/';
+            if (!is_dir($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+            
+            foreach ($files['attachments'] as $file) {
+                if ($file->isValid() && !$file->hasMoved()) {
+                    try {
+                        // Get MIME type before moving the file
+                        $mimeType = null;
+                        $isImage = false;
+                        
+                        try {
+                            $mimeType = $file->getMimeType();
+                            $isImage = ($mimeType && strpos($mimeType, 'image/') === 0);
+                        } catch (\Exception $e) {
+                            // Fallback: check file extension if MIME type fails
+                            $extension = strtolower($file->getClientExtension());
+                            $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'];
+                            $isImage = in_array($extension, $imageExtensions);
+                            if ($isImage) {
+                                $mimeType = 'image/' . ($extension === 'jpg' ? 'jpeg' : $extension);
+                            }
+                        }
+                        
+                        // Validate it's an image
+                        if ($isImage) {
+                            $newName = $file->getRandomName();
+                            if ($file->move($uploadPath, $newName)) {
+                                $attachments[] = [
+                                    'file_path' => 'uploads/messages/' . $newName,
+                                    'file_name' => $file->getClientName(),
+                                    'file_type' => $mimeType ?: 'image/jpeg',
+                                    'file_size' => $file->getSize()
+                                ];
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        // Log error but continue with other files
+                        log_message('error', 'Error processing file upload: ' . $e->getMessage());
+                        continue;
+                    }
+                }
+            }
+        }
+        
+        // Validate that we have either a message or attachments
+        if (empty($message) && empty($attachments)) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['error' => 'Please enter a message or attach images']);
+            }
+            return redirect()->back()
+                ->with('error', 'Please enter a message or attach images');
+        }
+        
+        // Ensure message is not empty string if we have attachments (use space as placeholder)
+        // Database requires message field, so use a space if only attachments are sent
+        $messageText = !empty(trim($message)) ? $message : (!empty($attachments) ? ' ' : '');
+        
+        // Send message with attachments
+        try {
+            $messageId = $this->messageModel->sendMessageWithAttachments(
+                $userId,
+                $receiverId,
+                '', // No subject for chat messages
+                $messageText,
+                $attachments
+            );
+            
+            if ($messageId) {
+                if ($this->request->isAJAX()) {
+                    return $this->response->setJSON([
+                        'success' => true,
+                        'message' => 'Message sent successfully',
+                        'message_id' => $messageId
+                    ]);
+                }
+                return redirect()->to('/messages/conversation/' . $receiverId)
+                    ->with('success', 'Message sent successfully');
+            } else {
+                log_message('error', 'Failed to send message. User: ' . $userId . ', Receiver: ' . $receiverId);
+                if ($this->request->isAJAX()) {
+                    return $this->response->setJSON(['error' => 'Failed to send message. Please try again.']);
+                }
+                return redirect()->back()
+                    ->with('error', 'Failed to send message. Please try again.');
+            }
+        } catch (\Exception $e) {
+            log_message('error', 'Exception sending message: ' . $e->getMessage());
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON(['error' => 'Error sending message: ' . $e->getMessage()]);
+            }
+            return redirect()->back()
+                ->with('error', 'Error sending message. Please try again.');
+        }
     }
     
     /**
