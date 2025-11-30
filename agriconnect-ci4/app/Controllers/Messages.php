@@ -158,7 +158,7 @@ class Messages extends BaseController
     public function send()
     {
         $userId = session()->get('user_id');
-        
+
         if (!$userId) {
             if ($this->request->isAJAX()) {
                 return $this->response->setJSON(['error' => 'Please login to send messages']);
@@ -166,10 +166,10 @@ class Messages extends BaseController
             return redirect()->to('/auth/login')
                 ->with('error', 'Please login to send messages');
         }
-        
+
         $receiverId = $this->request->getPost('receiver_id');
         $message = $this->request->getPost('message');
-        
+
         if (!$receiverId) {
             if ($this->request->isAJAX()) {
                 return $this->response->setJSON(['error' => 'Receiver ID is required']);
@@ -177,7 +177,7 @@ class Messages extends BaseController
             return redirect()->back()
                 ->with('error', 'Receiver ID is required');
         }
-        
+
         // Verify receiver exists
         $receiver = $this->userModel->find($receiverId);
         if (!$receiver) {
@@ -187,27 +187,27 @@ class Messages extends BaseController
             return redirect()->back()
                 ->with('error', 'Receiver not found');
         }
-        
+
         // Message can be empty if only attachments are sent
         $message = trim($this->request->getPost('message') ?? '');
-        
+
         // Handle file uploads
         $files = $this->request->getFiles();
         $attachments = [];
-        
+
         if (isset($files['attachments']) && is_array($files['attachments'])) {
             $uploadPath = FCPATH . 'uploads/messages/';
             if (!is_dir($uploadPath)) {
                 mkdir($uploadPath, 0755, true);
             }
-            
+
             foreach ($files['attachments'] as $file) {
                 if ($file->isValid() && !$file->hasMoved()) {
                     try {
                         // Get MIME type before moving the file
                         $mimeType = null;
                         $isImage = false;
-                        
+
                         try {
                             $mimeType = $file->getMimeType();
                             $isImage = ($mimeType && strpos($mimeType, 'image/') === 0);
@@ -220,7 +220,7 @@ class Messages extends BaseController
                                 $mimeType = 'image/' . ($extension === 'jpg' ? 'jpeg' : $extension);
                             }
                         }
-                        
+
                         // Validate it's an image
                         if ($isImage) {
                             $newName = $file->getRandomName();
@@ -241,7 +241,7 @@ class Messages extends BaseController
                 }
             }
         }
-        
+
         // Validate that we have either a message or attachments
         if (empty($message) && empty($attachments)) {
             if ($this->request->isAJAX()) {
@@ -250,11 +250,11 @@ class Messages extends BaseController
             return redirect()->back()
                 ->with('error', 'Please enter a message or attach images');
         }
-        
+
         // Ensure message is not empty string if we have attachments (use space as placeholder)
         // Database requires message field, so use a space if only attachments are sent
         $messageText = !empty(trim($message)) ? $message : (!empty($attachments) ? ' ' : '');
-        
+
         // Send message with attachments
         try {
             $messageId = $this->messageModel->sendMessageWithAttachments(
@@ -264,7 +264,7 @@ class Messages extends BaseController
                 $messageText,
                 $attachments
             );
-            
+
             if ($messageId) {
                 if ($this->request->isAJAX()) {
                     return $this->response->setJSON([
