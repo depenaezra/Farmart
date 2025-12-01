@@ -387,8 +387,18 @@
 <!-- Image Modal -->
 <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-90 hidden z-50">
     <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="relative max-w-4xl max-h-full">
-            <img id="imageModalImg" src="" alt="" class="max-w-full max-h-full object-contain">
+        <div class="relative max-w-4xl max-h-full flex items-center justify-center">
+            <div class="absolute left-0 top-0 bottom-0 flex items-center justify-center" style="width: 80px;">
+                <button id="imageModalPrev" class="text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70 transition-colors z-10" style="display:none; position:relative;">
+                    <i data-lucide="chevron-left" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <img id="imageModalImg" src="" alt="" class="max-w-full max-h-full object-contain mx-8">
+            <div class="absolute right-0 top-0 bottom-0 flex items-center justify-center" style="width: 80px;">
+                <button id="imageModalNext" class="text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70 transition-colors z-10" style="display:none; position:relative;">
+                    <i data-lucide="chevron-right" class="w-6 h-6"></i>
+                </button>
+            </div>
             <button id="imageModalClose" class="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70 transition-colors">
                 <i data-lucide="x" class="w-6 h-6"></i>
             </button>
@@ -494,21 +504,17 @@ document.addEventListener('DOMContentLoaded', function(){
         });
     });
 
-    // Wire image modal triggers
-    document.querySelectorAll('.image-modal-trigger').forEach(img => {
-        img.addEventListener('click', function(){
-            const imageSrc = this.getAttribute('data-image');
-            const imageAlt = this.getAttribute('data-alt');
-
-            const modal = document.getElementById('imageModal');
-            const modalImg = document.getElementById('imageModalImg');
-
-            modalImg.src = imageSrc;
-            modalImg.alt = imageAlt;
-            modal.classList.remove('hidden');
-
-            // Re-initialize lucide icons
-            lucide.createIcons();
+    // Forum image modal triggers (multi-image aware)
+    document.querySelectorAll('.post-card').forEach(card => {
+        const images = Array.from(card.querySelectorAll('.image-modal-trigger')).map(img => ({
+            src: img.getAttribute('data-image'),
+            alt: img.getAttribute('data-alt')
+        }));
+        card.querySelectorAll('.image-modal-trigger').forEach((img, idx) => {
+            img.addEventListener('click', function(e){
+                e.stopPropagation();
+                openForumImageModal(images, idx);
+            });
         });
     });
 
@@ -696,17 +702,51 @@ function formatTime(dateString) {
     return new Date(time).toLocaleDateString();
 }
 
-// Image modal functionality
-function closeImageModal() {
-    document.getElementById('imageModal').classList.add('hidden');
+// Forum image modal navigation
+let forumImageList = [];
+let forumImageIndex = 0;
+
+function openForumImageModal(images, index) {
+    forumImageList = images;
+    forumImageIndex = index;
+    const modal = document.getElementById('imageModal');
+    const modalImg = document.getElementById('imageModalImg');
+    const prevBtn = document.getElementById('imageModalPrev');
+    const nextBtn = document.getElementById('imageModalNext');
+    modalImg.src = images[index].src;
+    modalImg.alt = images[index].alt;
+    modal.classList.remove('hidden');
+    prevBtn.style.display = (index > 0) ? '' : 'none';
+    nextBtn.style.display = (index < images.length - 1) ? '' : 'none';
+    lucide.createIcons();
 }
 
-// Close image modal when clicking outside or on close button
+function closeImageModal() {
+    document.getElementById('imageModal').classList.add('hidden');
+    forumImageList = [];
+    forumImageIndex = 0;
+}
+
 document.getElementById('imageModal').addEventListener('click', function(e){
     if (e.target.id === 'imageModal' || e.target.id === 'imageModalClose') {
         closeImageModal();
     }
 });
+document.getElementById('imageModalClose').onclick = closeImageModal;
+document.getElementById('imageModalPrev').onclick = function(e) {
+    e.stopPropagation();
+    if (forumImageIndex > 0) {
+        forumImageIndex--;
+        openForumImageModal(forumImageList, forumImageIndex);
+    }
+};
+document.getElementById('imageModalNext').onclick = function(e) {
+    e.stopPropagation();
+    if (forumImageIndex < forumImageList.length - 1) {
+        forumImageIndex++;
+        openForumImageModal(forumImageList, forumImageIndex);
+    }
+};
 
 // Delete post functionality
 function deletePost(postId) {
