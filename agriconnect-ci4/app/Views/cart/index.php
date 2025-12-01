@@ -35,8 +35,8 @@
                                 <!-- Product Image -->
                                 <div class="flex-shrink-0">
                                     <?php if (!empty($item['image_url'])): ?>
-                                        <img src="<?= esc($item['image_url']) ?>" 
-                                             alt="<?= esc($item['product_name']) ?>" 
+                                        <img src="<?= esc($item['image_url']) ?>"
+                                             alt="<?= esc($item['product_name']) ?>"
                                              class="w-24 h-24 object-cover rounded-lg">
                                     <?php else: ?>
                                         <div class="w-24 h-24 bg-gray-200 rounded-lg flex items-center justify-center">
@@ -60,26 +60,27 @@
                                             <?= esc($item['location']) ?>
                                         </p>
                                     <?php endif; ?>
-                                    
+
                                     <div class="flex items-center justify-between mt-4">
                                         <div class="flex items-center gap-4">
                                             <!-- Quantity Update -->
                                             <form action="/cart/update/<?= esc($item['id']) ?>" method="POST" class="flex items-center gap-2">
                                                 <?= csrf_field() ?>
                                                 <label for="quantity_<?= $item['id'] ?>" class="text-sm font-medium text-gray-700">Qty:</label>
-                                                <input 
-                                                    type="number" 
-                                                    id="quantity_<?= $item['id'] ?>" 
-                                                    name="quantity" 
-                                                    value="<?= $item['quantity'] ?>" 
+                                                <input
+                                                    type="number"
+                                                    id="quantity_<?= $item['id'] ?>"
+                                                    name="quantity"
+                                                    value="<?= $item['quantity'] ?>"
                                                     min="1"
+                                                    max="99"
                                                     class="w-20 px-3 py-1 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-primary focus:border-transparent"
                                                     onchange="this.form.submit()"
                                                 >
                                                 <span class="text-sm text-gray-600"><?= esc($item['unit']) ?></span>
                                             </form>
                                         </div>
-                                        
+
                                         <div class="text-right">
                                             <p class="text-lg font-bold text-primary">
                                                 ₱<?= number_format($item['price'] * $item['quantity'], 2) ?>
@@ -93,12 +94,9 @@
 
                                 <!-- Remove Button -->
                                 <div class="flex-shrink-0">
-                                    <form action="/cart/remove/<?= esc($item['id']) ?>" method="POST" class="swal-confirm-form" data-confirm="Remove this item from cart?">
-                                        <?= csrf_field() ?>
-                                        <button type="submit" class="text-red-500 hover:text-red-700 transition-colors">
-                                            <i data-lucide="trash-2" class="w-5 h-5"></i>
-                                        </button>
-                                    </form>
+                                    <button type="button" onclick="removeFromCart('<?= esc($item['id']) ?>')" class="text-red-500 hover:text-red-700 transition-colors">
+                                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                    </button>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -106,12 +104,10 @@
 
                     <!-- Clear Cart -->
                     <div class="p-6 border-t border-gray-200">
-                        <form action="/cart/clear" method="GET" class="swal-confirm-form" data-confirm="Clear entire cart? This cannot be undone.">
-                            <button type="submit" class="text-red-600 hover:text-red-700 text-sm font-medium transition-colors">
-                                <i data-lucide="trash-2" class="w-4 h-4 inline mr-1"></i>
-                                Clear Cart
-                            </button>
-                        </form>
+                        <button type="button" onclick="clearCart()" class="text-red-600 hover:text-red-700 text-sm font-medium transition-colors">
+                            <i data-lucide="trash-2" class="w-4 h-4 inline mr-1"></i>
+                            Clear Cart
+                        </button>
                     </div>
                 </div>
             </div>
@@ -168,6 +164,136 @@ document.addEventListener('DOMContentLoaded', function() {
         lucide.createIcons();
     }
 });
+
+function removeFromCart(cartItemId) {
+    // Find the cart item element to get details
+    const cartItemElement = document.querySelector(`input[id="quantity_${cartItemId}"]`);
+    if (!cartItemElement) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Could not find item details'
+        });
+        return;
+    }
+
+    const itemContainer = cartItemElement.closest('.p-6');
+    const productName = itemContainer.querySelector('h3').textContent.trim();
+    const farmerName = itemContainer.querySelector('.text-gray-600').textContent.replace('by ', '').trim();
+    const quantity = cartItemElement.value;
+    const priceText = itemContainer.querySelector('.text-primary').textContent.trim();
+    const price = parseFloat(priceText.replace('₱', '').replace(',', ''));
+
+    Swal.fire({
+        title: 'Remove Item',
+        html: `
+            <div class="text-left">
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">${productName}</h3>
+                    <p class="text-gray-600 mb-2">Seller: ${farmerName}</p>
+                </div>
+                <div class="border-t pt-3">
+                    <div class="flex justify-between mb-2">
+                        <span>Quantity:</span>
+                        <span>${quantity}</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span>Price:</span>
+                        <span>₱${price.toFixed(2)}</span>
+                    </div>
+                    <div class="border-t pt-2 mt-2">
+                        <div class="flex justify-between font-bold text-red-600">
+                            <span>This will be removed from your cart</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, remove it!',
+        cancelButtonText: 'Keep in cart'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Get CSRF token
+            const csrfToken = document.querySelector('input[name="<?= csrf_token() ?>"]').value;
+
+            fetch(`/cart/remove/${cartItemId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new URLSearchParams({
+                    '<?= csrf_token() ?>': csrfToken
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message and reload page
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Removed!',
+                        html: `
+                            <div class="text-center">
+                                <p class="mb-2">${data.message}</p>
+                                <div class="bg-gray-50 p-3 rounded-lg mt-3">
+                                    <p class="text-sm text-gray-600">Remaining items in cart: <strong>${data.cart_count}</strong></p>
+                                </div>
+                            </div>
+                        `,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Continue Shopping',
+                        showCancelButton: true,
+                        cancelButtonText: 'View Updated Cart',
+                        confirmButtonColor: '#10b981',
+                        cancelButtonColor: '#3b82f6'
+                    }).then((result) => {
+                        if (result.dismiss === Swal.DismissReason.cancel) {
+                            location.reload();
+                        } else {
+                            window.location.href = '/marketplace';
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred. Please try again.'
+                });
+            });
+        }
+    });
+}
+
+function clearCart() {
+    Swal.fire({
+        title: 'Clear Cart',
+        text: 'Clear entire cart? This cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, clear it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Redirect to clear cart URL
+            window.location.href = '/cart/clear';
+        }
+    });
+}
 </script>
 
 <?= $this->endSection() ?>

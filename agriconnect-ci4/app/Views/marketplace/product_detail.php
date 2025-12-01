@@ -52,9 +52,7 @@
                     <?php else: ?>
                         <!-- Purchase Options (if authenticated user, not admin) -->
                         <?php if (session()->has('user_id') && session()->get('user_role') !== 'admin'): ?>
-                        <form action="/cart/add" method="POST" class="flex-1">
-                            <?= csrf_field() ?>
-                            <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
+                        <div class="flex-1">
                             <div class="flex gap-2">
                                 <div class="flex items-center bg-gray-100 rounded-lg">
                                     <button type="button" onclick="decrementQuantity()" class="px-2 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-l-lg transition-colors">
@@ -78,12 +76,12 @@
                                         <i data-lucide="plus" class="w-4 h-4"></i>
                                     </button>
                                 </div>
-                                <button type="submit" class="w-20 bg-primary text-white p-3 rounded-lg hover:bg-primary-hover transition-colors font-semibold flex flex-col items-center">
+                                <button type="button" onclick="addToCart()" class="w-20 bg-primary text-white p-3 rounded-lg hover:bg-primary-hover transition-colors font-semibold flex flex-col items-center">
                                     <i data-lucide="shopping-cart" class="w-6 h-6 mb-1"></i>
                                     <span class="text-xs">Add to Cart</span>
                                 </button>
                             </div>
-                        </form>
+                        </div>
 
                         <!-- Buy Now Button -->
                         <form action="/checkout/direct" method="POST" class="inline">
@@ -246,6 +244,124 @@ function updateBuyNowQuantity() {
     const quantityInput = document.getElementById('quantity');
     const buyNowQuantity = document.getElementById('buy_now_quantity');
     buyNowQuantity.value = quantityInput.value;
+}
+
+function addToCart() {
+    const quantity = parseInt(document.getElementById('quantity').value);
+    const productId = <?= $product['id'] ?>;
+    const productName = '<?= esc($product['name']) ?>';
+    const productPrice = parseFloat('<?= $product['price'] ?>');
+    const productUnit = '<?= esc($product['unit']) ?>';
+    const farmerName = '<?= esc($product['farmer_name']) ?>';
+
+    const subtotal = (productPrice * quantity).toFixed(2);
+
+    // Show confirmation with order summary
+    Swal.fire({
+        title: 'Add to Cart',
+        html: `
+            <div class="text-left">
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">${productName}</h3>
+                    <p class="text-gray-600 mb-2">Seller: ${farmerName}</p>
+                </div>
+                <div class="border-t pt-3">
+                    <div class="flex justify-between mb-2">
+                        <span>Price per ${productUnit}:</span>
+                        <span>₱${productPrice.toFixed(2)}</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span>Quantity:</span>
+                        <span>${quantity} ${productUnit}</span>
+                    </div>
+                    <div class="border-t pt-2 mt-2">
+                        <div class="flex justify-between font-bold text-lg">
+                            <span>Total:</span>
+                            <span>₱${subtotal}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Add to Cart',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Get CSRF token
+            const csrfToken = document.querySelector('input[name="<?= csrf_token() ?>"]').value;
+
+            fetch('/cart/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new URLSearchParams({
+                    '<?= csrf_token() ?>': csrfToken,
+                    'product_id': productId,
+                    'quantity': quantity
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success SweetAlert with order summary
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Added to Cart!',
+                        html: `
+                            <div class="text-center">
+                                <p class="mb-2">${data.message}</p>
+                                <div class="bg-gray-50 p-3 rounded-lg mt-3">
+                                    <p class="text-sm text-gray-600">Total items in cart: <strong>${data.cart_count}</strong></p>
+                                </div>
+                            </div>
+                        `,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Continue Shopping',
+                        showCancelButton: true,
+                        cancelButtonText: 'View Cart',
+                        confirmButtonColor: '#10b981',
+                        cancelButtonColor: '#3b82f6'
+                    }).then((result) => {
+                        if (result.dismiss === Swal.DismissReason.cancel) {
+                            // View Cart clicked
+                            window.location.href = '/cart';
+                        }
+                    });
+
+                    // Update cart count if element exists
+                    const cartCountElement = document.getElementById('cart-count');
+                    if (cartCountElement && data.cart_count !== undefined) {
+                        cartCountElement.textContent = data.cart_count;
+                    }
+                } else {
+                    // Show error SweetAlert
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message,
+                        showConfirmButton: true,
+                        confirmButtonColor: '#d33'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred. Please try again.',
+                    showConfirmButton: true,
+                    confirmButtonColor: '#d33'
+                });
+            });
+        }
+    });
 }
 
 

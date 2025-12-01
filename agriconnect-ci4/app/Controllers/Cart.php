@@ -3,14 +3,17 @@
 namespace App\Controllers;
 
 use App\Models\ProductModel;
+use App\Models\CartModel;
 
 class Cart extends BaseController
 {
     protected $productModel;
-    
+    protected $cartModel;
+
     public function __construct()
     {
         $this->productModel = new ProductModel();
+        $this->cartModel = new CartModel();
     }
     
     /**
@@ -18,21 +21,23 @@ class Cart extends BaseController
      */
     public function index()
     {
-        $cart = session()->get('cart') ?? [];
-        
-        // Calculate totals
-        $subtotal = 0;
-        foreach ($cart as $item) {
-            $subtotal += $item['price'] * $item['quantity'];
+        $userId = session()->get('user_id');
+
+        if (!$userId) {
+            return redirect()->to('/auth/login')->with('error', 'Please login to view your cart');
         }
-        
+
+        $cart = $this->cartModel->getUserCart($userId);
+        $subtotal = $this->cartModel->getCartTotal($userId);
+        $itemCount = $this->cartModel->getCartCount($userId);
+
         $data = [
             'title' => 'Shopping Cart',
             'cart' => $cart,
             'subtotal' => $subtotal,
-            'item_count' => count($cart)
+            'item_count' => $itemCount
         ];
-        
+
         return view('cart/index', $data);
     }
     
@@ -41,6 +46,18 @@ class Cart extends BaseController
      */
     public function add()
     {
+        $userId = session()->get('user_id');
+
+        if (!$userId) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Please login to add items to cart'
+                ]);
+            }
+            return redirect()->to('/auth/login');
+        }
+
         $productId = $this->request->getPost('product_id');
         $quantity = $this->request->getPost('quantity') ?? 1;
 
@@ -48,49 +65,58 @@ class Cart extends BaseController
         $product = $this->productModel->getProductWithFarmer($productId);
 
         if (!$product) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Product not found'
+                ]);
+            }
             return redirect()->back()->with('error', 'Product not found');
         }
 
         // Check stock
         if ($product['stock_quantity'] < $quantity) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Not enough stock available'
+                ]);
+            }
             return redirect()->back()->with('error', 'Not enough stock available');
         }
 
-        // Get current cart
-        $cart = session()->get('cart') ?? [];
+        // Add to cart using model
+        $result = $this->cartModel->addToCart($userId, $productId, $quantity);
 
-        // Check if product already in cart
-        $existingKey = null;
-        foreach ($cart as $key => $item) {
-            if ($item['product_id'] == $productId) {
-                $existingKey = $key;
-                break;
+        if (!$result) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Failed to add item to cart'
+                ]);
             }
+            return redirect()->back()->with('error', 'Failed to add item to cart');
         }
 
-        if ($existingKey) {
-            // Update quantity
-            $cart[$existingKey]['quantity'] += $quantity;
-        } else {
-            // Add new item
-            $cartItemId = 'cart_' . time() . '_' . $productId;
-            $cart[$cartItemId] = [
-                'id' => $cartItemId,
-                'product_id' => $productId,
-                'product_name' => $product['name'],
-                'price' => $product['price'],
-                'unit' => $product['unit'],
-                'quantity' => $quantity,
-                'farmer_id' => $product['farmer_id'],
-                'farmer_name' => $product['farmer_name'],
-                'image_url' => $product['image_url'],
-                'location' => $product['location']
-            ];
+        $isExisting = $this->cartModel->isInCart($userId, $productId);
+        $message = $isExisting ? 'Product quantity updated in cart!' : 'Product added to cart!';
+        $cartCount = $this->cartModel->getCartCount($userId);
+
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => $message,
+                'cart_count' => $cartCount,
+                'product' => [
+                    'name' => $product['name'],
+                    'price' => $product['price'],
+                    'quantity' => $quantity,
+                    'farmer_name' => $product['farmer_name']
+                ]
+            ]);
         }
 
-        session()->set('cart', $cart);
-
-        return redirect()->back()->with('success', 'Product added to cart!');
+        return redirect()->back()->with('success', $message);
     }
 
     /**
@@ -98,6 +124,12 @@ class Cart extends BaseController
      */
     public function buyNow()
     {
+        $userId = session()->get('user_id');
+
+        if (!$userId) {
+            return redirect()->to('/auth/login');
+        }
+
         $productId = $this->request->getPost('product_id');
         $quantity = $this->request->getPost('quantity') ?? 1;
 
@@ -113,39 +145,12 @@ class Cart extends BaseController
             return redirect()->back()->with('error', 'Not enough stock available');
         }
 
-        // Get current cart
-        $cart = session()->get('cart') ?? [];
+        // Add to cart using model
+        $result = $this->cartModel->addToCart($userId, $productId, $quantity);
 
-        // Check if product already in cart
-        $existingKey = null;
-        foreach ($cart as $key => $item) {
-            if ($item['product_id'] == $productId) {
-                $existingKey = $key;
-                break;
-            }
+        if (!$result) {
+            return redirect()->back()->with('error', 'Failed to add item to cart');
         }
-
-        if ($existingKey) {
-            // Update quantity
-            $cart[$existingKey]['quantity'] += $quantity;
-        } else {
-            // Add new item
-            $cartItemId = 'cart_' . time() . '_' . $productId;
-            $cart[$cartItemId] = [
-                'id' => $cartItemId,
-                'product_id' => $productId,
-                'product_name' => $product['name'],
-                'price' => $product['price'],
-                'unit' => $product['unit'],
-                'quantity' => $quantity,
-                'farmer_id' => $product['farmer_id'],
-                'farmer_name' => $product['farmer_name'],
-                'image_url' => $product['image_url'],
-                'location' => $product['location']
-            ];
-        }
-
-        session()->set('cart', $cart);
 
         return redirect()->to('/checkout')->with('success', 'Product added to cart! Proceeding to checkout...');
     }
@@ -155,22 +160,22 @@ class Cart extends BaseController
      */
     public function update($cartItemId)
     {
-        $cart = session()->get('cart') ?? [];
-        $quantity = $this->request->getPost('quantity');
-        
-        if (isset($cart[$cartItemId])) {
-            if ($quantity > 0) {
-                $cart[$cartItemId]['quantity'] = (int)$quantity;
-                session()->set('cart', $cart);
-                return redirect()->to('/cart')->with('success', 'Cart updated');
-            } else {
-                unset($cart[$cartItemId]);
-                session()->set('cart', $cart);
-                return redirect()->to('/cart')->with('success', 'Item removed');
-            }
+        $userId = session()->get('user_id');
+
+        if (!$userId) {
+            return redirect()->to('/auth/login');
         }
-        
-        return redirect()->to('/cart');
+
+        $quantity = $this->request->getPost('quantity');
+
+        $result = $this->cartModel->updateQuantity($cartItemId, $quantity);
+
+        if ($result) {
+            $message = $quantity > 0 ? 'Cart updated' : 'Item removed from cart';
+            return redirect()->to('/cart')->with('success', $message);
+        }
+
+        return redirect()->to('/cart')->with('error', 'Failed to update cart');
     }
     
     /**
@@ -178,15 +183,40 @@ class Cart extends BaseController
      */
     public function remove($cartItemId)
     {
-        $cart = session()->get('cart') ?? [];
-        
-        if (isset($cart[$cartItemId])) {
-            unset($cart[$cartItemId]);
-            session()->set('cart', $cart);
+        $userId = session()->get('user_id');
+
+        if (!$userId) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Please login first'
+                ]);
+            }
+            return redirect()->to('/auth/login');
+        }
+
+        $result = $this->cartModel->removeFromCart($cartItemId, $userId);
+        $cartCount = $this->cartModel->getCartCount($userId);
+
+        if ($result) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'Item removed from cart',
+                    'cart_count' => $cartCount
+                ]);
+            }
             return redirect()->to('/cart')->with('success', 'Item removed from cart');
         }
-        
-        return redirect()->to('/cart');
+
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Item not found in cart'
+            ]);
+        }
+
+        return redirect()->to('/cart')->with('error', 'Item not found in cart');
     }
     
     /**
@@ -194,7 +224,18 @@ class Cart extends BaseController
      */
     public function clear()
     {
-        session()->remove('cart');
-        return redirect()->to('/cart')->with('success', 'Cart cleared');
+        $userId = session()->get('user_id');
+
+        if (!$userId) {
+            return redirect()->to('/auth/login');
+        }
+
+        $result = $this->cartModel->clearUserCart($userId);
+
+        if ($result) {
+            return redirect()->to('/cart')->with('success', 'Cart cleared');
+        }
+
+        return redirect()->to('/cart')->with('error', 'Failed to clear cart');
     }
 }

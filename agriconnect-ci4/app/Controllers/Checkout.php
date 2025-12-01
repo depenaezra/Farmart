@@ -5,18 +5,21 @@ namespace App\Controllers;
 use App\Models\OrderModel;
 use App\Models\ProductModel;
 use App\Models\UserModel;
+use App\Models\CartModel;
 
 class Checkout extends BaseController
 {
     protected $orderModel;
     protected $productModel;
     protected $userModel;
+    protected $cartModel;
 
     public function __construct()
     {
         $this->orderModel = new OrderModel();
         $this->productModel = new ProductModel();
         $this->userModel = new UserModel();
+        $this->cartModel = new CartModel();
     }
     
     /**
@@ -24,13 +27,19 @@ class Checkout extends BaseController
      */
     public function index()
     {
-        $cart = session()->get('cart') ?? [];
+        $userId = session()->get('user_id');
+
+        if (!$userId) {
+            return redirect()->to('/auth/login')->with('error', 'Please login to checkout');
+        }
 
         // Check if this is a success redirect (no cart needed)
         $isSuccessRedirect = session()->has('checkout_success') && session()->get('checkout_success');
 
+        $cart = $this->cartModel->getUserCart($userId);
+
         if (empty($cart) && !$isSuccessRedirect) {
-            return redirect()->to('/marketplace')
+            return redirect()->to('/cart')
                 ->with('error', 'Your cart is empty');
         }
 
@@ -39,19 +48,11 @@ class Checkout extends BaseController
             $cart = [];
             $subtotal = 0;
         } else {
-            // Calculate totals
-            $subtotal = 0;
-            foreach ($cart as $item) {
-                $subtotal += $item['price'] * $item['quantity'];
-            }
+            $subtotal = $this->cartModel->getCartTotal($userId);
         }
 
         // Get current user data for pre-filling delivery info
-        $userId = session()->get('user_id');
-        $user = null;
-        if ($userId) {
-            $user = $this->userModel->find($userId);
-        }
+        $user = $this->userModel->find($userId);
 
         $data = [
             'title' => 'Checkout',
@@ -236,14 +237,10 @@ class Checkout extends BaseController
                     ->with('error', 'Failed to place order. Please try again.');
             }
             
-            // Clear cart (only for regular checkout, not direct checkout)
+            // Clear cart from database (only for regular checkout, not direct checkout)
             if (!$isDirectCheckout) {
-                session()->remove('cart');
-            }
-
-            // Clear cart (only for regular checkout, not direct checkout)
-            if (!$isDirectCheckout) {
-                session()->remove('cart');
+                $buyerId = session()->get('user_id');
+                $this->cartModel->clearUserCart($buyerId);
             }
 
             // Set success flag for popup and stay on checkout page
