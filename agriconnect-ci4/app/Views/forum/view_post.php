@@ -148,6 +148,7 @@
                             <div class="mb-4">
                                 <textarea
                                     name="comment"
+                                    id="commentTextarea"
                                     rows="4"
                                     placeholder="Share your thoughts..."
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -207,75 +208,6 @@
 </div>
 
 <script>
-function reportPost(id, type) {
-    document.getElementById('reportedId').value = id;
-    document.getElementById('reportedType').value = type;
-    document.getElementById('reportModal').classList.remove('hidden');
-}
-
-function closeReportModal() {
-    document.getElementById('reportModal').classList.add('hidden');
-    document.getElementById('reportForm').reset();
-}
-
-document.getElementById('reportForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    const formData = new FormData(this);
-
-    fetch('/report', {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            try {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: data.message || 'Report submitted',
-                    showCloseButton: true,
-                    showClass: { popup: 'animate__animated animate__bounceIn' },
-                    hideClass: { popup: 'animate__animated animate__fadeOutUp' },
-                    timer: 2000
-                });
-            } catch (e) {
-                alert(data.message);
-            }
-            closeReportModal();
-        } else {
-            try {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: data.message || 'An error occurred',
-                    showCloseButton: true
-                });
-            } catch (e) {
-                alert('Error: ' + data.message);
-            }
-        }
-    })
-    .catch(error => {
-        try {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'An error occurred. Please try again.',
-                showCloseButton: true
-            });
-        } catch (e) {
-            alert('An error occurred. Please try again.');
-        }
-    });
-});
-</script>
-
-<script>
 // AJAX comment submission
 document.addEventListener('DOMContentLoaded', function() {
     const commentForm = document.getElementById('commentForm');
@@ -324,7 +256,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 // Clear textarea
-                form.reset();
+                document.getElementById('commentTextarea').value = '';
 
                 // Show success message briefly
                 const button = form.querySelector('button[type="submit"]');
@@ -335,16 +267,69 @@ document.addEventListener('DOMContentLoaded', function() {
                     button.innerHTML = originalText;
                     button.disabled = false;
                 }, 1500);
-            } else {
-                // Silently handle error - comment was still saved to database
-                console.log('Comment submission error:', data ? data.message : 'Unknown error');
             }
+            // Silently handle any errors - no error messages shown
         })
         .catch(err => {
-            console.log('Comment submission network error:', err);
+            // Silently handle network errors - no error messages shown
+            console.log('Comment submission error:', err);
         });
     });
 });
+
+function reportPost(id, type) {
+    document.getElementById('reportedId').value = id;
+    document.getElementById('reportedType').value = type;
+    document.getElementById('reportModal').classList.remove('hidden');
+}
+
+function closeReportModal() {
+    document.getElementById('reportModal').classList.add('hidden');
+    document.getElementById('reportForm').reset();
+}
+
+document.getElementById('reportForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+
+    fetch('/report', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            try {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: data.message || 'Report submitted',
+                    showCloseButton: true,
+                    showClass: { popup: 'animate__animated animate__bounceIn' },
+                    hideClass: { popup: 'animate__animated animate__fadeOutUp' },
+                    timer: 2000
+                });
+            } catch (e) {
+                alert(data.message);
+            }
+            closeReportModal();
+        } else {
+            // Silently handle report errors - no error messages shown
+            console.log('Report submission error:', data.message);
+            closeReportModal();
+        }
+    })
+    .catch(error => {
+        // Silently handle network errors - no error messages shown
+        console.log('Report submission network error:', error);
+        closeReportModal();
+    });
+});
 </script>
+
 
 <?= $this->endSection() ?>
