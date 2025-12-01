@@ -36,7 +36,21 @@ class Checkout extends BaseController
         // Check if this is a success redirect (no cart needed)
         $isSuccessRedirect = session()->has('checkout_success') && session()->get('checkout_success');
 
-        $cart = $this->cartModel->getUserCart($userId);
+        // Get selected cart items from POST data (if coming from cart page)
+        $selectedItems = $this->request->getPost('selected_items');
+
+        if ($selectedItems && is_array($selectedItems)) {
+            // Filter cart to only selected items
+            $allCartItems = $this->cartModel->getUserCart($userId);
+            $cart = array_filter($allCartItems, function($item) use ($selectedItems) {
+                return in_array($item['id'], $selectedItems);
+            });
+
+            log_message('debug', 'Filtered cart items: ' . count($cart) . ' from selected items: ' . json_encode($selectedItems));
+        } else {
+            $cart = $this->cartModel->getUserCart($userId);
+            log_message('debug', 'Using all cart items: ' . count($cart));
+        }
 
         if (empty($cart) && !$isSuccessRedirect) {
             return redirect()->to('/cart')
@@ -60,7 +74,8 @@ class Checkout extends BaseController
             'subtotal' => $subtotal,
             'user' => $user,
             'is_direct_checkout' => false,
-            'is_success_redirect' => $isSuccessRedirect
+            'is_success_redirect' => $isSuccessRedirect,
+            'selected_items' => $selectedItems
         ];
 
         return view('checkout/index', $data);
@@ -168,13 +183,25 @@ class Checkout extends BaseController
                 ]
             ];
         } else {
-            // For regular checkout, use all cart items (simplified for now)
-            $cart = $this->cartModel->getUserCart($userId);
-            log_message('debug', 'Using all cart items: ' . count($cart));
+            // For regular checkout, get selected items from POST data
+            $selectedItems = $this->request->getPost('selected_items');
+
+            if ($selectedItems && is_array($selectedItems)) {
+                // Filter cart to only selected items
+                $allCartItems = $this->cartModel->getUserCart($userId);
+                $cart = array_filter($allCartItems, function($item) use ($selectedItems) {
+                    return in_array($item['id'], $selectedItems);
+                });
+
+                log_message('debug', 'Filtered cart items: ' . count($cart) . ' from selected items: ' . json_encode($selectedItems));
+            } else {
+                $cart = $this->cartModel->getUserCart($userId);
+                log_message('debug', 'No selected items, using all cart items: ' . count($cart));
+            }
 
             if (empty($cart)) {
                 return redirect()->to('/cart')
-                    ->with('error', 'Your cart is empty');
+                    ->with('error', 'No items selected for checkout');
             }
         }
         
@@ -255,9 +282,11 @@ class Checkout extends BaseController
                     ->with('error', 'Failed to place order. Please try again.');
             }
             
-            // Clear cart from database (only for regular checkout, not direct checkout)
-            if (!$isDirectCheckout) {
-                $this->cartModel->clearUserCart($userId);
+            // Clear selected items from database cart (only for regular checkout, not direct checkout)
+            if (!$isDirectCheckout && isset($selectedItems) && $selectedItems) {
+                foreach ($selectedItems as $cartItemId) {
+                    $this->cartModel->removeFromCart($cartItemId, $userId);
+                }
             }
 
             // Set success flag for popup and stay on checkout page

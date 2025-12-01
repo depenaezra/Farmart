@@ -103,55 +103,45 @@
                     <?php endif; ?>
                 </div>
 
-                <!-- Farmer Information -->
+                <!-- Buyer Information -->
                 <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Farmer Information</h2>
-                    
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Buyer Information</h2>
+
                     <div class="space-y-3">
                         <div class="flex items-center">
                             <i data-lucide="user" class="w-5 h-5 text-gray-400 mr-3"></i>
                             <div>
                                 <p class="text-sm font-medium text-gray-700">Name</p>
-                                <p class="text-gray-900"><?= esc($order['farmer_name']) ?></p>
+                                <p class="text-gray-900"><?= esc($order['buyer_name']) ?></p>
                             </div>
                         </div>
-                        
-                        <?php if (!empty($order['farmer_phone'])): ?>
+
+                        <?php if (!empty($order['buyer_phone'])): ?>
                             <div class="flex items-center">
                                 <i data-lucide="phone" class="w-5 h-5 text-gray-400 mr-3"></i>
                                 <div>
                                     <p class="text-sm font-medium text-gray-700">Phone</p>
-                                    <p class="text-gray-900"><?= esc($order['farmer_phone']) ?></p>
+                                    <p class="text-gray-900"><?= esc($order['buyer_phone']) ?></p>
                                 </div>
                             </div>
                         <?php endif; ?>
-                        
-                        <?php if (!empty($order['farmer_email'])): ?>
+
+                        <?php if (!empty($order['buyer_email'])): ?>
                             <div class="flex items-center">
                                 <i data-lucide="mail" class="w-5 h-5 text-gray-400 mr-3"></i>
                                 <div>
                                     <p class="text-sm font-medium text-gray-700">Email</p>
-                                    <p class="text-gray-900"><?= esc($order['farmer_email']) ?></p>
+                                    <p class="text-gray-900"><?= esc($order['buyer_email']) ?></p>
                                 </div>
                             </div>
                         <?php endif; ?>
-                        
-                        <?php if (!empty($order['farmer_location'])): ?>
+
+                        <?php if (!empty($order['buyer_location'])): ?>
                             <div class="flex items-center">
                                 <i data-lucide="map-pin" class="w-5 h-5 text-gray-400 mr-3"></i>
                                 <div>
                                     <p class="text-sm font-medium text-gray-700">Location</p>
-                                    <p class="text-gray-900"><?= esc($order['farmer_location']) ?></p>
-                                </div>
-                            </div>
-                        <?php endif; ?>
-                        
-                        <?php if (!empty($order['cooperative'])): ?>
-                            <div class="flex items-center">
-                                <i data-lucide="users" class="w-5 h-5 text-gray-400 mr-3"></i>
-                                <div>
-                                    <p class="text-sm font-medium text-gray-700">Cooperative</p>
-                                    <p class="text-gray-900"><?= esc($order['cooperative']) ?></p>
+                                    <p class="text-gray-900"><?= esc($order['buyer_location']) ?></p>
                                 </div>
                             </div>
                         <?php endif; ?>
@@ -193,9 +183,9 @@
                             </form>
                         <?php endif; ?>
                         
-                        <a href="/messages/compose?to=<?= $order['farmer_id'] ?>" class="block w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary-hover font-semibold transition-colors text-center">
+                        <a href="/messages/compose?to=<?= $order['buyer_id'] ?>" class="block w-full bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary-hover font-semibold transition-colors text-center">
                             <i data-lucide="message-circle" class="w-5 h-5 inline mr-2"></i>
-                            Contact Farmer
+                            Contact Buyer
                         </a>
                     </div>
 
