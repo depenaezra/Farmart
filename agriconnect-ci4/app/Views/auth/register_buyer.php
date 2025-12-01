@@ -2,20 +2,20 @@
 
 <?= $this->section('content') ?>
 
-<div class="min-h-[80vh] py-12 px-4">
-    <div class="max-w-2xl mx-auto">
-        <div class="text-center mb-8">
-            <div class="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
-                <i data-lucide="shopping-bag" class="w-8 h-8 text-white"></i>
-            </div>
-            <h1 class="text-3xl font-bold text-gray-900">Register</h1>
-            <p class="text-gray-600 mt-2">Create your account to get started</p>
-        </div>
+<div class="min-h-screen flex items-center justify-center" style="background-image: url('<?= base_url('img/outdoor_2.png') ?>'); background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed;">
+    <div class="max-w-2xl mx-auto p-8" style="backdrop-filter: blur(2px); background-color: rgba(255, 255, 255, 0.1); border-width: 3px; border-color: white">
+        
         
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
             <form action="/auth/register-buyer" method="POST">
                 <?= csrf_field() ?>
-                
+                <div class="flex flex-col items-center mb-8">
+                    <div class="w-16 h-16 bg-accent rounded-full flex items-center justify-center mb-4">
+                        <i data-lucide="shopping-bag" class="w-8 h-8 text-white"></i>
+                    </div>
+                    <h1 class="text-3xl font-bold text-gray-900">Register</h1>
+                    <p class="text-gray-600 mt-2">Create your account to get started</p>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
                         <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">
@@ -31,7 +31,6 @@
                             placeholder="Maria Santos"
                         >
                     </div>
-                    
                     <div>
                         <label for="phone" class="block text-sm font-semibold text-gray-700 mb-2">
                             Phone Number *

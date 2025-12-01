@@ -2,17 +2,18 @@
 
 <?= $this->section('content') ?>
 
-<div class="min-h-[80vh] flex items-center justify-center py-12 px-4">
-    <div class="max-w-md w-full">
-        <div class="text-center mb-8">
-            <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                <i data-lucide="log-in" class="w-8 h-8 text-white"></i>
-            </div>
-            <h1 class="text-3xl font-bold text-gray-900">Welcome Back</h1>
-            <p class="text-gray-600 mt-2">Login to access your account</p>
-        </div>
+<div class="min-h-screen flex items-center justify-center" style="background-image: url('<?= base_url('img/outdoor.png') ?>'); background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed;">
+    <div class="max-w-md w-full rounded-xl p-8" style="backdrop-filter: blur(2px); background-color: rgba(255, 255, 255, 0.1); border-width: 3px; border-color: white">
         
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
+            <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-success rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="log-in" class="w-8 h-8 text-white"></i>
+            
+            </div>
+                <h1 class="text-3xl font-bold text-gray-900">Welcome Back</h1>
+                <p class="text-gray-600 mt-2">Login to access your account</p>
+            </div>
             <?php if (session('error')): ?>
                 <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
                     <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600"></i>
@@ -64,12 +65,19 @@
                             class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                             placeholder="Enter your password"
                         >
+                        <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400" tabindex="-1" style="background:none; border:none;">
+                            <i data-lucide="eye" id="eyeIcon" class="w-5 h-5"></i>
+                            <i data-lucide="eye-off" id="eyeOffIcon" class="w-5 h-5" style="display:none;"></i>
+                        </button>
+                    </div>
+                    <div class="mt-2 text-right">
+                        <a href="#" class="text-sm text-primary hover:underline font-medium">Forgot password?</a>
                     </div>
                 </div>
                 
                 <button 
                     type="submit" 
-                    class="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-hover transition-colors flex items-center justify-center"
+                    class="w-full bg-success text-white py-3 rounded-lg font-semibold hover:bg-primary-hover transition-colors flex items-center justify-center"
                 >
                     <i data-lucide="log-in" class="w-5 h-5 mr-2"></i>
                     Login
@@ -87,18 +95,27 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Demo Credentials -->
-        <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p class="text-sm font-semibold text-blue-800 mb-2">Demo Accounts:</p>
-            <div class="text-xs text-blue-700 space-y-1">
-                <p><strong>Farmer:</strong> juan.santos@example.com</p>
-                <p><strong>Buyer:</strong> miguel.buyer@example.com</p>
-                <p><strong>Admin:</strong> admin@agriconnect.ph</p>
-                <p><strong>Password (all):</strong> password123</p>
-            </div>
-        </div>
     </div>
 </div>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const passwordInput = document.getElementById('password');
+        const togglePassword = document.getElementById('togglePassword');
+        const eyeIcon = document.getElementById('eyeIcon');
+        const eyeOffIcon = document.getElementById('eyeOffIcon');
+        let isPasswordVisible = false;
+        if (togglePassword && passwordInput && eyeIcon && eyeOffIcon) {
+            togglePassword.addEventListener('click', function() {
+                isPasswordVisible = !isPasswordVisible;
+                passwordInput.setAttribute('type', isPasswordVisible ? 'text' : 'password');
+                eyeIcon.style.display = isPasswordVisible ? 'none' : '';
+                eyeOffIcon.style.display = isPasswordVisible ? '' : 'none';
+            });
+            // Initial state: show eye, hide eye-off
+            eyeIcon.style.display = '';
+            eyeOffIcon.style.display = 'none';
+        }
+    });
+</script>
 <?= $this->endSection() ?>
