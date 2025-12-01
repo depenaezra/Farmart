@@ -160,7 +160,7 @@
                         <input type="checkbox" id="email_new_order" name="email_new_order" checked
                                class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
                         <label for="email_new_order" class="ml-2 block text-sm text-gray-900">
-                            Notify farmers when new orders are placed
+                            Notify sellers when new orders are placed
                         </label>
                     </div>
 
@@ -168,7 +168,7 @@
                         <input type="checkbox" id="email_product_approval" name="email_product_approval" checked
                                class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
                         <label for="email_product_approval" class="ml-2 block text-sm text-gray-900">
-                            Notify farmers when products are approved/rejected
+                            Notify sellers when products are approved/rejected
                         </label>
                     </div>
                 </div>

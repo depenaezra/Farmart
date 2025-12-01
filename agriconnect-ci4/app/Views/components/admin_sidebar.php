@@ -2,10 +2,10 @@
     <div id="sidebar-header" class="p-6 border-b border-gray-200">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
-                <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                     <i data-lucide="shield" class="w-5 h-5 text-white"></i>
                 </div>
-                <span id="sidebar-title" class="text-lg font-bold text-primary">Admin Panel</span>
+                <span id="sidebar-title" class="text-lg font-bold text-blue-600">Admin Panel</span>
             </div>
             <button id="sidebar-toggle" class="text-gray-500 hover:text-primary transition-colors flex-shrink-0">
                 <i data-lucide="chevron-left" class="w-6 h-6"></i>
@@ -54,7 +54,6 @@
                 <span class="sidebar-text">My Profile</span>
             </a>
 
-            <hr class="my-2 border-gray-200">
 
             <form action="/auth/logout" method="POST" class="m-0">
                 <?= csrf_field() ?>

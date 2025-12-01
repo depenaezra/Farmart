@@ -13,7 +13,7 @@
         <form method="get" class="flex flex-col md:flex-row gap-4">
             <div class="flex-1">
                 <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Search Users</label>
-                <input type="text" id="search" name="search" value="<?= esc($search_term) ?>"
+                <input type="text" id="search" name="search" value="<?= esc($search_term ?? '') ?>"
                        placeholder="Search by name, email, or location..."
                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
             </div>
@@ -21,9 +21,7 @@
                 <label for="role" class="block text-sm font-medium text-gray-700 mb-1">Filter by Role</label>
                 <select id="role" name="role" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
                     <option value="">All Roles</option>
-                    <option value="farmer" <?= $current_role === 'farmer' ? 'selected' : '' ?>>Farmers</option>
-                    <option value="buyer" <?= $current_role === 'buyer' ? 'selected' : '' ?>>Buyers</option>
-                    <option value="admin" <?= $current_role === 'admin' ? 'selected' : '' ?>>Admins</option>
+                    <option value="admin" <?= ($current_role ?? '') === 'admin' ? 'selected' : '' ?>>Admins</option>
                 </select>
             </div>
             <div class="flex items-end">
@@ -37,9 +35,7 @@
 
     <!-- Users Table -->
     <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-900">Users (<?= count($users) ?>)</h3>
-        </div>
+
 
         <?php if (empty($users)): ?>
             <div class="text-center py-12">
@@ -87,8 +83,6 @@
                                         <?php
                                         switch($user['role']) {
                                             case 'admin': echo 'bg-purple-100 text-purple-800'; break;
-                                            case 'farmer': echo 'bg-green-100 text-green-800'; break;
-                                            case 'buyer': echo 'bg-blue-100 text-blue-800'; break;
                                             default: echo 'bg-gray-100 text-gray-800';
                                         }
                                         ?>">

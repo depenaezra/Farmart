@@ -9,7 +9,7 @@
     </div>
 
     <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <!-- Users -->
         <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
             <div class="flex items-center">
@@ -19,10 +19,7 @@
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-600">Total Users</p>
                     <p class="text-2xl font-bold text-gray-900"><?= $statistics['users']['total'] ?? 0 ?></p>
-                    <p class="text-xs text-gray-500">
-                        <?= $statistics['users']['farmers'] ?? 0 ?> farmers,
-                        <?= $statistics['users']['buyers'] ?? 0 ?> buyers
-                    </p>
+                    <p class="text-xs text-gray-500">Registered users</p>
                 </div>
             </div>
         </div>
@@ -77,19 +74,6 @@
             </div>
         </div>
 
-        <!-- Revenue -->
-        <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-            <div class="flex items-center">
-                <div class="p-3 bg-yellow-100 rounded-lg">
-                    <i data-lucide="dollar-sign" class="w-6 h-6 text-yellow-600"></i>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Total Revenue</p>
-                    <p class="text-2xl font-bold text-gray-900">₱<?= number_format($statistics['revenue'] ?? 0, 2) ?></p>
-                    <p class="text-xs text-gray-500">This month</p>
-                </div>
-            </div>
-        </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
