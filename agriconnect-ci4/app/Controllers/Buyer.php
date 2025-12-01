@@ -168,15 +168,16 @@ class Buyer extends BaseController
      */
     public function sellerOrderDetail($id)
     {
-        $order = $this->orderModel->getOrderWithDetails($id);
+        $currentUserId = session()->get('user_id');
+        $order = $this->orderModel->getOrderWithDetails($id, $currentUserId, 'seller');
 
-        if (!$order || $order['farmer_id'] != session()->get('user_id')) {
+        if (!$order || $order['farmer_id'] != $currentUserId) {
             return redirect()->to('/buyer/sales/orders')
                 ->with('error', 'Order not found.');
         }
 
         $data = [
-            'title' => 'Sales Order #' . ($order['order_number'] ?? $id),
+            'title' => 'Sales Order #' . ($order['order_sequence'] ?? $id),
             'order' => $order
         ];
 
@@ -235,8 +236,8 @@ class Buyer extends BaseController
      */
     public function orderDetail($id)
     {
-        $order = $this->orderModel->getOrderWithDetails($id);
         $currentUserId = session()->get('user_id');
+        $order = $this->orderModel->getOrderWithDetails($id, $currentUserId, 'buyer');
 
         // Verify order exists and belongs to current buyer
         if (!$order || $order['buyer_id'] != $currentUserId) {
@@ -245,7 +246,7 @@ class Buyer extends BaseController
         }
 
         $data = [
-            'title' => 'Order #' . ($order['order_number'] ?? $id),
+            'title' => 'Order #' . ($order['order_sequence'] ?? $id),
             'order' => $order
         ];
 

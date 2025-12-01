@@ -168,19 +168,6 @@
                                     <span class="text-xs text-gray-600 font-normal">/ <?= esc($product['unit']) ?></span>
                                 </p>
                             </div>
-
-                            <div class="flex items-center justify-between">
-                                <div class="flex text-yellow-400">
-                                    <i data-lucide="star" class="w-3 h-3 fill-current"></i>
-                                    <i data-lucide="star" class="w-3 h-3 fill-current"></i>
-                                    <i data-lucide="star" class="w-3 h-3 fill-current"></i>
-                                    <i data-lucide="star" class="w-3 h-3 fill-current"></i>
-                                    <i data-lucide="star" class="w-3 h-3 fill-current"></i>
-                                </div>
-                                <button class="bg-gray-100 p-2 rounded-lg hover:bg-gray-200 transition-colors" onclick="event.preventDefault(); event.stopPropagation();">
-                                    <i data-lucide="shopping-cart" class="w-4 h-4 text-gray-600"></i>
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </a>
