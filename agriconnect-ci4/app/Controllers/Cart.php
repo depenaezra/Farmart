@@ -163,16 +163,41 @@ class Cart extends BaseController
         $userId = session()->get('user_id');
 
         if (!$userId) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Please login first'
+                ]);
+            }
             return redirect()->to('/auth/login');
         }
 
         $quantity = $this->request->getPost('quantity');
 
+        // Get current quantity for reversion
+        $currentItem = $this->cartModel->where('id', $cartItemId)->where('user_id', $userId)->first();
+        $oldQuantity = $currentItem ? $currentItem['quantity'] : 0;
+
         $result = $this->cartModel->updateQuantity($cartItemId, $quantity);
 
         if ($result) {
-            $message = $quantity > 0 ? 'Cart updated' : 'Item removed from cart';
+            $message = $quantity > 0 ? 'Quantity updated successfully' : 'Item removed from cart';
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => $message,
+                    'old_quantity' => $oldQuantity
+                ]);
+            }
             return redirect()->to('/cart')->with('success', $message);
+        }
+
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Failed to update quantity',
+                'old_quantity' => $oldQuantity
+            ]);
         }
 
         return redirect()->to('/cart')->with('error', 'Failed to update cart');
