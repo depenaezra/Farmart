@@ -59,6 +59,14 @@ $routes->group('auth', function($routes) {
     // Logout (both GET and POST)
     $routes->get('logout', 'AuthController::logout');
     $routes->post('logout', 'AuthController::logout');
+
+    // Password reset OTP routes
+    $routes->get('otp', 'AuthController::otp');
+    $routes->post('sendOtp', 'AuthController::sendOtp');
+    $routes->post('verifyOtp', 'AuthController::verifyOtp');
+    $routes->get('change_password', 'AuthController::changePassword');
+    $routes->post('changePasswordProcess', 'AuthController::changePasswordProcess');
+
 });
 
 // ============================================================

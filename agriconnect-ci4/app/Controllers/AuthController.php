@@ -6,13 +6,134 @@ use App\Models\UserModel;
 
 class AuthController extends BaseController
 {
+
+
+    /**
+     * Show change password form after OTP verification
+     */
+    public function changePassword()
+    {
+        // Only allow if OTP was verified
+        if (!session()->get('otp_verified_user')) {
+            return redirect()->to(base_url('auth/otp'))->with('error', 'Unauthorized or session expired. Please verify OTP again.');
+        }
+        return view('auth/change_password');
+    }
+
+    /**
+     * Process password change after OTP verification
+     */
+    public function changePasswordProcess()
+    {
+        $userId = session()->get('otp_verified_user');
+        if (!$userId) {
+            return redirect()->to(base_url('auth/otp'))->with('error', 'Unauthorized or session expired. Please verify OTP again.');
+        }
+
+        $newPassword = $this->request->getPost('new_password');
+        $confirmPassword = $this->request->getPost('confirm_password');
+
+        if (!$newPassword || strlen($newPassword) < 8) {
+            return redirect()->back()->with('error', 'Password must be at least 8 characters.');
+        }
+        if ($newPassword !== $confirmPassword) {
+            return redirect()->back()->with('error', 'Passwords do not match.');
+        }
+
+        // Update password (UserModel will hash automatically)
+        $this->userModel->update($userId, ['password' => $newPassword]);
+
+        // Clear OTP session
+        session()->remove('otp_verified_user');
+
+        return redirect()->to(base_url('auth/login'))->with('success', 'Password changed successfully. You may now log in.');
+    }
     protected $userModel;
-    
+    protected $otpTokenModel;
+
     public function __construct()
     {
         $this->userModel = new UserModel();
+        $this->otpTokenModel = new \App\Models\OtpTokenModel();
     }
     
+        /**
+         * Show OTP form
+         */
+        public function otp()
+        {
+            return view('auth/otp');
+        }
+
+        /**
+         * Send OTP to email
+         */
+        public function sendOtp()
+        {
+            $email = $this->request->getPost('email');
+            $user = $this->userModel->getUserByEmail($email);
+            if (!$user) {
+                return redirect()->back()->with('error', 'Email not found.');
+            }
+
+            // Generate OTP
+            $otp = random_int(100000, 999999);
+            $expiresAt = date('Y-m-d H:i:s', strtotime('+10 minutes'));
+
+            // Save OTP to DB
+            $this->otpTokenModel->where('userID', $user['id'])->delete(); // Remove old OTPs
+            $this->otpTokenModel->insert([
+                'userID' => $user['id'],
+                'token' => $otp,
+                'expires_at' => $expiresAt,
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+
+            // Send email using PHPMailerService
+            $result = \App\Libraries\PHPMailerService::sendOTP($email, $otp);
+            if ($result === true) {
+                session()->set('otp_email', $email);
+                session()->setFlashdata('otp_email_sent', true);
+                return redirect()->back()->with('success', 'OTP sent to your email.');
+            } else {
+                return redirect()->back()->with('error', 'Failed to send OTP. ' . $result);
+            }
+        }
+
+        /**
+         * Verify OTP
+         */
+        public function verifyOtp()
+        {
+            $otp = $this->request->getPost('otp');
+            $email = session()->get('otp_email');
+            if (!$email) {
+                log_message('error', 'OTP verification failed: session missing.');
+                return redirect()->back()->with('error', 'Session expired or missing. Please request OTP again.');
+            }
+            $user = $this->userModel->getUserByEmail($email);
+            if (!$user) {
+                log_message('error', 'OTP verification failed: email not found.');
+                return redirect()->back()->with('error', 'Email not found. Please check your email address.');
+            }
+            $otpRecord = $this->otpTokenModel
+                ->where('userID', $user['id'])
+                ->where('token', $otp)
+                ->first();
+            if (!$otpRecord) {
+                log_message('error', 'OTP verification failed: OTP incorrect for user ' . $user['id']);
+                return redirect()->back()->with('error', 'Incorrect OTP. Please check the code sent to your email.');
+            }
+            if (strtotime($otpRecord['expires_at']) < time()) {
+                log_message('error', 'OTP verification failed: OTP expired for user ' . $user['id']);
+                return redirect()->back()->with('error', 'OTP expired. Please request a new code.');
+            }
+            // OTP valid, allow password reset (redirect to change password)
+            session()->set('otp_verified_user', $user['id']);
+            session()->remove('otp_email');
+            session()->remove('otp_email_sent');
+            return redirect()->to(base_url('auth/change_password'))->with('success', 'OTP verified. You may now reset your password.');
+        }
     /**
      * Show login form
      */
@@ -243,4 +364,5 @@ class AuthController extends BaseController
                 return '/';
         }
     }
+        // ...existing code...
 }
