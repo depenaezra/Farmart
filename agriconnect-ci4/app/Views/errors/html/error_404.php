@@ -73,11 +73,15 @@
         <h1>404</h1>
 
         <p>
-            <?php if (ENVIRONMENT !== 'production') : ?>
-                <?= nl2br(esc($message)) ?>
-            <?php else : ?>
-                <?= lang('Errors.sorryCannotFind') ?>
-            <?php endif; ?>
+                <?php if (ENVIRONMENT !== 'production') : ?>
+                    <?php if (isset($message)) : ?>
+                        <?= nl2br(esc($message)) ?>
+                    <?php else : ?>
+                        <?= lang('Errors.sorryCannotFind') ?>
+                    <?php endif; ?>
+                <?php else : ?>
+                    <?= lang('Errors.sorryCannotFind') ?>
+                <?php endif; ?>
         </p>
     </div>
 </body>

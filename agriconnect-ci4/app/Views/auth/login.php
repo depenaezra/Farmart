@@ -2,8 +2,8 @@
 
 <?= $this->section('content') ?>
 
-<div class="min-h-screen flex items-center justify-center" style="background-image: url('<?= base_url('img/outdoor.png') ?>'); background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed;">
-    <div class="max-w-md w-full rounded-xl p-8" style="backdrop-filter: blur(2px); background-color: rgba(255, 255, 255, 0.1); border-width: 3px; border-color: white">
+<div class="min-h-screen flex items-center justify-center" style="background-image: url('<?= base_url('img/4.jpg') ?>'); background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed;">
+    <div class="max-w-md w-full rounded-xl p-8" style="backdrop-filter: blur(2px); background-color: rgba(255, 255, 255, 0.1); border-width: 3px; border-color: white; margin-bottom: 100px; margin-top: 100px;">
         
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
             <div class="text-center mb-8">
@@ -56,7 +56,7 @@
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i data-lucide="lock" class="w-5 h-5 text-gray-400"></i>
-                        </div>
+                        </div> 
                         <input 
                             type="password" 
                             id="password" 
@@ -71,7 +71,7 @@
                         </button>
                     </div>
                     <div class="mt-2 text-right">
-                        <a href="#" class="text-sm text-primary hover:underline font-medium">Forgot password?</a>
+                        <a href="/auth/otp" class="text-sm text-primary hover:underline font-medium">Forgot password?</a>
                     </div>
                 </div>
                 
