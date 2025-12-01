@@ -13,6 +13,18 @@
         </div>
         
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
+            <?php if (session('error')): ?>
+                <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
+                    <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600"></i>
+                    <span class="text-red-700 font-semibold"><?= esc(session('error')) ?></span>
+                </div>
+            <?php endif; ?>
+            <?php if (session('success')): ?>
+                <div class="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
+                    <i data-lucide="check-circle" class="w-5 h-5 text-green-600"></i>
+                    <span class="text-green-700 font-semibold"><?= esc(session('success')) ?></span>
+                </div>
+            <?php endif; ?>
             <form action="/auth/login" method="POST">
                 <?= csrf_field() ?>
                 

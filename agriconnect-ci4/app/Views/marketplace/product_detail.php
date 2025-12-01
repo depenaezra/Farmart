@@ -3,7 +3,7 @@
 <?= $this->section('content') ?>
 
 <div class="container mx-auto px-4 py-8">
-    <div class="max-w-4xl mx-auto">
+    <div class="max-w-6xl mx-auto">
         <!-- Back Button -->
         <a href="/marketplace" class="inline-flex items-center text-primary hover:text-primary-hover mb-6">
             <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
@@ -35,6 +35,80 @@
                     <span class="text-lg text-gray-600">/ <?= esc($product['unit']) ?></span>
                 </div>
 
+                <!-- Action Buttons -->
+                <div class="flex gap-3 mb-6">
+                    <?php if ($product['farmer_id'] == session()->get('user_id')): ?>
+                        <!-- Edit and Delete buttons for own product -->
+                        <a href="/farmer/products/edit/<?= $product['id'] ?>" class="flex-1 bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 transition-colors font-semibold text-center flex flex-col items-center">
+                            <i data-lucide="edit" class="w-6 h-6 mb-1"></i>
+                            <span class="text-xs">Edit Product</span>
+                        </a>
+                        <form action="/farmer/products/delete/<?= $product['id'] ?>" method="POST" class="inline swal-confirm-form" data-confirm="Are you sure you want to delete this product?">
+                            <button type="submit" class="bg-red-500 text-white p-3 rounded-lg hover:bg-red-600 transition-colors font-semibold flex flex-col items-center">
+                                <i data-lucide="trash-2" class="w-6 h-6 mb-1"></i>
+                                <span class="text-xs">Delete Product</span>
+                            </button>
+                        </form>
+                    <?php else: ?>
+                        <!-- Purchase Options (if authenticated user, not admin) -->
+                        <?php if (session()->has('user_id') && session()->get('user_role') !== 'admin'): ?>
+                        <div class="flex-1">
+                            <div class="flex gap-2">
+                                <div class="flex items-center bg-gray-100 rounded-lg">
+                                    <button type="button" onclick="decrementQuantity()" class="px-2 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-l-lg transition-colors">
+                                        <i data-lucide="minus" class="w-4 h-4"></i>
+                                    </button>
+                                    <div class="flex items-center gap-1 px-2">
+                                        <label for="quantity" class="text-sm font-medium text-gray-700">Qty:</label>
+                                        <input
+                                            type="number"
+                                            id="quantity"
+                                            name="quantity"
+                                            value="1"
+                                            min="1"
+                                            max="<?= $product['stock_quantity'] ?>"
+                                            class="w-12 px-1 py-2 border-0 bg-transparent text-center focus:ring-0 focus:outline-none"
+                                            required
+                                        >
+                                        <span class="text-sm text-gray-600"><?= esc($product['unit']) ?></span>
+                                    </div>
+                                    <button type="button" onclick="incrementQuantity()" class="px-2 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-r-lg transition-colors">
+                                        <i data-lucide="plus" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                                <button type="button" onclick="addToCart()" class="w-20 bg-primary text-white p-3 rounded-lg hover:bg-primary-hover transition-colors font-semibold flex flex-col items-center">
+                                    <i data-lucide="shopping-cart" class="w-6 h-6 mb-1"></i>
+                                    <span class="text-xs">Add to Cart</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Buy Now Button -->
+                        <form action="/checkout/direct" method="POST" class="inline">
+                            <?= csrf_field() ?>
+                            <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
+                            <input type="hidden" name="quantity" id="buy_now_quantity" value="1">
+                            <button type="submit" class="w-20 bg-green-500 text-white p-3 rounded-lg hover:bg-green-600 transition-colors font-semibold flex flex-col items-center">
+                                <i data-lucide="credit-card" class="w-6 h-6 mb-1"></i>
+                                <span class="text-xs">Buy Now</span>
+                            </button>
+                        </form>
+
+                        <!-- Report Button -->
+                        <button onclick="reportPost(<?= $product['id'] ?>, 'product')" class="w-20 bg-red-100 text-red-700 p-3 rounded-lg hover:bg-red-200 transition-colors font-semibold flex flex-col items-center" title="Report this product">
+                            <i data-lucide="flag" class="w-6 h-6 mb-1"></i>
+                            <span class="text-xs">Report</span>
+                        </button>
+                        <?php else: ?>
+                        <!-- Login to Purchase (if not authenticated) -->
+                        <a href="/auth/login" class="flex-1 block bg-primary text-white p-3 rounded-lg hover:bg-primary-hover transition-colors font-semibold text-center flex flex-col items-center">
+                            <i data-lucide="log-in" class="w-6 h-6 mb-1"></i>
+                            <span class="text-xs">Login to Purchase</span>
+                        </a>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                </div>
+
                 <div class="space-y-3 mb-6">
                     <div class="flex items-center text-gray-600">
                         <i data-lucide="map-pin" class="w-5 h-5 mr-3"></i>
@@ -42,7 +116,7 @@
                     </div>
                     <div class="flex items-center text-gray-600">
                         <i data-lucide="user" class="w-5 h-5 mr-3"></i>
-                        <span>Farmer: <?= esc($product['farmer_name']) ?></span>
+                        <span>Seller: <?= esc($product['farmer_name']) ?></span>
                     </div>
                     <div class="flex items-center text-gray-600">
                         <i data-lucide="phone" class="w-5 h-5 mr-3"></i>
@@ -66,63 +140,6 @@
                     <p class="text-gray-700 leading-relaxed"><?= nl2br(esc($product['description'])) ?></p>
                 </div>
                 <?php endif; ?>
-
-                <!-- Action Buttons -->
-                <div class="flex gap-3">
-                    <?php if ($product['farmer_id'] == session()->get('user_id')): ?>
-                        <!-- Edit and Delete buttons for own product -->
-                        <a href="/farmer/products/edit/<?= $product['id'] ?>" class="flex-1 bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition-colors font-semibold text-center">
-                            <i data-lucide="edit" class="w-5 h-5 inline mr-2"></i>
-                            Edit Product
-                        </a>
-                        <form action="/farmer/products/delete/<?= $product['id'] ?>" method="POST" class="inline swal-confirm-form" data-confirm="Are you sure you want to delete this product?">
-                            <button type="submit" class="bg-red-500 text-white py-3 px-6 rounded-lg hover:bg-red-600 transition-colors font-semibold">
-                                <i data-lucide="trash-2" class="w-5 h-5 inline mr-2"></i>
-                                Delete Product
-                            </button>
-                        </form>
-                    <?php else: ?>
-                        <!-- Add to Cart Form (if authenticated as buyer) -->
-                        <?php if (session()->get('user_role') === 'buyer'): ?>
-                        <form action="/cart/add" method="POST" class="flex-1">
-                            <?= csrf_field() ?>
-                            <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
-                            <div class="flex gap-2">
-                                <div class="flex items-center gap-2 bg-gray-100 rounded-lg px-3">
-                                    <label for="quantity" class="text-sm font-medium text-gray-700">Qty:</label>
-                                    <input 
-                                        type="number" 
-                                        id="quantity" 
-                                        name="quantity" 
-                                        value="1" 
-                                        min="1" 
-                                        max="<?= $product['stock_quantity'] ?>"
-                                        class="w-16 px-2 py-2 border-0 bg-transparent text-center focus:ring-0 focus:outline-none"
-                                        required
-                                    >
-                                    <span class="text-sm text-gray-600"><?= esc($product['unit']) ?></span>
-                                </div>
-                                <button type="submit" class="flex-1 bg-primary text-white py-3 px-6 rounded-lg hover:bg-primary-hover transition-colors font-semibold">
-                                    <i data-lucide="shopping-cart" class="w-5 h-5 inline mr-2"></i>
-                                    Add to Cart
-                                </button>
-                            </div>
-                        </form>
-                        <?php elseif (!session()->has('user_id')): ?>
-                        <a href="/auth/login" class="flex-1 block bg-primary text-white py-3 px-6 rounded-lg hover:bg-primary-hover transition-colors font-semibold text-center">
-                            <i data-lucide="log-in" class="w-5 h-5 inline mr-2"></i>
-                            Login to Purchase
-                        </a>
-                        <?php endif; ?>
-
-                        <!-- Report Button (if authenticated and not admin) -->
-                        <?php if (session()->get('user_id') && session()->get('user_role') !== 'admin'): ?>
-                        <button onclick="reportPost(<?= $product['id'] ?>, 'product')" class="bg-red-100 text-red-700 py-3 px-4 rounded-lg hover:bg-red-200 transition-colors font-semibold" title="Report this product">
-                            <i data-lucide="flag" class="w-5 h-5"></i>
-                        </button>
-                        <?php endif; ?>
-                    <?php endif; ?>
-                </div>
             </div>
         </div>
 
@@ -202,6 +219,151 @@ function closeReportModal() {
     document.getElementById('reportModal').classList.add('hidden');
     document.getElementById('reportForm').reset();
 }
+
+function incrementQuantity() {
+    const input = document.getElementById('quantity');
+    const max = parseInt(input.getAttribute('max'));
+    const currentValue = parseInt(input.value);
+    if (currentValue < max) {
+        input.value = currentValue + 1;
+        updateBuyNowQuantity();
+    }
+}
+
+function decrementQuantity() {
+    const input = document.getElementById('quantity');
+    const min = parseInt(input.getAttribute('min'));
+    const currentValue = parseInt(input.value);
+    if (currentValue > min) {
+        input.value = currentValue - 1;
+        updateBuyNowQuantity();
+    }
+}
+
+function updateBuyNowQuantity() {
+    const quantityInput = document.getElementById('quantity');
+    const buyNowQuantity = document.getElementById('buy_now_quantity');
+    buyNowQuantity.value = quantityInput.value;
+}
+
+function addToCart() {
+    const quantity = parseInt(document.getElementById('quantity').value);
+    const productId = <?= $product['id'] ?>;
+    const productName = '<?= esc($product['name']) ?>';
+    const productPrice = parseFloat('<?= $product['price'] ?>');
+    const productUnit = '<?= esc($product['unit']) ?>';
+    const farmerName = '<?= esc($product['farmer_name']) ?>';
+
+    const subtotal = (productPrice * quantity).toFixed(2);
+
+    // Show confirmation with order summary
+    Swal.fire({
+        title: 'Add to Cart',
+        html: `
+            <div class="text-left">
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">${productName}</h3>
+                    <p class="text-gray-600 mb-2">Seller: ${farmerName}</p>
+                </div>
+                <div class="border-t pt-3">
+                    <div class="flex justify-between mb-2">
+                        <span>Price per ${productUnit}:</span>
+                        <span>₱${productPrice.toFixed(2)}</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span>Quantity:</span>
+                        <span>${quantity} ${productUnit}</span>
+                    </div>
+                    <div class="border-t pt-2 mt-2">
+                        <div class="flex justify-between font-bold text-lg">
+                            <span>Total:</span>
+                            <span>₱${subtotal}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Add to Cart',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Get CSRF token
+            const csrfToken = document.querySelector('input[name="<?= csrf_token() ?>"]').value;
+
+            fetch('/cart/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new URLSearchParams({
+                    '<?= csrf_token() ?>': csrfToken,
+                    'product_id': productId,
+                    'quantity': quantity
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success SweetAlert with order summary
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Added to Cart!',
+                        html: `
+                            <div class="text-center">
+                                <p class="mb-2">${data.message}</p>
+                                <div class="bg-gray-50 p-3 rounded-lg mt-3">
+                                    <p class="text-sm text-gray-600">Total items in cart: <strong>${data.cart_count}</strong></p>
+                                </div>
+                            </div>
+                        `,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Continue Shopping',
+                        showCancelButton: true,
+                        cancelButtonText: 'View Cart',
+                        confirmButtonColor: '#10b981',
+                        cancelButtonColor: '#3b82f6'
+                    }).then((result) => {
+                        if (result.dismiss === Swal.DismissReason.cancel) {
+                            // View Cart clicked
+                            window.location.href = '/cart';
+                        }
+                    });
+
+                    // Update cart count if element exists
+                    const cartCountElement = document.getElementById('cart-count');
+                    if (cartCountElement && data.cart_count !== undefined) {
+                        cartCountElement.textContent = data.cart_count;
+                    }
+                } else {
+                    // Show error SweetAlert
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message,
+                        showConfirmButton: true,
+                        confirmButtonColor: '#d33'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred. Please try again.',
+                    showConfirmButton: true,
+                    confirmButtonColor: '#d33'
+                });
+            });
+        }
+    });
+}
+
 
 document.getElementById('reportForm').addEventListener('submit', function(e) {
     e.preventDefault();

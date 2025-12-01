@@ -72,6 +72,34 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
+
+    // Show thank you popup
+    setTimeout(function() {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Thank You for Your Purchase!',
+                text: 'Your order has been placed successfully. You will be redirected to your orders page.',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                customClass: {
+                    popup: 'animate__animated animate__bounceIn'
+                }
+            }).then(function() {
+                // Redirect to orders page
+                window.location.href = '/buyer/orders';
+            });
+        } else {
+            // Fallback if Swal is not available
+            alert('Thank you for your purchase! Redirecting to your orders...');
+            setTimeout(function() {
+                window.location.href = '/buyer/orders';
+            }, 2000);
+        }
+    }, 500); // Small delay to ensure page is fully loaded
 });
 </script>
 

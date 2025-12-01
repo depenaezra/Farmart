@@ -197,16 +197,20 @@ class Buyer extends BaseController
     {
         $buyerId = session()->get('user_id');
         $status = $this->request->getGet('status');
-        
+
+        log_message('debug', 'Orders page accessed by user ID: ' . $buyerId . ', role: ' . session()->get('user_role'));
+
         $orders = $this->orderModel->getOrdersByBuyer($buyerId, $status);
-        
+
+        log_message('debug', 'Found ' . count($orders) . ' orders for buyer ' . $buyerId);
+
         $data = [
             'title' => 'My Orders',
             'orders' => $orders,
             'current_status' => $status,
             'statistics' => $this->orderModel->getBuyerStatistics($buyerId)
         ];
-        
+
         return view('buyer/orders', $data);
     }
     
@@ -216,18 +220,19 @@ class Buyer extends BaseController
     public function orderDetail($id)
     {
         $order = $this->orderModel->getOrderWithDetails($id);
-        
-        // Verify order belongs to current buyer
-        if (!$order || $order['buyer_id'] != session()->get('user_id')) {
+        $currentUserId = session()->get('user_id');
+
+        // Verify order exists and belongs to current buyer
+        if (!$order || $order['buyer_id'] != $currentUserId) {
             return redirect()->to('/buyer/orders')
                 ->with('error', 'Order not found.');
         }
-        
+
         $data = [
-            'title' => 'Order #' . $order['order_number'],
+            'title' => 'Order #' . ($order['order_number'] ?? $id),
             'order' => $order
         ];
-        
+
         return view('buyer/order_detail', $data);
     }
     

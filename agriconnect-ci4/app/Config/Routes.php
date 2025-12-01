@@ -38,6 +38,9 @@ $routes->get('/forum/post/(:num)/comments', 'Forum::loadMoreComments/$1');
 // Public user profiles
 $routes->get('/users/(:num)', 'Users::show/$1');
 
+// General orders route for all authenticated users
+$routes->get('/orders', 'Buyer::orders', ['filter' => 'auth']);
+
 // ============================================================
 // AUTHENTICATION ROUTES
 // ============================================================
@@ -89,6 +92,7 @@ $routes->group('buyer', ['filter' => 'auth:user,admin'], function($routes) {
 $routes->group('cart', ['filter' => 'auth:user,admin'], function($routes) {
     $routes->get('/', 'Cart::index');
     $routes->post('add', 'Cart::add');
+    $routes->post('buy_now', 'Cart::buyNow');
     $routes->post('update/(:segment)', 'Cart::update/$1');
     $routes->post('remove/(:segment)', 'Cart::remove/$1');
     $routes->get('clear', 'Cart::clear');
@@ -97,6 +101,9 @@ $routes->group('cart', ['filter' => 'auth:user,admin'], function($routes) {
 // Checkout
 $routes->group('checkout', ['filter' => 'auth:user,admin'], function($routes) {
     $routes->get('/', 'Checkout::index');
+    $routes->post('/', 'Checkout::index'); // For form submission with selected items
+    $routes->get('direct', 'Checkout::directCheckout');
+    $routes->post('direct', 'Checkout::directCheckout');
     $routes->post('place-order', 'Checkout::placeOrder');
     $routes->get('success', 'Checkout::success');
 });

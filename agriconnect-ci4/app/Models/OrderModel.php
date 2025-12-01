@@ -18,6 +18,7 @@ class OrderModel extends Model
         'total_price',
         'status',
         'delivery_address',
+        'payment_method',
         'notes'
     ];
     
@@ -59,22 +60,29 @@ class OrderModel extends Model
      */
     public function getOrdersByBuyer($buyerId, $status = null)
     {
-        $builder = $this->select('orders.*, 
-                                  products.name as product_name, 
+        // First check if there are any orders for this buyer
+        $rawOrders = $this->where('buyer_id', $buyerId)->findAll();
+        log_message('debug', 'Raw orders count for buyer ' . $buyerId . ': ' . count($rawOrders));
+
+        $builder = $this->select('orders.*,
+                                  products.name as product_name,
                                   products.image_url,
-                                  farmer.name as farmer_name, 
+                                  farmer.name as farmer_name,
                                   farmer.phone as farmer_phone,
                                   farmer.location as farmer_location')
                         ->join('products', 'products.id = orders.product_id')
                         ->join('users as farmer', 'farmer.id = orders.farmer_id')
                         ->where('orders.buyer_id', $buyerId)
                         ->orderBy('orders.created_at', 'DESC');
-        
+
         if ($status) {
             $builder->where('orders.status', $status);
         }
-        
-        return $builder->get()->getResultArray();
+
+        $result = $builder->get()->getResultArray();
+        log_message('debug', 'Joined orders count for buyer ' . $buyerId . ': ' . count($result));
+
+        return $result;
     }
     
     /**
