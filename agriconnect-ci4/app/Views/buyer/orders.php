@@ -105,7 +105,7 @@
                                 <h3 class="text-lg font-semibold text-gray-900">Order #<?= $order['id'] ?></h3>
                                 <p class="text-sm text-gray-600">
                                     <?= date('M d, Y H:i', strtotime($order['created_at'])) ?> •
-                                    Farmer: <?= esc($order['farmer_name']) ?>
+                                    Seller: <?= esc($order['farmer_name']) ?>
                                 </p>
                             </div>
                             <div class="text-right">

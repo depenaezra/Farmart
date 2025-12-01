@@ -200,14 +200,9 @@ class Buyer extends BaseController
 
         log_message('debug', 'Orders page accessed by user ID: ' . $buyerId . ', role: ' . session()->get('user_role'));
 
-        // For testing, use buyer_id = 9 if no orders found for current user
         $orders = $this->orderModel->getOrdersByBuyer($buyerId, $status);
-        if (empty($orders) && $buyerId != 9) {
-            log_message('debug', 'No orders found for user ' . $buyerId . ', trying buyer_id = 9');
-            $orders = $this->orderModel->getOrdersByBuyer(9, $status);
-        }
 
-        log_message('debug', 'Found ' . count($orders) . ' orders for buyer');
+        log_message('debug', 'Found ' . count($orders) . ' orders for buyer ' . $buyerId);
 
         $data = [
             'title' => 'My Orders',
@@ -225,18 +220,19 @@ class Buyer extends BaseController
     public function orderDetail($id)
     {
         $order = $this->orderModel->getOrderWithDetails($id);
-        
-        // Verify order belongs to current buyer
-        if (!$order || $order['buyer_id'] != session()->get('user_id')) {
+        $currentUserId = session()->get('user_id');
+
+        // Verify order exists and belongs to current buyer
+        if (!$order || $order['buyer_id'] != $currentUserId) {
             return redirect()->to('/buyer/orders')
                 ->with('error', 'Order not found.');
         }
-        
+
         $data = [
-            'title' => 'Order #' . $order['order_number'],
+            'title' => 'Order #' . ($order['order_number'] ?? $id),
             'order' => $order
         ];
-        
+
         return view('buyer/order_detail', $data);
     }
     

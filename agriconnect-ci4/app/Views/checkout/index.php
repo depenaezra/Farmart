@@ -29,6 +29,13 @@
                             <input type="hidden" name="direct_product_id" value="<?= $item['product_id'] ?>">
                             <input type="hidden" name="direct_quantity" value="<?= $item['quantity'] ?>">
                         <?php endforeach; ?>
+                    <?php else: ?>
+                        <!-- Pass selected items for regular checkout -->
+                        <?php if (isset($selected_items) && $selected_items): ?>
+                            <?php foreach ($selected_items as $itemId): ?>
+                                <input type="hidden" name="selected_items[]" value="<?= esc($itemId) ?>">
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     <?php endif; ?>
                     
                     <div class="mb-6">

@@ -176,7 +176,81 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
+
+    // Initialize cart functionality
+    initializeCart();
 });
+
+function initializeCart() {
+    // Add event listeners to checkboxes
+    const checkboxes = document.querySelectorAll('input[name="selected_items[]"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateCartTotal);
+    });
+
+    // Initial total calculation
+    updateCartTotal();
+}
+
+function updateCartTotal() {
+    const checkboxes = document.querySelectorAll('input[name="selected_items[]"]');
+    let total = 0;
+    let selectedCount = 0;
+
+    checkboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            const itemContainer = checkbox.closest('.p-6');
+            const priceText = itemContainer.querySelector('.text-primary').textContent.trim();
+            // Extract number from format like "₱1,234.56"
+            const priceMatch = priceText.match(/₱([\d,]+\.?\d*)/);
+            const itemTotal = priceMatch ? parseFloat(priceMatch[1].replace(',', '')) : 0;
+
+            total += itemTotal;
+            selectedCount++;
+        }
+    });
+
+    console.log('Selected items:', selectedCount, 'Total:', total); // Debug log
+
+    // Update main cart item count
+    const cartHeader = document.querySelector('.bg-white.rounded-xl.shadow-md.border .p-6.border-b h2');
+    if (cartHeader) {
+        cartHeader.textContent = `Cart Items (${selectedCount})`;
+    }
+
+    // Update Order Summary section
+    const orderSummaryContainer = document.querySelector('.lg\\:col-span-1 .bg-white.rounded-xl.shadow-md .space-y-3');
+
+    if (orderSummaryContainer) {
+        console.log('Found order summary container');
+
+        // Find all rows in order summary
+        const allRows = orderSummaryContainer.querySelectorAll('.flex.justify-between');
+        console.log('Found', allRows.length, 'rows in order summary');
+
+        allRows.forEach((row, index) => {
+            const label = row.querySelector('span:first-child');
+            const amount = row.querySelector('span:last-child');
+
+            if (label && amount) {
+                console.log(`Row ${index}: label="${label.textContent}", amount="${amount.textContent}"`);
+
+                if (label.textContent.includes('Subtotal')) {
+                    console.log('Updating subtotal row');
+                    // Update subtotal label and amount
+                    label.textContent = `Subtotal (${selectedCount} items)`;
+                    amount.textContent = `₱${total.toFixed(2)}`;
+                } else if (label.textContent.includes('Total')) {
+                    console.log('Updating total row');
+                    // Update total amount
+                    amount.textContent = `₱${total.toFixed(2)}`;
+                }
+            }
+        });
+    } else {
+        console.log('Order summary container not found');
+    }
+}
 
 function removeFromCart(cartItemId) {
     // Find the cart item element to get details
@@ -379,8 +453,12 @@ function proceedToCheckout() {
     let selectedCount = 0;
     const selectedProducts = [];
 
+    console.log('Calculating checkout total for selected items:', selectedItems);
+
     selectedItems.forEach(itemId => {
         const checkbox = document.getElementById(`item_${itemId}`);
+        console.log(`Processing item ${itemId}, checkbox found:`, !!checkbox);
+
         if (checkbox && checkbox.checked) {
             const itemContainer = checkbox.closest('.p-6');
             const productName = itemContainer.querySelector('h3').textContent.trim();
@@ -388,22 +466,30 @@ function proceedToCheckout() {
 
             // Get the price from the item total (price * quantity)
             const priceText = itemContainer.querySelector('.text-primary').textContent.trim();
+            console.log(`Item ${itemId}: name="${productName}", quantity=${quantity}, priceText="${priceText}"`);
+
             // Extract number from format like "₱1,234.56"
             const priceMatch = priceText.match(/₱([\d,]+\.?\d*)/);
             const itemTotal = priceMatch ? parseFloat(priceMatch[1].replace(',', '')) : 0;
+
+            console.log(`Item ${itemId}: priceMatch=${priceMatch}, itemTotal=${itemTotal}`);
 
             // Calculate unit price
             const unitPrice = quantity > 0 ? itemTotal / quantity : 0;
 
             selectedTotal += itemTotal;
-            selectedCount += quantity;
+            selectedCount += quantity; // Count individual items, not total quantity
             selectedProducts.push({
                 name: productName,
                 quantity: quantity,
                 price: itemTotal
             });
+
+            console.log(`Item ${itemId}: added to total. Running total: ${selectedTotal}, count: ${selectedCount}`);
         }
     });
+
+    console.log('Final checkout calculation:', { selectedTotal, selectedCount, selectedProducts });
 
     // Show checkout confirmation
     let productsList = '';
