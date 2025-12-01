@@ -114,6 +114,11 @@
                         <i data-lucide="shopping-cart" class="w-5 h-5"></i>
                         Add to Cart
                     </button>
+
+                    <button onclick="buyNow()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2 mt-3">
+                        <i data-lucide="credit-card" class="w-5 h-5"></i>
+                        Buy Now
+                    </button>
                 </div>
                 <?php endif; ?>
             </div>
@@ -362,6 +367,85 @@ function addToCart() {
                     confirmButtonColor: '#d33'
                 });
             });
+        }
+    });
+}
+
+function buyNow() {
+    const quantity = parseInt(document.getElementById('quantity').value);
+    const productId = <?= $product['id'] ?>;
+    const productName = '<?= esc($product['name']) ?>';
+    const productPrice = parseFloat('<?= $product['price'] ?>');
+    const productUnit = '<?= esc($product['unit']) ?>';
+    const farmerName = '<?= esc($product['farmer_name']) ?>';
+
+    const subtotal = (productPrice * quantity).toFixed(2);
+
+    // Show confirmation with order summary
+    Swal.fire({
+        title: 'Buy Now',
+        html: `
+            <div class="text-left">
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">${productName}</h3>
+                    <p class="text-gray-600 mb-2">Seller: ${farmerName}</p>
+                </div>
+                <div class="border-t pt-3">
+                    <div class="flex justify-between mb-2">
+                        <span>Price per ${productUnit}:</span>
+                        <span>₱${productPrice.toFixed(2)}</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span>Quantity:</span>
+                        <span>${quantity} ${productUnit}</span>
+                    </div>
+                    <div class="border-t pt-2 mt-2">
+                        <div class="flex justify-between font-bold text-lg">
+                            <span>Total:</span>
+                            <span>₱${subtotal}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Proceed to Checkout',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Create a form and submit to direct checkout
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/checkout/direct';
+
+            // Add CSRF token
+            const csrfToken = document.querySelector('input[name="<?= csrf_token() ?>"]').value;
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '<?= csrf_token() ?>';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+
+            // Add product_id
+            const productIdInput = document.createElement('input');
+            productIdInput.type = 'hidden';
+            productIdInput.name = 'product_id';
+            productIdInput.value = productId;
+            form.appendChild(productIdInput);
+
+            // Add quantity
+            const quantityInput = document.createElement('input');
+            quantityInput.type = 'hidden';
+            quantityInput.name = 'quantity';
+            quantityInput.value = quantity;
+            form.appendChild(quantityInput);
+
+            // Append form to body and submit
+            document.body.appendChild(form);
+            form.submit();
         }
     });
 }
