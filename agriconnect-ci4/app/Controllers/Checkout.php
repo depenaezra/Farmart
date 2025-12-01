@@ -288,16 +288,23 @@ class Checkout extends BaseController
             // Clear selected items from database cart (only for regular checkout, not direct checkout)
             if (!$isDirectCheckout && isset($selectedItems) && $selectedItems) {
                 foreach ($selectedItems as $cartItemId) {
-                    $this->cartModel->removeFromCart($cartItemId, $userId);
+                    $success = $this->cartModel->removeFromCart($cartItemId, $userId);
+                    log_message('debug', 'Removed cart item ' . $cartItemId . ': ' . ($success ? 'Success' : 'Failed'));
                 }
             }
 
-            // Set success flag for popup and stay on checkout page
+            // Set success flag and order info in session
             session()->set('checkout_success', true);
             session()->set('checkout_order_count', count($orderIds));
+            session()->set('last_order_ids', $orderIds);
 
-            // Return to checkout page to show success popup
-            return redirect()->to('/checkout')->with('success', 'Order placed successfully!');
+            // Redirect to cart to show updated cart (with checked-out items removed)
+            // or to success page if direct checkout
+            if ($isDirectCheckout) {
+                return redirect()->to('/checkout/success')->with('success', 'Order placed successfully!');
+            } else {
+                return redirect()->to('/cart')->with('success', count($orderIds) . ' order(s) placed successfully! Checked-out items have been removed from your cart.');
+            }
                 
         } catch (\Exception $e) {
             $db->transRollback();

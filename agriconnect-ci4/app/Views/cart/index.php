@@ -8,6 +8,28 @@
         <p class="text-gray-600">Review your items before checkout</p>
     </div>
 
+    <!-- Display success message -->
+    <?php if (session()->has('success')): ?>
+        <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3">
+            <i data-lucide="check-circle" class="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5"></i>
+            <div>
+                <p class="text-green-800 font-semibold">Success!</p>
+                <p class="text-green-700 text-sm"><?= esc(session()->get('success')) ?></p>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <!-- Display error message -->
+    <?php if (session()->has('error')): ?>
+        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+            <i data-lucide="alert-circle" class="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5"></i>
+            <div>
+                <p class="text-red-800 font-semibold">Error!</p>
+                <p class="text-red-700 text-sm"><?= esc(session()->get('error')) ?></p>
+            </div>
+        </div>
+    <?php endif; ?>
+
     <?php if (empty($cart)): ?>
         <div class="bg-white rounded-xl shadow-md border border-gray-200 p-12 text-center">
             <i data-lucide="shopping-cart" class="w-16 h-16 text-gray-400 mx-auto mb-4"></i>
@@ -530,6 +552,25 @@ function updateQuantity(cartItemId) {
         updateButton.disabled = false;
     });
 }
+
+// Show checkout success notification if redirected from checkout
+document.addEventListener('DOMContentLoaded', function() {
+    <?php if (session()->has('success') && strpos(session()->get('success'), 'order') !== false): ?>
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Checkout Successful!',
+                html: `<?= str_replace("'", "\\'", session()->get('success')) ?>`,
+                confirmButtonText: 'Great!',
+                confirmButtonColor: '#10b981'
+            });
+        }
+        // Reload cart to show updated items
+        setTimeout(function() {
+            window.location.reload();
+        }, 1500);
+    <?php endif; ?>
+});
 </script>
 
 <?= $this->endSection() ?>
