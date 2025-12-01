@@ -41,6 +41,32 @@ class Admin extends BaseController
                       ->getRow()
                       ->total_price ?? 0;
 
+        // User registration data for chart (last 12 months)
+        $userRegistrationData = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $month = date('Y-m', strtotime("-$i months"));
+            $count = $db->table('users')
+                       ->where('DATE_FORMAT(created_at, "%Y-%m")', $month)
+                       ->countAllResults();
+            $userRegistrationData[] = [
+                'month' => date('M Y', strtotime($month)),
+                'count' => $count
+            ];
+        }
+
+        // Order data for chart (last 12 months)
+        $orderData = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $month = date('Y-m', strtotime("-$i months"));
+            $count = $db->table('orders')
+                       ->where('DATE_FORMAT(created_at, "%Y-%m")', $month)
+                       ->countAllResults();
+            $orderData[] = [
+                'month' => date('M Y', strtotime($month)),
+                'count' => $count
+            ];
+        }
+
         $data = [
             'title' => 'Admin Dashboard',
             'statistics' => [
@@ -63,6 +89,10 @@ class Admin extends BaseController
                     'resolved' => $this->violationModel->where('status', 'resolved')->countAllResults()
                 ],
                 'revenue' => $revenue
+            ],
+            'charts' => [
+                'user_registrations' => $userRegistrationData,
+                'orders' => $orderData
             ],
             'recent_orders' => $this->orderModel->getRecentOrders(5),
             'recent_users' => $this->userModel->orderBy('created_at', 'DESC')->findAll(5),
@@ -478,10 +508,117 @@ class Admin extends BaseController
      */
     public function analytics()
     {
+        $db = \Config\Database::connect();
+
+        // Current month and last month
+        $currentMonth = date('Y-m');
+        $lastMonth = date('Y-m', strtotime('-1 month'));
+
+        // Monthly growth - user registrations
+        $currentMonthUsers = $db->table('users')
+                              ->where('DATE_FORMAT(created_at, "%Y-%m")', $currentMonth)
+                              ->countAllResults();
+
+        $lastMonthUsers = $db->table('users')
+                           ->where('DATE_FORMAT(created_at, "%Y-%m")', $lastMonth)
+                           ->countAllResults();
+
+        $userGrowth = $lastMonthUsers > 0 ? (($currentMonthUsers - $lastMonthUsers) / $lastMonthUsers) * 100 : 0;
+
+        // Active users - users who have placed orders or posted in forum in last 30 days
+        $thirtyDaysAgo = date('Y-m-d H:i:s', strtotime('-30 days'));
+        $activeUsers = $db->table('users')
+                         ->where('id IN (
+                             SELECT DISTINCT buyer_id FROM orders WHERE created_at >= "' . $thirtyDaysAgo . '"
+                             UNION
+                             SELECT DISTINCT user_id FROM forum_posts WHERE created_at >= "' . $thirtyDaysAgo . '"
+                             UNION
+                             SELECT DISTINCT user_id FROM forum_comments WHERE created_at >= "' . $thirtyDaysAgo . '"
+                         )')
+                         ->countAllResults();
+
+        // Conversion rate - orders per user
+        $totalUsers = $this->userModel->countAll();
+        $totalOrders = $this->orderModel->countAll();
+        $conversionRate = $totalUsers > 0 ? ($totalOrders / $totalUsers) * 100 : 0;
+
+        // System activity metrics (orders completed this month)
+        $monthlyOrders = $db->table('orders')
+                           ->where('status', 'completed')
+                           ->where('DATE_FORMAT(created_at, "%Y-%m")', $currentMonth)
+                           ->countAllResults();
+
+        // User registration data for chart (last 12 months)
+        $userRegistrationData = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $month = date('Y-m', strtotime("-$i months"));
+            $count = $db->table('users')
+                       ->where('DATE_FORMAT(created_at, "%Y-%m")', $month)
+                       ->countAllResults();
+            $userRegistrationData[] = [
+                'month' => date('M Y', strtotime($month)),
+                'count' => $count
+            ];
+        }
+
+        // Order data for chart (last 12 months)
+        $orderData = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $month = date('Y-m', strtotime("-$i months"));
+            $count = $db->table('orders')
+                       ->where('DATE_FORMAT(created_at, "%Y-%m")', $month)
+                       ->countAllResults();
+            $orderData[] = [
+                'month' => date('M Y', strtotime($month)),
+                'count' => $count
+            ];
+        }
+
+
+        // Top products by orders
+        $topProducts = $db->table('products p')
+                         ->select('p.id, p.name, p.category, COUNT(o.id) as order_count, SUM(o.total_price) as total_revenue')
+                         ->join('orders o', 'p.id = o.product_id AND o.status = "completed"', 'left')
+                         ->groupBy('p.id')
+                         ->orderBy('order_count', 'DESC')
+                         ->limit(5)
+                         ->get()
+                         ->getResultArray();
+
+        // Top sellers by orders (users who have sold products - appear as farmer_id in completed orders)
+        $topFarmers = $db->table('users u')
+                        ->select('u.id, u.name, u.location, COUNT(DISTINCT o.id) as order_count')
+                        ->join('orders o', 'u.id = o.farmer_id AND o.status = "completed"', 'left')
+                        ->where('u.role !=', 'admin')  // Exclude admins from seller rankings
+                        ->groupBy('u.id')
+                        ->having('COUNT(DISTINCT o.id) >', 0)  // Only include users who have actually sold something
+                        ->orderBy('order_count', 'DESC')
+                        ->limit(5)
+                        ->get()
+                        ->getResultArray();
+
+
         $data = [
-            'title' => 'Analytics & Reports'
+            'title' => 'Analytics & Reports',
+            'metrics' => [
+                'user_growth' => round($userGrowth, 1),
+                'active_users' => $activeUsers,
+                'conversion_rate' => round($conversionRate, 1),
+                'monthly_orders' => $monthlyOrders,
+                'total_users' => $totalUsers,
+                'total_products' => $this->productModel->countAll(),
+                'total_orders' => $totalOrders
+            ],
+            'charts' => [
+                'user_registrations' => $userRegistrationData,
+                'orders' => $orderData
+            ],
+            'top_data' => [
+                'products' => $topProducts,
+                'farmers' => $topFarmers
+            ],
         ];
-        
+
         return view('admin/analytics', $data);
     }
     

@@ -22,7 +22,7 @@
 }
 </style>
 
-<div class="container mx-auto px-4 py-2 max-w-6xl">
+<div class="container mx-auto px-4 pt-4 py-2 max-w-6xl">
     <div class="w-full">
 
 
@@ -41,8 +41,8 @@
 
         <?php if (session()->get('user_role') === 'admin'): ?>
         <!-- Admin Profile Content -->
-        <div class="flex flex-col lg:flex-row gap-6 max-w-4xl mx-auto">
-            <!-- Admin Profile Card -->
+        <div class="flex flex-col lg:flex-row gap-6 max-w-4xl mx-auto justify-center min-h-screen">
+            <!-- Left Side: Admin Profile Card and Buttons -->
             <div class="flex-1 flex flex-col space-y-4">
                 <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl shadow-lg border border-gray-100 p-4 transform hover:scale-105 transition-all duration-300">
                     <div class="text-center mb-4">
@@ -78,8 +78,30 @@
                     </div>
                 </div>
 
+                <!-- Action Buttons -->
+                <div class="flex flex-col gap-3">
+                    <button onclick="toggleEditForm()" class="flex items-center justify-center p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200 hover:shadow-md transition-all duration-200">
+                        <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-3">
+                            <i data-lucide="edit" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <div class="text-center">
+                            <h3 class="font-semibold text-blue-900">Edit Profile</h3>
+                            <p class="text-sm text-blue-700">Update your account information</p>
+                        </div>
+                    </button>
+
+                    <button onclick="toggleAddAdminForm()" class="flex items-center justify-center p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200 hover:shadow-md transition-all duration-200">
+                        <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mr-3">
+                            <i data-lucide="user-plus" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <div class="text-center">
+                            <h3 class="font-semibold text-green-900">Add Admin Account</h3>
+                            <p class="text-sm text-green-700">Create a new administrator account</p>
+                        </div>
+                    </button>
+                </div>
             </div>
-        <?php else: ?>
+            <?php else: ?>
         <!-- Regular User Profile Content -->
         <div class="flex flex-col justify-center items-center gap-6 min-h-[80vh] max-w-2xl mx-auto">
             <!-- Profile Card -->
@@ -157,34 +179,8 @@
                         Account Management
                     </h2>
 
-                    <!-- Admin Actions -->
-                    <div class="space-y-4 flex-1 flex flex-col items-center">
-                        <div class="w-full max-w-md space-y-3">
-                            <!-- Edit Profile Button -->
-                            <button onclick="toggleEditForm()" class="flex items-center justify-center p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200 hover:shadow-md transition-all duration-200 w-full">
-                                <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-3">
-                                    <i data-lucide="edit" class="w-5 h-5 text-white"></i>
-                                </div>
-                                <div class="text-center">
-                                    <h3 class="font-semibold text-blue-900">Edit Profile</h3>
-                                    <p class="text-sm text-blue-700">Update your account information</p>
-                                </div>
-                            </button>
-
-                            <!-- Add Admin Button -->
-                            <button onclick="toggleAddAdminForm()" class="flex items-center justify-center p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200 hover:shadow-md transition-all duration-200 w-full">
-                                <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mr-3">
-                                    <i data-lucide="user-plus" class="w-5 h-5 text-white"></i>
-                                </div>
-                                <div class="text-center">
-                                    <h3 class="font-semibold text-green-900">Add Admin Account</h3>
-                                    <p class="text-sm text-green-700">Create a new administrator account</p>
-                                </div>
-                            </button>
-                        </div>
-
-                        <!-- Edit Profile Form (Hidden by default) -->
-                        <div id="editProfileForm" class="hidden mt-6 w-full max-w-md p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <!-- Edit Profile Form (Displayed by default) -->
+                    <div id="editProfileForm" class="w-full max-w-md p-4 bg-gray-50 rounded-lg border border-gray-200 mx-auto">
                             <h3 class="text-md font-semibold text-gray-900 mb-4 text-center">Edit Profile Information</h3>
                             <form action="/profile/update" method="POST" class="space-y-4">
                                 <?= csrf_field() ?>
