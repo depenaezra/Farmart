@@ -148,6 +148,7 @@
                             <div class="mb-4">
                                 <textarea
                                     name="comment"
+                                    id="commentTextarea"
                                     rows="4"
                                     placeholder="Share your thoughts..."
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -207,6 +208,75 @@
 </div>
 
 <script>
+// AJAX comment submission
+document.addEventListener('DOMContentLoaded', function() {
+    const commentForm = document.getElementById('commentForm');
+    if (!commentForm) return;
+
+    commentForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const url = form.action;
+        const fd = new FormData(form);
+
+        fetch(url, {
+            method: 'POST',
+            body: fd,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data && data.success && data.comment) {
+                const commentsList = document.getElementById('commentsList');
+                if (commentsList && data.comment) {
+                    // Create comment HTML
+                    const commentDiv = document.createElement('div');
+                    commentDiv.className = 'border-l-4 border-gray-200 pl-6';
+                    commentDiv.innerHTML = `
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-center">
+                                <a href="/users/${data.comment.user_id}" class="font-semibold text-gray-900 mr-2 hover:underline">${data.comment.author_name}</a>
+                                ${data.comment.author_role ? `<span class="inline-block px-2 py-1 bg-primary/10 text-primary text-xs font-semibold rounded">${data.comment.author_role.charAt(0).toUpperCase() + data.comment.author_role.slice(1)}</span>` : ''}
+                            </div>
+                            <span class="text-sm text-gray-500">${new Date(data.comment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
+                        </div>
+                        <div class="text-gray-700 whitespace-pre-line">
+                            ${data.comment.comment.replace(/\n/g, '<br>')}
+                        </div>
+                    `;
+                    commentsList.appendChild(commentDiv);
+                }
+
+                // Update comments count
+                const heading = document.querySelector('#comments h3');
+                if (heading && data.comment_count !== undefined) {
+                    heading.textContent = 'Comments (' + data.comment_count + ')';
+                }
+
+                // Clear textarea
+                document.getElementById('commentTextarea').value = '';
+
+                // Show success message briefly
+                const button = form.querySelector('button[type="submit"]');
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i data-lucide="check" class="w-4 h-4 inline mr-2"></i>Posted!';
+                button.disabled = true;
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                }, 1500);
+            }
+            // Silently handle any errors - no error messages shown
+        })
+        .catch(err => {
+            // Silently handle network errors - no error messages shown
+            console.log('Comment submission error:', err);
+        });
+    });
+});
+
 function reportPost(id, type) {
     document.getElementById('reportedId').value = id;
     document.getElementById('reportedType').value = type;
@@ -248,90 +318,18 @@ document.getElementById('reportForm').addEventListener('submit', function(e) {
             }
             closeReportModal();
         } else {
-            try {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: data.message || 'An error occurred',
-                    showCloseButton: true
-                });
-            } catch (e) {
-                alert('Error: ' + data.message);
-            }
+            // Silently handle report errors - no error messages shown
+            console.log('Report submission error:', data.message);
+            closeReportModal();
         }
     })
     .catch(error => {
-        try {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'An error occurred. Please try again.',
-                showCloseButton: true
-            });
-        } catch (e) {
-            alert('An error occurred. Please try again.');
-        }
+        // Silently handle network errors - no error messages shown
+        console.log('Report submission network error:', error);
+        closeReportModal();
     });
 });
 </script>
 
-<script>
-// AJAX comment submission
-document.addEventListener('DOMContentLoaded', function() {
-    const commentForm = document.getElementById('commentForm');
-    if (!commentForm) return;
-
-    commentForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const form = e.target;
-        const url = form.action;
-        const fd = new FormData(form);
-
-        fetch(url, {
-            method: 'POST',
-            body: fd,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data && data.success) {
-                const commentsList = document.getElementById('commentsList');
-                if (commentsList) {
-                    const temp = document.createElement('div');
-                    temp.innerHTML = data.html;
-                    commentsList.appendChild(temp.firstElementChild);
-                }
-
-                // Update comments count
-                const heading = document.querySelector('#comments h3');
-                if (heading && data.comment_count !== undefined) {
-                    heading.textContent = 'Comments (' + data.comment_count + ')';
-                }
-
-                // Clear textarea
-                form.reset();
-
-                try {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Comment posted',
-                        timer: 1400,
-                        showConfirmButton: false
-                    });
-                } catch (e) {
-                    // ignore
-                }
-            } else {
-                try { Swal.fire({ icon: 'error', title: 'Error', text: data.message || 'Failed to post comment.' }); } catch (e) { alert(data.message || 'Failed to post comment.'); }
-            }
-        })
-        .catch(err => {
-            try { Swal.fire({ icon: 'error', title: 'Error', text: 'An error occurred.' }); } catch (e) { alert('An error occurred.'); }
-        });
-    });
-});
-</script>
 
 <?= $this->endSection() ?>

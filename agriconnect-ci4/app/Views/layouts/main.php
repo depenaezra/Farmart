@@ -141,6 +141,12 @@
                 else if (/red|error/.test(cls)) { icon = 'error'; title = 'Error'; }
                 else if (/warning/.test(cls)) { icon = 'warning'; title = 'Warning'; }
 
+                // Skip error messages - don't show them as popups
+                if (icon === 'error') {
+                    el.remove(); // Just remove error alerts without showing popup
+                    return;
+                }
+
                 // Extract message HTML: prefer list items, otherwise paragraph text
                 let html = '';
                 const ul = el.querySelector('ul');
