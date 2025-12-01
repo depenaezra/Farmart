@@ -37,8 +37,6 @@
                             <?php
                             switch($user['role']) {
                                 case 'admin': echo 'bg-purple-100 text-purple-800'; break;
-                                case 'farmer': echo 'bg-green-100 text-green-800'; break;
-                                case 'buyer': echo 'bg-blue-100 text-blue-800'; break;
                                 default: echo 'bg-gray-100 text-gray-800';
                             }
                             ?>">
@@ -64,12 +62,6 @@
                         <p class="text-gray-900 mt-1"><?= esc($user['location'] ?: 'Not provided') ?></p>
                     </div>
 
-                    <?php if ($user['role'] === 'farmer'): ?>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Cooperative</label>
-                            <p class="text-gray-900 mt-1"><?= esc($user['cooperative'] ?: 'Not specified') ?></p>
-                        </div>
-                    <?php endif; ?>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Joined</label>
@@ -122,56 +114,48 @@
 
                 <!-- Products Tab -->
                 <div id="products-tab" class="tab-content p-6">
-                    <?php if ($user['role'] === 'farmer'): ?>
-                        <?php if (empty($products)): ?>
-                            <div class="text-center py-12">
-                                <i data-lucide="package" class="w-16 h-16 text-gray-400 mx-auto mb-4"></i>
-                                <h3 class="text-lg font-medium text-gray-900 mb-2">No products</h3>
-                                <p class="text-gray-600">This farmer hasn't added any products yet.</p>
-                            </div>
-                        <?php else: ?>
-                            <div class="space-y-4">
-                                <?php foreach ($products as $product): ?>
-                                    <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                                        <div class="flex items-center">
-                                            <?php if ($product['image_url']): ?>
-                                                <img src="/uploads/<?= $product['image_url'] ?>" alt="<?= esc($product['name']) ?>"
-                                                     class="w-12 h-12 rounded-lg object-cover mr-4">
-                                            <?php else: ?>
-                                                <div class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center mr-4">
-                                                    <i data-lucide="package" class="w-6 h-6 text-gray-400"></i>
-                                                </div>
-                                            <?php endif; ?>
-                                            <div>
-                                                <h4 class="font-semibold text-gray-900">
-                                                    <a href="/admin/products/<?= $product['id'] ?>" class="text-primary hover:text-primary-hover">
-                                                        <?= esc($product['name']) ?>
-                                                    </a>
-                                                </h4>
-                                                <p class="text-sm text-gray-600">₱<?= number_format($product['price'], 2) ?> per <?= esc($product['unit']) ?></p>
-                                                <p class="text-xs text-gray-500">Stock: <?= $product['stock_quantity'] ?> | Status: <?= ucfirst($product['status']) ?></p>
-                                            </div>
-                                        </div>
-                                        <span class="inline-block px-3 py-1 text-xs font-semibold rounded-full
-                                            <?php
-                                            switch($product['status']) {
-                                                case 'available': echo 'bg-green-100 text-green-800'; break;
-                                                case 'pending': echo 'bg-yellow-100 text-yellow-800'; break;
-                                                case 'out-of-stock': echo 'bg-red-100 text-red-800'; break;
-                                                default: echo 'bg-gray-100 text-gray-800';
-                                            }
-                                            ?>">
-                                            <?= ucfirst($product['status']) ?>
-                                        </span>
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
-                        <?php endif; ?>
-                    <?php else: ?>
+                    <?php if (empty($products)): ?>
                         <div class="text-center py-12">
-                            <i data-lucide="user" class="w-16 h-16 text-gray-400 mx-auto mb-4"></i>
-                            <h3 class="text-lg font-medium text-gray-900 mb-2">Not applicable</h3>
-                            <p class="text-gray-600">Only farmers can have products.</p>
+                            <i data-lucide="package" class="w-16 h-16 text-gray-400 mx-auto mb-4"></i>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">No products</h3>
+                            <p class="text-gray-600">This user hasn't added any products yet.</p>
+                        </div>
+                    <?php else: ?>
+                        <div class="max-h-96 overflow-y-auto space-y-4">
+                            <?php foreach ($products as $product): ?>
+                                <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                                    <div class="flex items-center">
+                                        <?php if ($product['image_url']): ?>
+                                            <img src="/uploads/<?= $product['image_url'] ?>" alt="<?= esc($product['name']) ?>"
+                                                 class="w-12 h-12 rounded-lg object-cover mr-4">
+                                        <?php else: ?>
+                                            <div class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center mr-4">
+                                                <i data-lucide="package" class="w-6 h-6 text-gray-400"></i>
+                                            </div>
+                                        <?php endif; ?>
+                                        <div>
+                                            <h4 class="font-semibold text-gray-900">
+                                                <a href="/admin/products/<?= $product['id'] ?>" class="text-primary hover:text-primary-hover">
+                                                    <?= esc($product['name']) ?>
+                                                </a>
+                                            </h4>
+                                            <p class="text-sm text-gray-600">₱<?= number_format($product['price'], 2) ?> per <?= esc($product['unit']) ?></p>
+                                            <p class="text-xs text-gray-500">Stock: <?= $product['stock_quantity'] ?> | Status: <?= ucfirst($product['status']) ?></p>
+                                        </div>
+                                    </div>
+                                    <span class="inline-block px-3 py-1 text-xs font-semibold rounded-full
+                                        <?php
+                                        switch($product['status']) {
+                                            case 'available': echo 'bg-green-100 text-green-800'; break;
+                                            case 'pending': echo 'bg-yellow-100 text-yellow-800'; break;
+                                            case 'out-of-stock': echo 'bg-red-100 text-red-800'; break;
+                                            default: echo 'bg-gray-100 text-gray-800';
+                                        }
+                                        ?>">
+                                        <?= ucfirst($product['status']) ?>
+                                    </span>
+                                </div>
+                            <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -185,7 +169,7 @@
                             <p class="text-gray-600">This user hasn't placed or received any orders yet.</p>
                         </div>
                     <?php else: ?>
-                        <div class="space-y-4">
+                        <div class="max-h-96 overflow-y-auto space-y-4">
                             <?php foreach ($orders as $order): ?>
                                 <div class="p-4 border border-gray-200 rounded-lg">
                                     <div class="flex items-center justify-between mb-2">
@@ -205,11 +189,6 @@
                                         </span>
                                     </div>
                                     <div class="text-sm text-gray-600 mb-2">
-                                        <?php if ($user['role'] === 'farmer'): ?>
-                                            Buyer: <?= esc($order['buyer_name']) ?> •
-                                        <?php else: ?>
-                                            Farmer: <?= esc($order['farmer_name']) ?> •
-                                        <?php endif; ?>
                                         Product: <?= esc($order['product_name']) ?> •
                                         Quantity: <?= $order['quantity'] ?> <?= esc($order['unit']) ?>
                                     </div>

@@ -8,9 +8,15 @@
         <p class="text-gray-600">Moderate and manage all products in the marketplace</p>
     </div>
 
-    <!-- Filters -->
+    <!-- Filters and Search -->
     <div class="bg-white rounded-lg shadow-md border border-gray-200 p-4 mb-4">
         <form method="get" class="flex flex-col sm:flex-row gap-3">
+            <div class="flex-1">
+                <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Search Products</label>
+                <input type="text" id="search" name="search" value="<?= esc($search_term ?? '') ?>"
+                       placeholder="Search by product name, seller, or category..."
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
+            </div>
             <div class="sm:w-48">
                 <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Filter by Status</label>
                 <select id="status" name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
@@ -23,8 +29,8 @@
             </div>
             <div class="flex items-end">
                 <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors text-sm">
-                    <i data-lucide="filter" class="w-4 h-4 inline mr-1"></i>
-                    Filter
+                    <i data-lucide="search" class="w-4 h-4 inline mr-1"></i>
+                    Search
                 </button>
             </div>
         </form>
@@ -32,9 +38,7 @@
 
     <!-- Products Table -->
     <div class="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
-        <div class="px-4 py-3 border-b border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-900">Products (<?= count($products) ?>)</h3>
-        </div>
+
 
         <?php if (empty($products)): ?>
             <div class="text-center py-8">
@@ -48,7 +52,7 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Farmer</th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Seller</th>
                             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
                             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Stock</th>
                             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>

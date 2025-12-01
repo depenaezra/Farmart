@@ -9,20 +9,7 @@
     </div>
 
     <!-- Analytics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <!-- Total Revenue -->
-        <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-            <div class="flex items-center">
-                <div class="p-3 bg-green-100 rounded-lg">
-                    <i data-lucide="dollar-sign" class="w-6 h-6 text-green-600"></i>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Total Revenue</p>
-                    <p class="text-2xl font-bold text-gray-900">₱0.00</p>
-                    <p class="text-xs text-gray-500">All time</p>
-                </div>
-            </div>
-        </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
 
         <!-- Monthly Growth -->
         <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
@@ -68,18 +55,7 @@
     </div>
 
     <!-- Charts Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <!-- Revenue Chart -->
-        <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Revenue Trends</h3>
-            <div class="h-64 flex items-center justify-center text-gray-500">
-                <div class="text-center">
-                    <i data-lucide="bar-chart-3" class="w-12 h-12 mx-auto mb-4"></i>
-                    <p>Revenue chart will be displayed here</p>
-                    <p class="text-sm">Integration with charting library needed</p>
-                </div>
-            </div>
-        </div>
+    <div class="grid grid-cols-1 lg:grid-cols-1 gap-8 mb-8">
 
         <!-- User Registration Chart -->
         <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">

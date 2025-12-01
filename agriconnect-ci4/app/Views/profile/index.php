@@ -39,7 +39,49 @@
             </div>
         <?php endif; ?>
 
+        <?php if (session()->get('user_role') === 'admin'): ?>
+        <!-- Admin Profile Content -->
         <div class="flex flex-col lg:flex-row gap-6 max-w-4xl mx-auto">
+            <!-- Admin Profile Card -->
+            <div class="flex-1 flex flex-col space-y-4">
+                <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl shadow-lg border border-gray-100 p-4 transform hover:scale-105 transition-all duration-300">
+                    <div class="text-center mb-4">
+                        <div class="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center mx-auto mb-3 shadow-md">
+                            <i data-lucide="shield" class="w-8 h-8 text-white"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-1"><?= esc($user['name']) ?></h3>
+                        <p class="text-white/90 text-sm mb-3"><?= esc($user['email']) ?></p>
+                        <span class="inline-block px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs font-semibold rounded-full border border-white/30">
+                            <i data-lucide="crown" class="w-3 h-3 inline mr-1"></i>
+                            Administrator
+                        </span>
+                    </div>
+
+                    <div class="space-y-3 pt-4 border-t border-white/20">
+                        <div class="flex items-center text-white/90">
+                            <i data-lucide="calendar" class="w-5 h-5 mr-3"></i>
+                            <span class="text-sm">Admin since</span>
+                            <span class="ml-auto text-white font-semibold">
+                                <?= date('M Y', strtotime($user['created_at'])) ?>
+                            </span>
+                        </div>
+                        <div class="flex items-center text-white/90">
+                            <i data-lucide="shield-check" class="w-5 h-5 mr-3"></i>
+                            <span class="text-sm">Account Status</span>
+                            <span class="ml-auto">
+                                <span class="px-3 py-1 text-xs font-semibold rounded-full bg-white/20 text-white border border-white/30">
+                                    <i data-lucide="check-circle" class="w-3 h-3 inline mr-1"></i>
+                                    Active
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        <?php else: ?>
+        <!-- Regular User Profile Content -->
+        <div class="flex flex-col justify-center items-center gap-6 min-h-[80vh] max-w-2xl mx-auto">
             <!-- Profile Card -->
             <div class="flex-1 flex flex-col space-y-4">
                 <div class="bg-gradient-to-br from-primary to-primary-hover rounded-xl shadow-lg border border-gray-100 p-4 transform hover:scale-105 transition-all duration-300">
@@ -104,7 +146,130 @@
                     </div>
                 </div>
             </div>
+        <?php endif; ?>
 
+            <?php if (session()->get('user_role') === 'admin'): ?>
+            <!-- Admin Account Management -->
+            <div class="flex-1 flex flex-col">
+                <div class="bg-white rounded-lg shadow-md border border-gray-100 p-4 hover:shadow-lg transition-shadow duration-300 flex-1 flex flex-col min-h-[400px]">
+                    <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center justify-center">
+                        <i data-lucide="user-cog" class="w-5 h-5 text-blue-600 mr-2"></i>
+                        Account Management
+                    </h2>
+
+                    <!-- Admin Actions -->
+                    <div class="space-y-4 flex-1 flex flex-col items-center">
+                        <div class="w-full max-w-md space-y-3">
+                            <!-- Edit Profile Button -->
+                            <button onclick="toggleEditForm()" class="flex items-center justify-center p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200 hover:shadow-md transition-all duration-200 w-full">
+                                <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-3">
+                                    <i data-lucide="edit" class="w-5 h-5 text-white"></i>
+                                </div>
+                                <div class="text-center">
+                                    <h3 class="font-semibold text-blue-900">Edit Profile</h3>
+                                    <p class="text-sm text-blue-700">Update your account information</p>
+                                </div>
+                            </button>
+
+                            <!-- Add Admin Button -->
+                            <button onclick="toggleAddAdminForm()" class="flex items-center justify-center p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200 hover:shadow-md transition-all duration-200 w-full">
+                                <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mr-3">
+                                    <i data-lucide="user-plus" class="w-5 h-5 text-white"></i>
+                                </div>
+                                <div class="text-center">
+                                    <h3 class="font-semibold text-green-900">Add Admin Account</h3>
+                                    <p class="text-sm text-green-700">Create a new administrator account</p>
+                                </div>
+                            </button>
+                        </div>
+
+                        <!-- Edit Profile Form (Hidden by default) -->
+                        <div id="editProfileForm" class="hidden mt-6 w-full max-w-md p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <h3 class="text-md font-semibold text-gray-900 mb-4 text-center">Edit Profile Information</h3>
+                            <form action="/profile/update" method="POST" class="space-y-4">
+                                <?= csrf_field() ?>
+                                <div>
+                                    <label for="edit_name" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                                    <input type="text" id="edit_name" name="name" value="<?= esc($user['name']) ?>"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label for="edit_email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                    <input type="email" id="edit_email" name="email" value="<?= esc($user['email']) ?>"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label for="edit_phone" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                                    <input type="tel" id="edit_phone" name="phone" value="<?= esc($user['phone'] ?? '') ?>"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label for="edit_location" class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                                    <input type="text" id="edit_location" name="location" value="<?= esc($user['location'] ?? '') ?>"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div class="flex space-x-3">
+                                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                        <i data-lucide="save" class="w-4 h-4 inline mr-2"></i>
+                                        Save Changes
+                                    </button>
+                                    <button type="button" onclick="toggleEditForm()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Add Admin Form (Hidden by default) -->
+                        <div id="addAdminForm" class="hidden mt-6 w-full max-w-md p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <h3 class="text-md font-semibold text-gray-900 mb-4 text-center">Create New Admin Account</h3>
+                            <form action="/admin/users/create-admin" method="POST" class="space-y-4">
+                                <?= csrf_field() ?>
+                                <div>
+                                    <label for="admin_name" class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                                    <input type="text" id="admin_name" name="name" required
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label for="admin_email" class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                                    <input type="email" id="admin_email" name="email" required
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label for="admin_phone" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                                    <input type="tel" id="admin_phone" name="phone"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label for="admin_location" class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                                    <input type="text" id="admin_location" name="location"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label for="admin_password" class="block text-sm font-medium text-gray-700 mb-1">Password *</label>
+                                    <input type="password" id="admin_password" name="password" required
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label for="admin_password_confirm" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password *</label>
+                                    <input type="password" id="admin_password_confirm" name="password_confirm" required
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                </div>
+                                <div class="flex space-x-3">
+                                    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                                        <i data-lucide="user-plus" class="w-4 h-4 inline mr-2"></i>
+                                        Create Admin
+                                    </button>
+                                    <button type="button" onclick="toggleAddAdminForm()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <?php else: ?>
             <!-- Recent Activities -->
             <div class="flex-1 flex flex-col">
                 <div class="bg-white rounded-lg shadow-md border border-gray-100 p-4 hover:shadow-lg transition-shadow duration-300 flex-1 flex flex-col min-h-[400px]">
@@ -226,6 +391,7 @@
                     </div>
                 </div>
             </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>
@@ -243,6 +409,33 @@ function showActivityContent(type) {
     if (selectedContent) {
         selectedContent.classList.remove('hidden');
     }
+}
+
+// Admin form toggle functions
+function toggleEditForm() {
+    const form = document.getElementById('editProfileForm');
+    const addForm = document.getElementById('addAdminForm');
+
+    // Hide add admin form if open
+    if (addForm && !addForm.classList.contains('hidden')) {
+        addForm.classList.add('hidden');
+    }
+
+    // Toggle edit form
+    form.classList.toggle('hidden');
+}
+
+function toggleAddAdminForm() {
+    const form = document.getElementById('addAdminForm');
+    const editForm = document.getElementById('editProfileForm');
+
+    // Hide edit form if open
+    if (editForm && !editForm.classList.contains('hidden')) {
+        editForm.classList.add('hidden');
+    }
+
+    // Toggle add admin form
+    form.classList.toggle('hidden');
 }
 
 // Initialize on page load

@@ -104,33 +104,32 @@ class Admin extends BaseController
     public function userDetail($id)
     {
         $user = $this->userModel->find($id);
-        
+
         if (!$user) {
             return redirect()->to('/admin/users')
                 ->with('error', 'User not found.');
         }
-        
-        // Get user's products if farmer
-        $products = [];
-        if ($user['role'] === 'farmer') {
-            $products = $this->productModel->getProductsByFarmer($id);
-        }
-        
-        // Get user's orders
-        $orders = [];
-        if ($user['role'] === 'farmer') {
-            $orders = $this->orderModel->getOrdersByFarmer($id);
-        } elseif ($user['role'] === 'buyer') {
-            $orders = $this->orderModel->getOrdersByBuyer($id);
-        }
-        
+
+        // Get user's products (all users can have products now)
+        $products = $this->productModel->getProductsByFarmer($id);
+
+        // Get user's orders (both as buyer and seller)
+        $buyerOrders = $this->orderModel->getOrdersByBuyer($id);
+        $sellerOrders = $this->orderModel->getOrdersByFarmer($id);
+        $orders = array_merge($buyerOrders, $sellerOrders);
+
+        // Sort orders by creation date (most recent first)
+        usort($orders, function($a, $b) {
+            return strtotime($b['created_at']) - strtotime($a['created_at']);
+        });
+
         $data = [
             'title' => 'User: ' . $user['name'],
             'user' => $user,
             'products' => $products,
             'orders' => $orders
         ];
-        
+
         return view('admin/user_detail', $data);
     }
     

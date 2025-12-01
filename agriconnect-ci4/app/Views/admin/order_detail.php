@@ -80,9 +80,9 @@
                     </div>
                 </div>
 
-                <!-- Buyer Information -->
+                <!-- Customer Information -->
                 <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Buyer Information</h2>
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Customer Information</h2>
                     
                     <div class="space-y-3">
                         <div class="flex items-center">
@@ -125,9 +125,9 @@
                     </div>
                 </div>
 
-                <!-- Farmer Information -->
+                <!-- Seller Information -->
                 <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Farmer Information</h2>
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Seller Information</h2>
                     
                     <div class="space-y-3">
                         <div class="flex items-center">

@@ -206,7 +206,10 @@
                     mainContent.classList.add('ml-20');
                     sidebarTitle.classList.add('hidden');
                     sidebarTexts.forEach(text => text.classList.add('hidden'));
-                    sidebarLinks.forEach(link => link.classList.remove('px-4'));
+                    sidebarLinks.forEach(link => {
+                        link.classList.remove('px-4');
+                        link.classList.remove('hover:bg-primary', 'hover:text-white');
+                    });
                     sidebarIcons.forEach(icon => {
                         icon.classList.remove('w-5', 'h-5', 'mr-3');
                         icon.classList.add('w-10', 'h-10');
@@ -220,7 +223,10 @@
                     mainContent.classList.add('ml-64');
                     sidebarTitle.classList.remove('hidden');
                     sidebarTexts.forEach(text => text.classList.remove('hidden'));
-                    sidebarLinks.forEach(link => link.classList.add('px-4'));
+                    sidebarLinks.forEach(link => {
+                        link.classList.add('px-4');
+                        link.classList.add('hover:bg-primary', 'hover:text-white');
+                    });
                     sidebarIcons.forEach(icon => {
                         icon.classList.remove('w-10', 'h-10');
                         icon.classList.add('w-5', 'h-5', 'mr-3');

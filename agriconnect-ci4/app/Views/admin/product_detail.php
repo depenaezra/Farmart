@@ -97,12 +97,12 @@
             </div>
         </div>
 
-        <!-- Farmer Information & Actions -->
+        <!-- Seller Information & Actions -->
         <div class="lg:col-span-1">
             <div class="space-y-6">
-                <!-- Farmer Info -->
+                <!-- Seller Info -->
                 <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Farmer Information</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Seller Information</h3>
                     <div class="space-y-3">
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Name</label>
