@@ -28,16 +28,38 @@ class Checkout extends BaseController
                 ->with('error', 'Your cart is empty');
         }
         
-        // Calculate totals
+        // Get selected items from POST request (from cart page)
+        $selectedItemIds = $this->request->getPost('selected_items');
+        $itemsToCheckout = [];
+        
+        if ($selectedItemIds && is_array($selectedItemIds) && count($selectedItemIds) > 0) {
+            // Filter cart to only include selected items
+            foreach ($selectedItemIds as $itemId) {
+                if (isset($cart[$itemId])) {
+                    $itemsToCheckout[$itemId] = $cart[$itemId];
+                }
+            }
+        } else {
+            // If no selection, use all cart items
+            $itemsToCheckout = $cart;
+        }
+        
+        if (empty($itemsToCheckout)) {
+            return redirect()->to('/cart')
+                ->with('error', 'No items selected');
+        }
+        
+        // Calculate totals for selected items
         $subtotal = 0;
-        foreach ($cart as $item) {
+        foreach ($itemsToCheckout as $item) {
             $subtotal += $item['price'] * $item['quantity'];
         }
         
         $data = [
             'title' => 'Checkout',
-            'cart' => $cart,
-            'subtotal' => $subtotal
+            'cart' => $itemsToCheckout,
+            'subtotal' => $subtotal,
+            'selected_items' => array_keys($itemsToCheckout)
         ];
         
         return view('checkout/index', $data);
@@ -70,47 +92,71 @@ class Checkout extends BaseController
         
         $deliveryAddress = $this->request->getPost('delivery_address');
         $contactNumber = $this->request->getPost('contact_number');
+        $paymentMethod = $this->request->getPost('payment_method');
         $notes = $this->request->getPost('notes');
         $buyerId = session()->get('user_id');
+        
+        // Determine which items to process
+        $itemsToProcess = [];
+        
+        // Check if direct checkout (direct from product page)
+        $isDirectCheckout = $this->request->getPost('is_direct_checkout');
+        if ($isDirectCheckout) {
+            // For direct checkout, process all cart items (which should be just one product)
+            $itemsToProcess = $cart;
+        } else {
+            // For regular checkout, check if specific items are selected
+            $selectedItemIds = $this->request->getPost('selected_items');
+            
+            if ($selectedItemIds && is_array($selectedItemIds) && count($selectedItemIds) > 0) {
+                // Process only selected items
+                foreach ($selectedItemIds as $itemId) {
+                    if (isset($cart[$itemId])) {
+                        $itemsToProcess[$itemId] = $cart[$itemId];
+                    }
+                }
+            } else {
+                // If no selection, process all items
+                $itemsToProcess = $cart;
+            }
+        }
+        
+        if (empty($itemsToProcess)) {
+            return redirect()->to('/cart')
+                ->with('error', 'No items selected for checkout');
+        }
         
         $db = \Config\Database::connect();
         $db->transStart();
         
         $orderIds = [];
+        $processedItemIds = [];
         
         try {
-            // Create separate order for each farmer
-            $ordersByFarmer = [];
-            foreach ($cart as $item) {
-                $farmerId = $item['farmer_id'];
-                if (!isset($ordersByFarmer[$farmerId])) {
-                    $ordersByFarmer[$farmerId] = [];
-                }
-                $ordersByFarmer[$farmerId][] = $item;
-            }
-            
-            // Create orders
-            foreach ($ordersByFarmer as $farmerId => $items) {
-                foreach ($items as $item) {
-                    $orderData = [
-                        'buyer_id' => $buyerId,
-                        'farmer_id' => $farmerId,
-                        'product_id' => $item['product_id'],
-                        'quantity' => $item['quantity'],
-                        'unit' => $item['unit'],
-                        'total_price' => $item['price'] * $item['quantity'],
-                        'delivery_address' => $deliveryAddress . "\nContact: " . $contactNumber,
-                        'notes' => $notes
-                    ];
+            // Create separate order for each item (or group by farmer if needed)
+            foreach ($itemsToProcess as $itemId => $item) {
+                $orderData = [
+                    'buyer_id' => $buyerId,
+                    'farmer_id' => $item['farmer_id'],
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'unit' => $item['unit'],
+                    'total_price' => $item['price'] * $item['quantity'],
+                    'delivery_address' => $deliveryAddress . "\nContact: " . $contactNumber,
+                    'payment_method' => $paymentMethod,
+                    'notes' => $notes
+                ];
+                
+                $orderId = $this->orderModel->createOrder($orderData);
+                
+                if ($orderId) {
+                    $orderIds[] = $orderId;
+                    $processedItemIds[] = $itemId;
                     
-                    $orderId = $this->orderModel->createOrder($orderData);
-                    
-                    if ($orderId) {
-                        $orderIds[] = $orderId;
-                        
-                        // Reduce stock
-                        $this->productModel->reduceStock($item['product_id'], $item['quantity']);
-                    }
+                    // Reduce stock
+                    $this->productModel->reduceStock($item['product_id'], $item['quantity']);
+                } else {
+                    throw new \Exception('Failed to create order for product: ' . $item['product_name']);
                 }
             }
             
@@ -121,8 +167,17 @@ class Checkout extends BaseController
                     ->with('error', 'Failed to place order. Please try again.');
             }
             
-            // Clear cart
-            session()->remove('cart');
+            // Remove processed items from cart
+            foreach ($processedItemIds as $itemId) {
+                unset($cart[$itemId]);
+            }
+            
+            // Update session cart (or remove if empty)
+            if (empty($cart)) {
+                session()->remove('cart');
+            } else {
+                session()->set('cart', $cart);
+            }
             
             // Store order IDs in session for success page
             session()->setFlashdata('order_ids', $orderIds);
@@ -132,8 +187,10 @@ class Checkout extends BaseController
                 
         } catch (\Exception $e) {
             $db->transRollback();
+            log_message('error', 'Checkout error: ' . $e->getMessage());
             return redirect()->back()
-                ->with('error', 'An error occurred while processing your order.');
+                ->withInput()
+                ->with('error', 'An error occurred while processing your order: ' . $e->getMessage());
         }
     }
     

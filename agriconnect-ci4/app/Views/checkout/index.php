@@ -344,7 +344,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check for checkout success
     <?php if (session()->has('checkout_success') && session()->get('checkout_success')): ?>
         <?php
-        $orderCount = session()->get('checkout_order_count', 1);
+        $orderCount = session()->get('checkout_order_count') ?? 1;
         session()->remove('checkout_success');
         session()->remove('checkout_order_count');
         ?>

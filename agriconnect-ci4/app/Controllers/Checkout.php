@@ -145,6 +145,7 @@ class Checkout extends BaseController
     {
         $userId = session()->get('user_id');
         $isDirectCheckout = $this->request->getPost('is_direct_checkout') === '1';
+        $selectedItems = [];  // Initialize early
 
         // Debug logging
         log_message('debug', 'PlaceOrder called - UserID: ' . $userId . ', User Role: ' . session()->get('user_role') . ', DirectCheckout: ' . ($isDirectCheckout ? 'Yes' : 'No'));
@@ -197,6 +198,8 @@ class Checkout extends BaseController
             } else {
                 $cart = $this->cartModel->getUserCart($userId);
                 log_message('debug', 'No selected items, using all cart items: ' . count($cart));
+                // Set $selectedItems to all cart item IDs for removal later
+                $selectedItems = array_map(function($item) { return $item['id']; }, $cart);
             }
 
             if (empty($cart)) {
@@ -298,8 +301,10 @@ class Checkout extends BaseController
                 
         } catch (\Exception $e) {
             $db->transRollback();
+            log_message('error', 'Checkout exception: ' . $e->getMessage() . ' - ' . $e->getFile() . ':' . $e->getLine());
             return redirect()->back()
-                ->with('error', 'An error occurred while processing your order.');
+                ->withInput()
+                ->with('error', 'An error occurred while processing your order: ' . $e->getMessage());
         }
     }
     

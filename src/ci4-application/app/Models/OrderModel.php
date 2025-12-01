@@ -16,6 +16,7 @@ class OrderModel extends Model
         'quantity',
         'unit',
         'total_price',
+        'payment_method',
         'status',
         'delivery_address',
         'notes'

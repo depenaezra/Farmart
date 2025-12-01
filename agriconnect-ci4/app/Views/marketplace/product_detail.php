@@ -95,6 +95,27 @@
                     <p class="text-gray-700 text-sm leading-relaxed"><?= nl2br(esc($product['description'])) ?></p>
                 </div>
                 <?php endif; ?>
+
+                <!-- Quantity Selector & Add to Cart -->
+                <?php if ($product['farmer_id'] != session()->get('user_id')): ?>
+                <div class="border-t pt-6 mt-6">
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">Quantity</label>
+                    <div class="flex items-center gap-4 mb-4">
+                        <button onclick="decrementQuantity()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition-colors">
+                            <i data-lucide="minus" class="w-4 h-4"></i>
+                        </button>
+                        <input type="number" id="quantity" value="1" min="1" max="<?= $product['stock_quantity'] ?>" class="w-20 text-center border-2 border-gray-300 rounded-lg py-2 px-3 font-semibold focus:border-primary focus:outline-none">
+                        <button onclick="incrementQuantity()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition-colors">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                        </button>
+                        <span class="text-sm text-gray-600"><?= esc($product['unit']) ?></span>
+                    </div>
+                    <button onclick="addToCart()" class="w-full bg-primary hover:bg-primary-hover text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2">
+                        <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                        Add to Cart
+                    </button>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
 

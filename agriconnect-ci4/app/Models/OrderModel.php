@@ -52,7 +52,10 @@ class OrderModel extends Model
         $data['order_number'] = $this->generateOrderNumber();
         $data['status'] = 'pending';
         
-        return $this->insert($data);
+        if ($this->insert($data)) {
+            return $this->getInsertID();
+        }
+        return false;
     }
     
     /**
