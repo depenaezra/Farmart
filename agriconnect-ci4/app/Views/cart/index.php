@@ -45,8 +45,19 @@
 
                                     <!-- Product Image -->
                                     <div class="flex-shrink-0">
-                                        <?php if (!empty($item['image_url'])): ?>
-                                            <img src="<?= esc($item['image_url']) ?>"
+                                        <?php
+                                        $cartImage = null;
+                                        if (!empty($item['image_url'])) {
+                                            $decoded = json_decode($item['image_url'], true);
+                                            if (is_array($decoded)) {
+                                                $cartImage = $decoded[0];
+                                            } else {
+                                                $cartImage = $item['image_url'];
+                                            }
+                                        }
+                                        ?>
+                                        <?php if (!empty($cartImage)): ?>
+                                            <img src="<?= esc($cartImage) ?>"
                                                  alt="<?= esc($item['product_name']) ?>"
                                                  class="w-24 h-24 object-cover rounded-lg">
                                         <?php else: ?>

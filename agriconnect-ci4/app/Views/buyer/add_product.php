@@ -140,15 +140,16 @@
 
                     <!-- Image Upload -->
                     <div class="md:col-span-2">
-                        <label for="image" class="block text-sm font-semibold text-gray-700 mb-2">Product Image</label>
+                        <label for="images" class="block text-sm font-semibold text-gray-700 mb-2">Product Images (Max 5)</label>
                         <input
                             type="file"
-                            id="image"
-                            name="image"
+                            id="images"
+                            name="images[]"
                             accept="image/*"
+                            multiple
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-hover"
                         >
-                        <p class="text-sm text-gray-500 mt-1">Upload a clear image of your product (optional)</p>
+                        <p class="text-sm text-gray-500 mt-1">Select up to 5 images. Supported formats: JPG, PNG, GIF (Max 5MB each)</p>
                     </div>
                 </div>
 
