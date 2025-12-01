@@ -166,7 +166,7 @@
 <?php endif; ?>
 
 <!-- Call to Action -->
-<section class="py-12 md:py-16 bg-primary text-white">
+<section class="py-12 md:py-16 bg-success text-white">
     <div class="container mx-auto px-4 text-center">
         <h2 class="text-3xl font-bold mb-4">Ready to Join Farmart?</h2>
         <p class="text-xl mb-8 text-white/90">Whether you're a farmer or a buyer, join our community today!</p>
