@@ -275,10 +275,10 @@ class OrderModel extends Model
      */
     public function getRecentOrders($limit = 10)
     {
-        return $this->select('orders.*, 
-                              products.name as product_name,
-                              buyer.name as buyer_name,
-                              farmer.name as farmer_name')
+        return $this->select('orders.*,
+                               products.name as product_name,
+                               buyer.name as buyer_name,
+                               farmer.name as farmer_name')
                     ->join('products', 'products.id = orders.product_id')
                     ->join('users as buyer', 'buyer.id = orders.buyer_id')
                     ->join('users as farmer', 'farmer.id = orders.farmer_id')
@@ -286,5 +286,48 @@ class OrderModel extends Model
                     ->limit($limit)
                     ->get()
                     ->getResultArray();
+    }
+
+    /**
+     * Get sales data for charts (monthly sales for last 12 months)
+     */
+    public function getSalesChartData($farmerId)
+    {
+        $db = \Config\Database::connect();
+
+        // Get sales data for last 12 months
+        $query = $db->query("
+            SELECT
+                DATE_FORMAT(created_at, '%Y-%m') as month,
+                SUM(total_price) as revenue,
+                COUNT(*) as orders_count
+            FROM orders
+            WHERE farmer_id = ?
+                AND status = 'completed'
+                AND created_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
+            GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+            ORDER BY month ASC
+        ", [$farmerId]);
+
+        return $query->getResultArray();
+    }
+
+    /**
+     * Get order status distribution for pie chart
+     */
+    public function getOrderStatusChartData($farmerId)
+    {
+        $db = \Config\Database::connect();
+
+        $query = $db->query("
+            SELECT
+                status,
+                COUNT(*) as count
+            FROM orders
+            WHERE farmer_id = ?
+            GROUP BY status
+        ", [$farmerId]);
+
+        return $query->getResultArray();
     }
 }

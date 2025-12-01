@@ -215,4 +215,29 @@ class ProductModel extends Model
     {
         return $this->update($productId, ['status' => 'rejected']);
     }
+
+    /**
+     * Get top performing products by sales for charts
+     */
+    public function getTopProductsChartData($farmerId, $limit = 10)
+    {
+        $db = \Config\Database::connect();
+
+        $query = $db->query("
+            SELECT
+                p.name as product_name,
+                SUM(o.total_price) as total_revenue,
+                SUM(o.quantity) as total_quantity_sold,
+                COUNT(o.id) as orders_count
+            FROM products p
+            LEFT JOIN orders o ON p.id = o.product_id AND o.status = 'completed'
+            WHERE p.farmer_id = ?
+            GROUP BY p.id, p.name
+            HAVING total_revenue > 0
+            ORDER BY total_revenue DESC
+            LIMIT ?
+        ", [$farmerId, $limit]);
+
+        return $query->getResultArray();
+    }
 }
