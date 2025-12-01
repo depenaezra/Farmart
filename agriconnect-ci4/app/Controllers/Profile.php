@@ -34,33 +34,33 @@ class Profile extends BaseController
 
         $db = \Config\Database::connect();
 
-        // Get recent likes (last 5)
+        // Get recent likes (last 10)
         $recentLikes = $db->table('forum_likes')
-            ->select('forum_likes.created_at, forum_posts.title as post_title')
+            ->select('forum_likes.created_at, forum_posts.title as post_title, forum_posts.id as post_id')
             ->join('forum_posts', 'forum_posts.id = forum_likes.post_id')
             ->where('forum_likes.user_id', $userId)
             ->orderBy('forum_likes.created_at', 'DESC')
-            ->limit(5)
+            ->limit(10)
             ->get()
             ->getResultArray();
 
-        // Get recent comments (last 5)
+        // Get recent comments (last 10)
         $recentComments = $db->table('forum_comments')
-            ->select('forum_comments.comment, forum_comments.created_at, forum_posts.title as post_title')
+            ->select('forum_comments.comment, forum_comments.created_at, forum_posts.title as post_title, forum_posts.id as post_id')
             ->join('forum_posts', 'forum_posts.id = forum_comments.post_id')
             ->where('forum_comments.user_id', $userId)
             ->orderBy('forum_comments.created_at', 'DESC')
-            ->limit(5)
+            ->limit(10)
             ->get()
             ->getResultArray();
 
-        // Get recent cart additions (last 5)
+        // Get recent cart additions (last 10)
         $recentCartItems = $db->table('cart')
-            ->select('cart.created_at, cart.quantity, products.name as product_name, products.price')
+            ->select('cart.created_at, cart.quantity, products.name as product_name, products.price, products.id as product_id')
             ->join('products', 'products.id = cart.product_id')
             ->where('cart.user_id', $userId)
             ->orderBy('cart.created_at', 'DESC')
-            ->limit(5)
+            ->limit(10)
             ->get()
             ->getResultArray();
 
