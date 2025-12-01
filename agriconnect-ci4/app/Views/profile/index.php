@@ -3,7 +3,7 @@
 <?= $this->section('content') ?>
 
 <div class="container mx-auto px-4 py-8">
-    <div class="max-w-4xl">
+    <div class="w-full">
         <div class="mb-8">
             <div class="flex items-center justify-between">
                 <div>
@@ -69,10 +69,10 @@
             </div>
 
             <!-- Profile Details -->
-            <div class="lg:col-span-2">
+            <div class="lg:col-span-1">
                 <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
                     <h2 class="text-xl font-semibold text-gray-900 mb-6">Profile Information</h2>
-                    
+
                     <div class="space-y-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
@@ -105,6 +105,102 @@
                             </div>
                         <?php endif; ?>
 
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activities -->
+            <div class="lg:col-span-1 flex">
+                <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6 flex-1 flex flex-col min-h-[600px]">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-6 text-center">Recent Activities</h2>
+
+                    <div class="flex-1 space-y-6 overflow-y-auto">
+                        <!-- Recent Likes -->
+                        <div class="flex-1">
+                            <h3 class="text-lg font-medium text-gray-900 mb-3 flex items-center justify-center">
+                                <i data-lucide="heart" class="w-5 h-5 text-red-500 mr-2"></i>
+                                Recent Likes
+                            </h3>
+                            <?php if (!empty($recent_likes)): ?>
+                                <div class="space-y-2 flex flex-col items-center">
+                                    <?php foreach ($recent_likes as $like): ?>
+                                        <div class="flex items-start space-x-2 p-3 bg-gray-50 rounded-lg w-full max-w-xs">
+                                            <i data-lucide="heart" class="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0"></i>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm text-gray-900 truncate">
+                                                    <?= esc($like['post_title']) ?>
+                                                </p>
+                                                <p class="text-xs text-gray-500">
+                                                    <?= date('M j, Y g:i A', strtotime($like['created_at'])) ?>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php else: ?>
+                                <p class="text-sm text-gray-500 text-center">No recent likes</p>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Recent Comments -->
+                        <div class="flex-1">
+                            <h3 class="text-lg font-medium text-gray-900 mb-3 flex items-center justify-center">
+                                <i data-lucide="message-circle" class="w-5 h-5 text-blue-500 mr-2"></i>
+                                Recent Comments
+                            </h3>
+                            <?php if (!empty($recent_comments)): ?>
+                                <div class="space-y-2 flex flex-col items-center">
+                                    <?php foreach ($recent_comments as $comment): ?>
+                                        <div class="flex items-start space-x-2 p-3 bg-gray-50 rounded-lg w-full max-w-xs">
+                                            <i data-lucide="message-circle" class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0"></i>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm text-gray-900 truncate">
+                                                    On: <?= esc($comment['post_title']) ?>
+                                                </p>
+                                                <p class="text-sm text-gray-600 line-clamp-2">
+                                                    "<?= esc(substr($comment['comment'], 0, 40)) ?><?= strlen($comment['comment']) > 40 ? '...' : '' ?>"
+                                                </p>
+                                                <p class="text-xs text-gray-500">
+                                                    <?= date('M j, Y g:i A', strtotime($comment['created_at'])) ?>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php else: ?>
+                                <p class="text-sm text-gray-500 text-center">No recent comments</p>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Recent Cart Additions -->
+                        <div class="flex-1">
+                            <h3 class="text-lg font-medium text-gray-900 mb-3 flex items-center justify-center">
+                                <i data-lucide="shopping-cart" class="w-5 h-5 text-green-500 mr-2"></i>
+                                Cart Additions
+                            </h3>
+                            <?php if (!empty($recent_cart_items)): ?>
+                                <div class="space-y-2 flex flex-col items-center">
+                                    <?php foreach ($recent_cart_items as $item): ?>
+                                        <div class="flex items-start space-x-2 p-3 bg-gray-50 rounded-lg w-full max-w-xs">
+                                            <i data-lucide="shopping-cart" class="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0"></i>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm text-gray-900 truncate">
+                                                    <?= esc($item['product_name']) ?>
+                                                </p>
+                                                <p class="text-sm text-gray-600">
+                                                    Qty: <?= $item['quantity'] ?> • ₱<?= number_format($item['price'], 2) ?>
+                                                </p>
+                                                <p class="text-xs text-gray-500">
+                                                    <?= date('M j, Y g:i A', strtotime($item['created_at'])) ?>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php else: ?>
+                                <p class="text-sm text-gray-500 text-center">No recent cart additions</p>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
             </div>

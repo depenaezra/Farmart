@@ -77,6 +77,7 @@ CREATE TABLE `orders` (
   `quantity` int(11) NOT NULL,
   `unit` varchar(50) NOT NULL,
   `total_price` decimal(10,2) NOT NULL,
+  `payment_method` enum('in_person','gcash') DEFAULT NULL,
   `status` enum('pending','confirmed','processing','completed','cancelled') DEFAULT 'pending',
   `delivery_address` text,
   `notes` text,

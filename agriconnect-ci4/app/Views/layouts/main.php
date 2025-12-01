@@ -121,7 +121,9 @@
         </div>
     </main>
     
-    <?= $this->include('components/footer') ?>
+    <?php if (!session()->has('logged_in') || !session()->get('logged_in')): ?>
+        <?= $this->include('components/footer') ?>
+    <?php endif; ?>
     
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -141,6 +143,12 @@
                 if (/green|success/.test(cls)) { icon = 'success'; title = 'Success'; }
                 else if (/red|error/.test(cls)) { icon = 'error'; title = 'Error'; }
                 else if (/warning/.test(cls)) { icon = 'warning'; title = 'Warning'; }
+
+                // Skip error messages - don't show them as popups
+                if (icon === 'error') {
+                    el.remove(); // Just remove error alerts without showing popup
+                    return;
+                }
 
                 // Extract message HTML: prefer list items, otherwise paragraph text
                 let html = '';

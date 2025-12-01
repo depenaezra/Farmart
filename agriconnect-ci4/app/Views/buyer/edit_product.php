@@ -140,21 +140,45 @@
 
                     <!-- Image Upload -->
                     <div class="md:col-span-2">
-                        <label for="image" class="block text-sm font-semibold text-gray-700 mb-2">Product Image</label>
-                        <?php if (!empty($product['image_url'])): ?>
+                        <label for="images" class="block text-sm font-semibold text-gray-700 mb-2">Product Images (Max 5)</label>
+                        <?php
+                        $currentImages = [];
+                        if (!empty($product['image_url'])) {
+                            $decoded = json_decode($product['image_url'], true);
+                            if (is_array($decoded)) {
+                                $currentImages = $decoded;
+                            } else {
+                                $currentImages = [$product['image_url']];
+                            }
+                        }
+                        ?>
+                        <?php if (!empty($currentImages)): ?>
                             <div class="mb-4">
-                                <img src="<?= base_url($product['image_url']) ?>" alt="Current product image" class="w-32 h-32 object-cover rounded-lg border">
-                                <p class="text-sm text-gray-500 mt-2">Current image. Upload a new one to replace it.</p>
+                                <p class="text-sm font-medium text-gray-700 mb-2">Current Images:</p>
+                                <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
+                                    <?php foreach ($currentImages as $index => $image): ?>
+                                        <div class="relative">
+                                            <img src="<?= base_url($image) ?>" alt="Product image <?= $index + 1 ?>" class="w-full h-20 object-cover rounded-lg border">
+                                            <button type="button" onclick="removeImage(<?= $index ?>)" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600">
+                                                ×
+                                            </button>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                                <p class="text-sm text-gray-500 mt-2">Upload new images to add or replace existing ones.</p>
                             </div>
                         <?php endif; ?>
                         <input
                             type="file"
-                            id="image"
-                            name="image"
+                            id="images"
+                            name="images[]"
                             accept="image/*"
+                            multiple
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-hover"
                         >
-                        <p class="text-sm text-gray-500 mt-1">Upload a new image to replace the current one (optional)</p>
+                        <p class="text-sm text-gray-500 mt-1">Select up to 5 images. Supported formats: JPG, PNG, GIF (Max 5MB each)</p>
+                        <input type="hidden" name="existing_images" value='<?= json_encode($currentImages) ?>'>
+                        <input type="hidden" name="removed_images" id="removed_images" value="">
                     </div>
                 </div>
 
@@ -172,5 +196,26 @@
         </div>
     </div>
 </div>
+
+<script>
+function removeImage(index) {
+    const existingImagesInput = document.querySelector('input[name="existing_images"]');
+    const removedImagesInput = document.getElementById('removed_images');
+
+    let existingImages = JSON.parse(existingImagesInput.value);
+    let removedImages = removedImagesInput.value ? JSON.parse(removedImagesInput.value) : [];
+
+    // Add to removed list
+    removedImages.push(existingImages[index]);
+    removedImagesInput.value = JSON.stringify(removedImages);
+
+    // Remove from existing images
+    existingImages.splice(index, 1);
+    existingImagesInput.value = JSON.stringify(existingImages);
+
+    // Remove the image element from DOM
+    event.target.closest('.relative').remove();
+}
+</script>
 
 <?= $this->endSection() ?>

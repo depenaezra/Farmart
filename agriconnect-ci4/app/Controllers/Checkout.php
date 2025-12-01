@@ -145,6 +145,7 @@ class Checkout extends BaseController
     {
         $userId = session()->get('user_id');
         $isDirectCheckout = $this->request->getPost('is_direct_checkout') === '1';
+        $selectedItems = [];  // Initialize early
 
         // Debug logging
         log_message('debug', 'PlaceOrder called - UserID: ' . $userId . ', User Role: ' . session()->get('user_role') . ', DirectCheckout: ' . ($isDirectCheckout ? 'Yes' : 'No'));
@@ -197,6 +198,8 @@ class Checkout extends BaseController
             } else {
                 $cart = $this->cartModel->getUserCart($userId);
                 log_message('debug', 'No selected items, using all cart items: ' . count($cart));
+                // Set $selectedItems to all cart item IDs for removal later
+                $selectedItems = array_map(function($item) { return $item['id']; }, $cart);
             }
 
             if (empty($cart)) {
@@ -285,21 +288,30 @@ class Checkout extends BaseController
             // Clear selected items from database cart (only for regular checkout, not direct checkout)
             if (!$isDirectCheckout && isset($selectedItems) && $selectedItems) {
                 foreach ($selectedItems as $cartItemId) {
-                    $this->cartModel->removeFromCart($cartItemId, $userId);
+                    $success = $this->cartModel->removeFromCart($cartItemId, $userId);
+                    log_message('debug', 'Removed cart item ' . $cartItemId . ': ' . ($success ? 'Success' : 'Failed'));
                 }
             }
 
-            // Set success flag for popup and stay on checkout page
+            // Set success flag and order info in session
             session()->set('checkout_success', true);
             session()->set('checkout_order_count', count($orderIds));
+            session()->set('last_order_ids', $orderIds);
 
-            // Return to checkout page to show success popup
-            return redirect()->to('/checkout')->with('success', 'Order placed successfully!');
+            // Redirect to cart to show updated cart (with checked-out items removed)
+            // or to success page if direct checkout
+            if ($isDirectCheckout) {
+                return redirect()->to('/checkout/success')->with('success', 'Order placed successfully!');
+            } else {
+                return redirect()->to('/cart')->with('success', count($orderIds) . ' order(s) placed successfully! Checked-out items have been removed from your cart.');
+            }
                 
         } catch (\Exception $e) {
             $db->transRollback();
+            log_message('error', 'Checkout exception: ' . $e->getMessage() . ' - ' . $e->getFile() . ':' . $e->getLine());
             return redirect()->back()
-                ->with('error', 'An error occurred while processing your order.');
+                ->withInput()
+                ->with('error', 'An error occurred while processing your order: ' . $e->getMessage());
         }
     }
     

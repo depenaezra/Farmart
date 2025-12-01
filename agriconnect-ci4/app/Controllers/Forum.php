@@ -233,8 +233,7 @@ class Forum extends BaseController
 
         if (!$this->validate($rules)) {
             return redirect()->back()
-                ->withInput()
-                ->with('errors', $validation->getErrors());
+                ->withInput();
         }
 
         $db = \Config\Database::connect();
@@ -394,14 +393,9 @@ class Forum extends BaseController
             }
 
             return redirect()->back()
-                ->with('success', 'Comment added!');
+                ->with('success', 'Comment added successfully!');
         } else {
-            if ($this->request->isAJAX()) {
-                return $this->response->setJSON(['success' => false, 'message' => 'Failed to add comment.']);
-            }
-
-            return redirect()->back()
-                ->with('error', 'Failed to add comment.');
+            return redirect()->back();
         }
     }
     

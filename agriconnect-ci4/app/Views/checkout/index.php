@@ -146,8 +146,19 @@
                 <div class="space-y-4 mb-6 max-h-96 overflow-y-auto">
                     <?php foreach ($cart as $item): ?>
                         <div class="flex gap-3 pb-4 border-b border-gray-200 last:border-0">
-                            <?php if (!empty($item['image_url'])): ?>
-                                <img src="<?= esc($item['image_url']) ?>"
+                            <?php
+                            $checkoutImage = null;
+                            if (!empty($item['image_url'])) {
+                                $decoded = json_decode($item['image_url'], true);
+                                if (is_array($decoded)) {
+                                    $checkoutImage = $decoded[0];
+                                } else {
+                                    $checkoutImage = $item['image_url'];
+                                }
+                            }
+                            ?>
+                            <?php if (!empty($checkoutImage)): ?>
+                                <img src="<?= esc($checkoutImage) ?>"
                                      alt="<?= esc($item['product_name']) ?>"
                                      class="w-16 h-16 object-cover rounded-lg flex-shrink-0">
                             <?php else: ?>
@@ -333,7 +344,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check for checkout success
     <?php if (session()->has('checkout_success') && session()->get('checkout_success')): ?>
         <?php
-        $orderCount = session()->get('checkout_order_count', 1);
+        $orderCount = session()->get('checkout_order_count') ?? 1;
         session()->remove('checkout_success');
         session()->remove('checkout_order_count');
         ?>

@@ -11,137 +11,128 @@
         </a>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Product Image -->
-            <div class="bg-white rounded-xl shadow-md border-2 border-gray-200 overflow-hidden">
-                <?php if ($product['image_url']): ?>
-                    <img src="<?= esc($product['image_url']) ?>" alt="<?= esc($product['name']) ?>" class="w-full h-96 object-cover">
+            <!-- Product Images -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <?php
+                $images = [];
+                if (!empty($product['image_url'])) {
+                    $decoded = json_decode($product['image_url'], true);
+                    if (is_array($decoded)) {
+                        $images = $decoded;
+                    } else {
+                        $images = [$product['image_url']];
+                    }
+                }
+                ?>
+                <?php if (!empty($images)): ?>
+                    <?php if (count($images) === 1): ?>
+                        <img src="<?= esc($images[0]) ?>" alt="<?= esc($product['name']) ?>" class="w-full h-64 object-cover">
+                    <?php else: ?>
+                        <div class="relative">
+                            <img id="mainImage" src="<?= esc($images[0]) ?>" alt="<?= esc($product['name']) ?>" class="w-full h-64 object-cover">
+                            <button onclick="prevImage()" class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-all" id="prevBtn">
+                                <i data-lucide="chevron-left" class="w-6 h-6"></i>
+                            </button>
+                            <button onclick="nextImage()" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-all" id="nextBtn">
+                                <i data-lucide="chevron-right" class="w-6 h-6"></i>
+                            </button>
+                            <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                                <?php foreach ($images as $index => $image): ?>
+                                    <button onclick="showImage(<?= $index ?>)" class="w-3 h-3 rounded-full bg-white bg-opacity-50 hover:bg-opacity-75 transition-all" id="dot-<?= $index ?>"></button>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                 <?php else: ?>
-                    <div class="w-full h-96 bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
-                        <i data-lucide="package" class="w-24 h-24 text-green-600"></i>
+                    <div class="w-full h-64 bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
+                        <i data-lucide="package" class="w-16 h-16 text-green-600"></i>
                     </div>
                 <?php endif; ?>
             </div>
 
             <!-- Product Details -->
-            <div class="bg-white rounded-xl shadow-md border-2 border-gray-200 p-6">
-                <div class="inline-block px-3 py-1 bg-primary/10 text-primary text-sm font-semibold rounded mb-4">
+            <div class="bg-white rounded-lg shadow-md border-2 border-gray-200 p-4">
+                <div class="inline-block px-2 py-1 bg-primary/10 text-primary text-xs font-semibold rounded mb-2">
                     <?= ucfirst(esc($product['category'])) ?>
                 </div>
 
-                <h1 class="text-3xl font-bold text-gray-900 mb-4"><?= esc($product['name']) ?></h1>
+                <h1 class="text-xl font-bold text-gray-900 mb-2"><?= esc($product['name']) ?></h1>
 
-                <div class="text-primary text-4xl font-bold mb-6">
+                <div class="text-primary text-2xl font-bold mb-3">
                     ₱<?= number_format($product['price'], 2) ?>
-                    <span class="text-lg text-gray-600">/ <?= esc($product['unit']) ?></span>
+                    <span class="text-sm text-gray-600">/ <?= esc($product['unit']) ?></span>
                 </div>
 
-                <!-- Action Buttons -->
-                <div class="flex gap-3 mb-6">
-                    <?php if ($product['farmer_id'] == session()->get('user_id')): ?>
-                        <!-- Edit and Delete buttons for own product -->
-                        <a href="/farmer/products/edit/<?= $product['id'] ?>" class="flex-1 bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 transition-colors font-semibold text-center flex flex-col items-center">
-                            <i data-lucide="edit" class="w-6 h-6 mb-1"></i>
-                            <span class="text-xs">Edit Product</span>
-                        </a>
-                        <form action="/farmer/products/delete/<?= $product['id'] ?>" method="POST" class="inline swal-confirm-form" data-confirm="Are you sure you want to delete this product?">
-                            <button type="submit" class="bg-red-500 text-white p-3 rounded-lg hover:bg-red-600 transition-colors font-semibold flex flex-col items-center">
-                                <i data-lucide="trash-2" class="w-6 h-6 mb-1"></i>
-                                <span class="text-xs">Delete Product</span>
-                            </button>
-                        </form>
-                    <?php else: ?>
-                        <!-- Purchase Options (if authenticated user, not admin) -->
-                        <?php if (session()->has('user_id') && session()->get('user_role') !== 'admin'): ?>
-                        <div class="flex-1">
-                            <div class="flex gap-2">
-                                <div class="flex items-center bg-gray-100 rounded-lg">
-                                    <button type="button" onclick="decrementQuantity()" class="px-2 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-l-lg transition-colors">
-                                        <i data-lucide="minus" class="w-4 h-4"></i>
-                                    </button>
-                                    <div class="flex items-center gap-1 px-2">
-                                        <label for="quantity" class="text-sm font-medium text-gray-700">Qty:</label>
-                                        <input
-                                            type="number"
-                                            id="quantity"
-                                            name="quantity"
-                                            value="1"
-                                            min="1"
-                                            max="<?= $product['stock_quantity'] ?>"
-                                            class="w-12 px-1 py-2 border-0 bg-transparent text-center focus:ring-0 focus:outline-none"
-                                            required
-                                        >
-                                        <span class="text-sm text-gray-600"><?= esc($product['unit']) ?></span>
-                                    </div>
-                                    <button type="button" onclick="incrementQuantity()" class="px-2 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-r-lg transition-colors">
-                                        <i data-lucide="plus" class="w-4 h-4"></i>
-                                    </button>
-                                </div>
-                                <button type="button" onclick="addToCart()" class="w-20 bg-primary text-white p-3 rounded-lg hover:bg-primary-hover transition-colors font-semibold flex flex-col items-center">
-                                    <i data-lucide="shopping-cart" class="w-6 h-6 mb-1"></i>
-                                    <span class="text-xs">Add to Cart</span>
-                                </button>
-                            </div>
-                        </div>
 
-                        <!-- Buy Now Button -->
-                        <form action="/checkout/direct" method="POST" class="inline">
-                            <?= csrf_field() ?>
-                            <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
-                            <input type="hidden" name="quantity" id="buy_now_quantity" value="1">
-                            <button type="submit" class="w-20 bg-green-500 text-white p-3 rounded-lg hover:bg-green-600 transition-colors font-semibold flex flex-col items-center">
-                                <i data-lucide="credit-card" class="w-6 h-6 mb-1"></i>
-                                <span class="text-xs">Buy Now</span>
-                            </button>
-                        </form>
-
-                        <!-- Report Button -->
-                        <button onclick="reportPost(<?= $product['id'] ?>, 'product')" class="w-20 bg-red-100 text-red-700 p-3 rounded-lg hover:bg-red-200 transition-colors font-semibold flex flex-col items-center" title="Report this product">
-                            <i data-lucide="flag" class="w-6 h-6 mb-1"></i>
-                            <span class="text-xs">Report</span>
-                        </button>
-                        <?php else: ?>
-                        <!-- Login to Purchase (if not authenticated) -->
-                        <a href="/auth/login" class="flex-1 block bg-primary text-white p-3 rounded-lg hover:bg-primary-hover transition-colors font-semibold text-center flex flex-col items-center">
-                            <i data-lucide="log-in" class="w-6 h-6 mb-1"></i>
-                            <span class="text-xs">Login to Purchase</span>
-                        </a>
-                        <?php endif; ?>
-                    <?php endif; ?>
-                </div>
-
-                <div class="space-y-3 mb-6">
-                    <div class="flex items-center text-gray-600">
-                        <i data-lucide="map-pin" class="w-5 h-5 mr-3"></i>
+                <div class="space-y-2 mb-4">
+                    <div class="flex items-center text-gray-600 text-sm">
+                        <i data-lucide="map-pin" class="w-4 h-4 mr-2"></i>
                         <span>Location: <?= esc($product['farmer_location'] ?? 'Nasugbu') ?></span>
                     </div>
-                    <div class="flex items-center text-gray-600">
-                        <i data-lucide="user" class="w-5 h-5 mr-3"></i>
+                    <div class="flex items-center text-gray-600 text-sm">
+                        <i data-lucide="user" class="w-4 h-4 mr-2"></i>
                         <span>Seller: <?= esc($product['farmer_name']) ?></span>
                     </div>
-                    <div class="flex items-center text-gray-600">
-                        <i data-lucide="phone" class="w-5 h-5 mr-3"></i>
+                    <div class="flex items-center text-gray-600 text-sm">
+                        <i data-lucide="phone" class="w-4 h-4 mr-2"></i>
                         <span>Contact: <?= esc($product['farmer_phone']) ?></span>
                     </div>
-                    <div class="flex items-center text-gray-600">
-                        <i data-lucide="package-check" class="w-5 h-5 mr-3"></i>
+                    <div class="flex items-center text-gray-600 text-sm">
+                        <i data-lucide="package-check" class="w-4 h-4 mr-2"></i>
                         <span>Stock: <?= esc($product['stock_quantity']) ?> <?= esc($product['unit']) ?> available</span>
                     </div>
                     <?php if ($product['cooperative']): ?>
-                    <div class="flex items-center text-gray-600">
-                        <i data-lucide="users" class="w-5 h-5 mr-3"></i>
+                    <div class="flex items-center text-gray-600 text-sm">
+                        <i data-lucide="users" class="w-4 h-4 mr-2"></i>
                         <span>Cooperative: <?= esc($product['cooperative']) ?></span>
                     </div>
                     <?php endif; ?>
                 </div>
 
                 <?php if ($product['description']): ?>
-                <div class="mb-6">
-                    <h3 class="text-lg font-semibold mb-2">Description</h3>
-                    <p class="text-gray-700 leading-relaxed"><?= nl2br(esc($product['description'])) ?></p>
+                <div class="mb-4">
+                    <h3 class="text-base font-semibold mb-1">Description</h3>
+                    <p class="text-gray-700 text-sm leading-relaxed"><?= nl2br(esc($product['description'])) ?></p>
+                </div>
+                <?php endif; ?>
+
+                <!-- Quantity Selector & Add to Cart -->
+                <?php if ($product['farmer_id'] != session()->get('user_id')): ?>
+                <div class="border-t pt-6 mt-6">
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">Quantity</label>
+                    <div class="flex items-center gap-4 mb-4">
+                        <button onclick="decrementQuantity()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition-colors">
+                            <i data-lucide="minus" class="w-4 h-4"></i>
+                        </button>
+                        <input type="number" id="quantity" value="1" min="1" max="<?= $product['stock_quantity'] ?>" class="w-20 text-center border-2 border-gray-300 rounded-lg py-2 px-3 font-semibold focus:border-primary focus:outline-none">
+                        <button onclick="incrementQuantity()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition-colors">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                        </button>
+                        <span class="text-sm text-gray-600"><?= esc($product['unit']) ?></span>
+                    </div>
+                    <button onclick="addToCart()" class="w-full bg-primary hover:bg-primary-hover text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2">
+                        <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                        Add to Cart
+                    </button>
                 </div>
                 <?php endif; ?>
             </div>
         </div>
+
+        <!-- Action Buttons (for product owners) -->
+        <?php if ($product['farmer_id'] == session()->get('user_id')): ?>
+        <div class="mt-6 flex gap-4 justify-center">
+            <a href="/buyer/products/edit/<?= $product['id'] ?>" class="flex-1 max-w-xs bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition-colors font-semibold text-center">
+                Edit Product
+            </a>
+            <form action="/buyer/products/delete/<?= $product['id'] ?>" method="POST" class="flex-1 max-w-xs">
+                <?= csrf_field() ?>
+                <button type="submit" class="w-full bg-red-500 text-white py-3 px-6 rounded-lg hover:bg-red-600 transition-colors font-semibold" onclick="return confirm('Are you sure you want to delete this product?')">
+                    Delete Product
+                </button>
+            </form>
+        </div>
+        <?php endif; ?>
 
         <!-- Other Products from Same Farmer -->
         <?php if (!empty($other_products)): ?>
@@ -150,8 +141,19 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <?php foreach ($other_products as $other): ?>
                 <div class="bg-white rounded-xl shadow-md border-2 border-gray-200 hover:border-primary transition-all overflow-hidden">
-                    <?php if ($other['image_url']): ?>
-                        <img src="<?= esc($other['image_url']) ?>" alt="<?= esc($other['name']) ?>" class="w-full h-32 object-cover">
+                    <?php
+                    $otherPreviewImage = null;
+                    if (!empty($other['image_url'])) {
+                        $decoded = json_decode($other['image_url'], true);
+                        if (is_array($decoded)) {
+                            $otherPreviewImage = $decoded[0]; // Show first image
+                        } else {
+                            $otherPreviewImage = $other['image_url'];
+                        }
+                    }
+                    ?>
+                    <?php if ($otherPreviewImage): ?>
+                        <img src="<?= esc($otherPreviewImage) ?>" alt="<?= esc($other['name']) ?>" class="w-full h-32 object-cover">
                     <?php else: ?>
                         <div class="w-full h-32 bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
                             <i data-lucide="package" class="w-8 h-8 text-green-600"></i>
@@ -364,6 +366,43 @@ function addToCart() {
     });
 }
 
+
+let currentImageIndex = 0;
+const productImages = <?= json_encode($images) ?>;
+
+function showImage(index) {
+    currentImageIndex = index;
+    const mainImage = document.getElementById('mainImage');
+    mainImage.src = productImages[index];
+
+    // Update dots
+    document.querySelectorAll('[id^="dot-"]').forEach((dot, i) => {
+        if (i === index) {
+            dot.classList.remove('bg-opacity-50');
+            dot.classList.add('bg-opacity-100');
+        } else {
+            dot.classList.remove('bg-opacity-100');
+            dot.classList.add('bg-opacity-50');
+        }
+    });
+}
+
+function prevImage() {
+    currentImageIndex = (currentImageIndex - 1 + productImages.length) % productImages.length;
+    showImage(currentImageIndex);
+}
+
+function nextImage() {
+    currentImageIndex = (currentImageIndex + 1) % productImages.length;
+    showImage(currentImageIndex);
+}
+
+// Initialize first dot as active
+document.addEventListener('DOMContentLoaded', function() {
+    if (productImages && productImages.length > 1) {
+        showImage(0);
+    }
+});
 
 document.getElementById('reportForm').addEventListener('submit', function(e) {
     e.preventDefault();

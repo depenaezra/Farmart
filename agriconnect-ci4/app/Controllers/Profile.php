@@ -19,24 +19,59 @@ class Profile extends BaseController
     public function index()
     {
         $userId = session()->get('user_id');
-        
+
         if (!$userId) {
             return redirect()->to('/auth/login')
                 ->with('error', 'Please login to view your profile.');
         }
-        
+
         $user = $this->userModel->find($userId);
-        
+
         if (!$user) {
             return redirect()->to('/auth/login')
                 ->with('error', 'User not found.');
         }
-        
+
+        $db = \Config\Database::connect();
+
+        // Get recent likes (last 5)
+        $recentLikes = $db->table('forum_likes')
+            ->select('forum_likes.created_at, forum_posts.title as post_title')
+            ->join('forum_posts', 'forum_posts.id = forum_likes.post_id')
+            ->where('forum_likes.user_id', $userId)
+            ->orderBy('forum_likes.created_at', 'DESC')
+            ->limit(5)
+            ->get()
+            ->getResultArray();
+
+        // Get recent comments (last 5)
+        $recentComments = $db->table('forum_comments')
+            ->select('forum_comments.comment, forum_comments.created_at, forum_posts.title as post_title')
+            ->join('forum_posts', 'forum_posts.id = forum_comments.post_id')
+            ->where('forum_comments.user_id', $userId)
+            ->orderBy('forum_comments.created_at', 'DESC')
+            ->limit(5)
+            ->get()
+            ->getResultArray();
+
+        // Get recent cart additions (last 5)
+        $recentCartItems = $db->table('cart')
+            ->select('cart.created_at, cart.quantity, products.name as product_name, products.price')
+            ->join('products', 'products.id = cart.product_id')
+            ->where('cart.user_id', $userId)
+            ->orderBy('cart.created_at', 'DESC')
+            ->limit(5)
+            ->get()
+            ->getResultArray();
+
         $data = [
             'title' => 'My Profile',
-            'user' => $user
+            'user' => $user,
+            'recent_likes' => $recentLikes,
+            'recent_comments' => $recentComments,
+            'recent_cart_items' => $recentCartItems
         ];
-        
+
         return view('profile/index', $data);
     }
     

@@ -120,8 +120,19 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <?php foreach ($featured_products as $product): ?>
                 <div class="bg-white rounded-xl shadow-md border-2 border-gray-200 hover:border-primary transition-all overflow-hidden">
-                    <?php if ($product['image_url']): ?>
-                        <img src="<?= esc($product['image_url']) ?>" alt="<?= esc($product['name']) ?>" class="w-full h-48 object-cover">
+                    <?php
+                    $landingPreviewImage = null;
+                    if (!empty($product['image_url'])) {
+                        $decoded = json_decode($product['image_url'], true);
+                        if (is_array($decoded)) {
+                            $landingPreviewImage = $decoded[0];
+                        } else {
+                            $landingPreviewImage = $product['image_url'];
+                        }
+                    }
+                    ?>
+                    <?php if ($landingPreviewImage): ?>
+                        <img src="<?= esc($landingPreviewImage) ?>" alt="<?= esc($product['name']) ?>" class="w-full h-48 object-cover">
                     <?php else: ?>
                         <div class="w-full h-48 bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
                             <i data-lucide="package" class="w-16 h-16 text-green-600"></i>

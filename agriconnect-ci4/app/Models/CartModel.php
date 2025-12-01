@@ -53,7 +53,7 @@ class CartModel extends Model
      */
     public function getUserCart($userId)
     {
-        return $this->select('cart.*, products.name as product_name, products.price, products.unit, products.image_url, users.name as farmer_name, users.location')
+        return $this->select('cart.*, products.name as product_name, products.price, products.unit, products.image_url, products.farmer_id, users.name as farmer_name, users.location')
                     ->join('products', 'products.id = cart.product_id')
                     ->join('users', 'users.id = products.farmer_id')
                     ->where('cart.user_id', $userId)
