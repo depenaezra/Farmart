@@ -95,26 +95,42 @@
                     <p class="text-gray-700 text-sm leading-relaxed"><?= nl2br(esc($product['description'])) ?></p>
                 </div>
                 <?php endif; ?>
+<!-- Quantity Selector & Add to Cart -->
+<?php if ($product['farmer_id'] != session()->get('user_id')): ?>
+<div class="border-t pt-6 mt-6">
+    <label class="block text-sm font-semibold text-gray-700 mb-3">Quantity</label>
+    <div class="flex items-center gap-6">
+        <!-- Quantity Controls -->
+        <div class="flex items-center gap-2">
+            <button onclick="decrementQuantity()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-1.5 px-2 rounded-lg transition-colors">
+                <i data-lucide="minus" class="w-4 h-4"></i>
+            </button>
+            <input type="number" id="quantity" value="1" min="1" max="<?= $product['stock_quantity'] ?>" class="w-16 text-center border-2 border-gray-300 rounded-lg py-1.5 px-2 font-semibold focus:border-primary focus:outline-none">
+            <button onclick="incrementQuantity()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-1.5 px-2 rounded-lg transition-colors">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+            </button>
+            <span class="text-sm text-gray-600 ml-1"><?= esc($product['unit']) ?></span>
+        </div>
 
-                <!-- Quantity Selector & Add to Cart -->
-                <?php if ($product['farmer_id'] != session()->get('user_id')): ?>
-                <div class="border-t pt-6 mt-6">
-                    <label class="block text-sm font-semibold text-gray-700 mb-3">Quantity</label>
-                    <div class="flex items-center gap-4 mb-4">
-                        <button onclick="decrementQuantity()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition-colors">
-                            <i data-lucide="minus" class="w-4 h-4"></i>
-                        </button>
-                        <input type="number" id="quantity" value="1" min="1" max="<?= $product['stock_quantity'] ?>" class="w-20 text-center border-2 border-gray-300 rounded-lg py-2 px-3 font-semibold focus:border-primary focus:outline-none">
-                        <button onclick="incrementQuantity()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition-colors">
-                            <i data-lucide="plus" class="w-4 h-4"></i>
-                        </button>
-                        <span class="text-sm text-gray-600"><?= esc($product['unit']) ?></span>
-                    </div>
-                    <button onclick="addToCart()" class="w-full bg-primary hover:bg-primary-hover text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2">
-                        <i data-lucide="shopping-cart" class="w-5 h-5"></i>
-                        Add to Cart
-                    </button>
-                </div>
+        <!-- Action Buttons -->
+        <div class="flex gap-2">
+            <button onclick="addToCart()" class="aspect-square bg-primary hover:bg-primary-hover text-white font-bold rounded-lg transition-colors flex flex-col items-center justify-center gap-1 p-2 min-w-[80px]">
+                <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                <span class="text-xs">Add to Cart</span>
+            </button>
+
+            <button onclick="buyNow()" class="aspect-square bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-colors flex flex-col items-center justify-center gap-1 p-2 min-w-[80px]">
+                <i data-lucide="credit-card" class="w-5 h-5"></i>
+                <span class="text-xs">Buy Now</span>
+            </button>
+
+            <button onclick="reportPost(<?= $product['id'] ?>, 'product')" class="aspect-square bg-red-100 hover:bg-red-200 text-red-700 font-medium rounded-lg transition-colors flex flex-col items-center justify-center gap-1 p-2 min-w-[80px]">
+                <i data-lucide="flag" class="w-5 h-5"></i>
+                <span class="text-xs">Report</span>
+            </button>
+        </div>
+    </div>
+</div>
                 <?php endif; ?>
             </div>
         </div>
@@ -362,6 +378,85 @@ function addToCart() {
                     confirmButtonColor: '#d33'
                 });
             });
+        }
+    });
+}
+
+function buyNow() {
+    const quantity = parseInt(document.getElementById('quantity').value);
+    const productId = <?= $product['id'] ?>;
+    const productName = '<?= esc($product['name']) ?>';
+    const productPrice = parseFloat('<?= $product['price'] ?>');
+    const productUnit = '<?= esc($product['unit']) ?>';
+    const farmerName = '<?= esc($product['farmer_name']) ?>';
+
+    const subtotal = (productPrice * quantity).toFixed(2);
+
+    // Show confirmation with order summary
+    Swal.fire({
+        title: 'Buy Now',
+        html: `
+            <div class="text-left">
+                <div class="mb-4">
+                    <h3 class="font-semibold text-lg mb-2">${productName}</h3>
+                    <p class="text-gray-600 mb-2">Seller: ${farmerName}</p>
+                </div>
+                <div class="border-t pt-3">
+                    <div class="flex justify-between mb-2">
+                        <span>Price per ${productUnit}:</span>
+                        <span>₱${productPrice.toFixed(2)}</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span>Quantity:</span>
+                        <span>${quantity} ${productUnit}</span>
+                    </div>
+                    <div class="border-t pt-2 mt-2">
+                        <div class="flex justify-between font-bold text-lg">
+                            <span>Total:</span>
+                            <span>₱${subtotal}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Proceed to Checkout',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Create a form and submit to direct checkout
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/checkout/direct';
+
+            // Add CSRF token
+            const csrfToken = document.querySelector('input[name="<?= csrf_token() ?>"]').value;
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '<?= csrf_token() ?>';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+
+            // Add product_id
+            const productIdInput = document.createElement('input');
+            productIdInput.type = 'hidden';
+            productIdInput.name = 'product_id';
+            productIdInput.value = productId;
+            form.appendChild(productIdInput);
+
+            // Add quantity
+            const quantityInput = document.createElement('input');
+            quantityInput.type = 'hidden';
+            quantityInput.name = 'quantity';
+            quantityInput.value = quantity;
+            form.appendChild(quantityInput);
+
+            // Append form to body and submit
+            document.body.appendChild(form);
+            form.submit();
         }
     });
 }

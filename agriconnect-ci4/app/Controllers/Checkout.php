@@ -108,7 +108,7 @@ class Checkout extends BaseController
 
         // Create direct checkout cart with just this product
         $directCart = [
-            'direct_' . $productId => [
+            [
                 'id' => 'direct_' . $productId,
                 'product_id' => $productId,
                 'product_name' => $product['name'],
@@ -301,7 +301,7 @@ class Checkout extends BaseController
             // Redirect to cart to show updated cart (with checked-out items removed)
             // or to success page if direct checkout
             if ($isDirectCheckout) {
-                return redirect()->to('/checkout/success')->with('success', 'Order placed successfully!');
+                return redirect()->to('/checkout/success')->with('order_ids', $orderIds)->with('success', 'Order placed successfully!');
             } else {
                 return redirect()->to('/cart')->with('success', count($orderIds) . ' order(s) placed successfully! Checked-out items have been removed from your cart.');
             }

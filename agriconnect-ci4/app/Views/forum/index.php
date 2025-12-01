@@ -5,52 +5,15 @@
 <!-- Facebook-style Newsfeed Layout -->
 <div class="bg-mint-light min-h-screen">
     <div class="container mx-auto px-4 py-6">
-        <div class="flex gap-6 max-w-6xl mx-auto">
-            <!-- Left Sidebar - Popular Posts -->
-            <div class="w-80 flex-shrink-0">
-                <div class="sticky top-6">
-                    <div class="bg-white rounded-lg shadow p-4 mb-4">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Popular Posts</h3>
-                        <?php if (!empty($popular_posts ?? [])): ?>
-                            <div class="space-y-3">
-                                <?php foreach ($popular_posts as $popular_post): ?>
-                                    <div class="border-b border-gray-100 pb-3 last:border-b-0 last:pb-0">
-                                        <a href="/forum/post/<?= $popular_post['id'] ?>" class="block hover:bg-gray-50 p-2 rounded-lg transition-colors">
-                                            <h4 class="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
-                                                <?= esc($popular_post['title']) ?>
-                                            </h4>
-                                            <div class="flex items-center gap-2 text-xs text-gray-500">
-                                                <span>by <?= esc($popular_post['author_name']) ?></span>
-                                                <span>•</span>
-                                                <div class="flex items-center gap-1">
-                                                    <span>🍃</span>
-                                                    <span><?= $popular_post['likes'] ?? 0 ?></span>
-                                                </div>
-                                                <span>•</span>
-                                                <div class="flex items-center gap-1">
-                                                    <span>💬</span>
-                                                    <span><?= $popular_post['comment_count'] ?? 0 ?></span>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
-                        <?php else: ?>
-                            <div class="text-center py-6">
-                                <p class="text-gray-500 text-sm">No popular posts yet</p>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
+        <div class="flex gap-6 mx-auto">
 
             <!-- Main Content -->
-            <div class="flex-1 max-w-2xl">
+            <div class="flex-1 max-w-3xl mx-auto">
             
-            <!-- Page Header - Compact -->
-            <div class="mb-4">
-                <h1 class="text-2xl font-bold text-gray-900">Community Forum</h1>
+            <!-- Page Header -->
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Community Forum</h1>
+                <p class="text-gray-600">Connect with fellow farmers and share your thoughts</p>
             </div>
 
             <!-- Create Post Box (Facebook-style "What's on your mind?") -->
@@ -85,34 +48,6 @@
                 </div>
             <?php endif; ?>
 
-            <!-- Filters - Compact Facebook-style -->
-            <div class="bg-white rounded-lg shadow mb-4 p-3">
-                <div class="flex items-center gap-3 overflow-x-auto">
-                    <form method="GET" action="/forum" class="flex items-center gap-2">
-                        <select name="category" onchange="this.form.submit()" class="text-sm px-3 py-1.5 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary focus:border-transparent bg-gray-50">
-                            <option value="all" <?= ($selected_category ?? 'all') === 'all' ? 'selected' : '' ?>>All Categories</option>
-                            <?php foreach ($categories ?? [] as $cat): ?>
-                                <option value="<?= esc($cat) ?>" <?= ($selected_category ?? 'all') === $cat ? 'selected' : '' ?>>
-                                    <?= ucfirst(esc($cat)) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                        <?php if (isset($selected_sort)): ?>
-                            <input type="hidden" name="sort" value="<?= esc($selected_sort) ?>">
-                        <?php endif; ?>
-                    </form>
-                    <div class="h-6 w-px bg-gray-300"></div>
-                    <form method="GET" action="/forum" class="flex items-center gap-2">
-                        <select name="sort" onchange="this.form.submit()" class="text-sm px-3 py-1.5 border border-gray-300 rounded-full focus:ring-2 focus:ring-primary focus:border-transparent bg-gray-50">
-                            <option value="latest" <?= ($selected_sort ?? 'latest') === 'latest' ? 'selected' : '' ?>>Latest</option>
-                            <option value="oldest" <?= ($selected_sort ?? 'latest') === 'oldest' ? 'selected' : '' ?>>Oldest</option>
-                        </select>
-                        <?php if (isset($selected_category) && $selected_category !== 'all'): ?>
-                            <input type="hidden" name="category" value="<?= esc($selected_category) ?>">
-                        <?php endif; ?>
-                    </form>
-                </div>
-            </div>
 
             <!-- Posts Feed -->
             <?php if (empty($posts)): ?>
@@ -379,6 +314,73 @@
                 </div>
             <?php endif; ?>
 
+            </div>
+            <!-- Right Sidebar -->
+            <div class="w-96 flex-shrink-0">
+                <div class="sticky top-6 space-y-4">
+                    <!-- Search Container -->
+                    <div class="bg-white rounded-lg shadow p-4">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Search & Filter</h3>
+                        <form method="GET" action="/forum" class="space-y-3">
+                            <div class="relative">
+                                <input type="text" name="search" value="<?= esc($search_query ?? '') ?>" placeholder="Search posts and comments..." class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                                <i data-lucide="search" class="w-5 h-5 text-gray-400 absolute left-3 top-2.5"></i>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <select name="category" class="flex-1 text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-gray-50">
+                                    <option value="all" <?= ($selected_category ?? 'all') === 'all' ? 'selected' : '' ?>>All Categories</option>
+                                    <?php foreach ($categories ?? [] as $cat): ?>
+                                        <option value="<?= esc($cat) ?>" <?= ($selected_category ?? 'all') === $cat ? 'selected' : '' ?>>
+                                            <?= ucfirst(esc($cat)) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <select name="sort" class="flex-1 text-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-gray-50">
+                                    <option value="latest" <?= ($selected_sort ?? 'latest') === 'latest' ? 'selected' : '' ?>>Latest</option>
+                                    <option value="oldest" <?= ($selected_sort ?? 'latest') === 'oldest' ? 'selected' : '' ?>>Oldest</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-hover transition-colors font-medium">
+                                Apply Filters
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Popular Posts Container -->
+                    <div class="bg-white rounded-lg shadow p-4">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Popular Posts</h3>
+                        <?php if (!empty($popular_posts ?? [])): ?>
+                            <div class="space-y-3">
+                                <?php foreach ($popular_posts as $popular_post): ?>
+                                    <div class="border-b border-gray-100 pb-3 last:border-b-0 last:pb-0">
+                                        <a href="/forum/post/<?= $popular_post['id'] ?>" class="block hover:bg-gray-50 p-2 rounded-lg transition-colors">
+                                            <h4 class="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
+                                                <?= esc($popular_post['title']) ?>
+                                            </h4>
+                                            <div class="flex items-center gap-2 text-xs text-gray-500">
+                                                <span>by <?= esc($popular_post['author_name']) ?></span>
+                                                <span>•</span>
+                                                <div class="flex items-center gap-1">
+                                                    <span>🍃</span>
+                                                    <span><?= $popular_post['likes'] ?? 0 ?></span>
+                                                </div>
+                                                <span>•</span>
+                                                <div class="flex items-center gap-1">
+                                                    <span>💬</span>
+                                                    <span><?= $popular_post['comment_count'] ?? 0 ?></span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php else: ?>
+                            <div class="text-center py-6">
+                                <p class="text-gray-500 text-sm">No popular posts yet</p>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

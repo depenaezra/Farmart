@@ -2,11 +2,8 @@
     <div class="container mx-auto px-4">
         <div class="flex items-center justify-between h-16">
             <!-- Logo -->
-            <a href="/" class="flex items-center space-x-2">
-                <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                    <i data-lucide="sprout" class="w-6 h-6 text-white"></i>
-                </div>
-                <span class="text-xl font-bold text-primary">Farmart</span>
+            <a href="/" class="flex items-center">
+                <img src="/img/farmart_logo.png" alt="Farmart" class="h-12 w-auto">
             </a>
             
             <!-- Desktop Navigation -->

@@ -34,6 +34,7 @@ class Forum extends BaseController
         // Get filter and sort parameters
         $category = $this->request->getGet('category');
         $sort = $this->request->getGet('sort') ?? 'latest';
+        $search = $this->request->getGet('search');
         
         // Build query
         $query = $db->table('forum_posts')
@@ -46,7 +47,16 @@ class Forum extends BaseController
         if ($category && $category !== 'all') {
             $query->where('forum_posts.category', $category);
         }
-        
+
+        // Apply search filter
+        if ($search) {
+            $query->groupStart()
+                ->like('forum_posts.title', $search)
+                ->orLike('forum_posts.content', $search)
+                ->orWhere("EXISTS (SELECT 1 FROM forum_comments WHERE forum_comments.post_id = forum_posts.id AND forum_comments.comment LIKE " . $db->escape('%' . $search . '%') . ")")
+            ->groupEnd();
+        }
+
         // Apply sorting
         if ($sort === 'oldest') {
             $query->orderBy('forum_posts.created_at', 'ASC');
@@ -130,6 +140,7 @@ class Forum extends BaseController
             'categories' => array_column($categories, 'category'),
             'selected_category' => $category ?? 'all',
             'selected_sort' => $sort,
+            'search_query' => $search,
             'popular_posts' => $popularPosts
         ];
         

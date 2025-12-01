@@ -76,7 +76,7 @@ class OrderModel extends Model
                         ->join('products', 'products.id = orders.product_id')
                         ->join('users as farmer', 'farmer.id = orders.farmer_id')
                         ->where('orders.buyer_id', $buyerId)
-                        ->orderBy('orders.created_at', 'DESC');
+                        ->orderBy('orders.created_at', 'ASC'); // Changed to ASC for chronological order
 
         if ($status) {
             $builder->where('orders.status', $status);
@@ -84,6 +84,14 @@ class OrderModel extends Model
 
         $result = $builder->get()->getResultArray();
         log_message('debug', 'Joined orders count for buyer ' . $buyerId . ': ' . count($result));
+
+        // Add sequential order number based on chronological order (oldest first)
+        foreach ($result as $index => &$order) {
+            $order['order_sequence'] = $index + 1;
+        }
+
+        // Reverse back to DESC order for display (most recent first)
+        $result = array_reverse($result);
 
         return $result;
     }
@@ -93,39 +101,49 @@ class OrderModel extends Model
      */
     public function getOrdersByFarmer($farmerId, $status = null)
     {
-        $builder = $this->select('orders.*, 
-                                  products.name as product_name, 
+        $builder = $this->select('orders.*,
+                                  products.name as product_name,
                                   products.image_url,
-                                  buyer.name as buyer_name, 
+                                  buyer.name as buyer_name,
                                   buyer.phone as buyer_phone,
                                   buyer.email as buyer_email,
                                   buyer.location as buyer_location')
                         ->join('products', 'products.id = orders.product_id')
                         ->join('users as buyer', 'buyer.id = orders.buyer_id')
                         ->where('orders.farmer_id', $farmerId)
-                        ->orderBy('orders.created_at', 'DESC');
-        
+                        ->orderBy('orders.created_at', 'ASC'); // Changed to ASC for chronological order
+
         if ($status) {
             $builder->where('orders.status', $status);
         }
-        
-        return $builder->get()->getResultArray();
+
+        $result = $builder->get()->getResultArray();
+
+        // Add sequential order number based on chronological order (oldest first)
+        foreach ($result as $index => &$order) {
+            $order['order_sequence'] = $index + 1;
+        }
+
+        // Reverse back to DESC order for display (most recent first)
+        $result = array_reverse($result);
+
+        return $result;
     }
     
     /**
      * Get order with details
      */
-    public function getOrderWithDetails($orderId)
+    public function getOrderWithDetails($orderId, $userId = null, $userRole = null)
     {
-        return $this->select('orders.*, 
-                              products.name as product_name, 
+        $order = $this->select('orders.*,
+                              products.name as product_name,
                               products.description as product_description,
                               products.image_url,
-                              buyer.name as buyer_name, 
+                              buyer.name as buyer_name,
                               buyer.phone as buyer_phone,
                               buyer.email as buyer_email,
                               buyer.location as buyer_location,
-                              farmer.name as farmer_name, 
+                              farmer.name as farmer_name,
                               farmer.phone as farmer_phone,
                               farmer.email as farmer_email,
                               farmer.location as farmer_location,
@@ -135,6 +153,30 @@ class OrderModel extends Model
                     ->join('users as farmer', 'farmer.id = orders.farmer_id')
                     ->where('orders.id', $orderId)
                     ->first();
+
+        if ($order && $userId) {
+            // Determine sequence based on user role
+            if ($userRole === 'buyer' || $order['buyer_id'] == $userId) {
+                // For buyer viewing their order, sequence based on their orders
+                $userOrders = $this->where('buyer_id', $userId)
+                                   ->orderBy('created_at', 'ASC')
+                                   ->findAll();
+            } else {
+                // For seller viewing their sales order, sequence based on their sales
+                $userOrders = $this->where('farmer_id', $userId)
+                                   ->orderBy('created_at', 'ASC')
+                                   ->findAll();
+            }
+
+            foreach ($userOrders as $index => $userOrder) {
+                if ($userOrder['id'] == $orderId) {
+                    $order['order_sequence'] = $index + 1;
+                    break;
+                }
+            }
+        }
+
+        return $order;
     }
     
     /**
