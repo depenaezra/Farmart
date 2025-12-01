@@ -136,8 +136,19 @@
             <?php foreach ($products as $product): ?>
                 <a href="/marketplace/product/<?= $product['id'] ?>" class="bg-white rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl hover:scale-105 transition-all duration-300 overflow-hidden group aspect-square block">
                     <div class="relative h-full">
-                        <?php if ($product['image_url']): ?>
-                            <img src="<?= esc($product['image_url']) ?>" alt="<?= esc($product['name']) ?>" class="w-full h-2/3 object-cover group-hover:scale-110 transition-transform duration-300">
+                        <?php
+                        $previewImage = null;
+                        if (!empty($product['image_url'])) {
+                            $decoded = json_decode($product['image_url'], true);
+                            if (is_array($decoded)) {
+                                $previewImage = $decoded[0]; // Show first image
+                            } else {
+                                $previewImage = $product['image_url'];
+                            }
+                        }
+                        ?>
+                        <?php if ($previewImage): ?>
+                            <img src="<?= esc($previewImage) ?>" alt="<?= esc($product['name']) ?>" class="w-full h-2/3 object-cover group-hover:scale-110 transition-transform duration-300">
                         <?php else: ?>
                             <div class="w-full h-2/3 bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
                                 <i data-lucide="package" class="w-16 h-16 text-green-600"></i>

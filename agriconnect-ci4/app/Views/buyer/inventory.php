@@ -30,8 +30,19 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <?php foreach ($products as $product): ?>
                 <div class="bg-white rounded-xl shadow-md border-2 border-gray-200 overflow-hidden hover:border-primary transition-all">
-                    <?php if ($product['image_url']): ?>
-                        <img src="<?= esc($product['image_url']) ?>" alt="<?= esc($product['name']) ?>" class="w-full h-48 object-cover">
+                    <?php
+                    $inventoryImage = null;
+                    if (!empty($product['image_url'])) {
+                        $decoded = json_decode($product['image_url'], true);
+                        if (is_array($decoded)) {
+                            $inventoryImage = $decoded[0];
+                        } else {
+                            $inventoryImage = $product['image_url'];
+                        }
+                    }
+                    ?>
+                    <?php if ($inventoryImage): ?>
+                        <img src="<?= esc($inventoryImage) ?>" alt="<?= esc($product['name']) ?>" class="w-full h-48 object-cover">
                     <?php else: ?>
                         <div class="w-full h-48 bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
                             <i data-lucide="package" class="w-16 h-16 text-green-600"></i>

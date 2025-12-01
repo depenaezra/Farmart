@@ -96,14 +96,30 @@ class Buyer extends BaseController
                 ->with('errors', $validation->getErrors());
         }
 
-        // Handle image upload
-        $imageUrl = null;
-        $image    = $this->request->getFile('image');
+        // Handle multiple image uploads
+        $images = $this->request->getFiles()['images'] ?? [];
+        $uploadedImages = [];
 
-        if ($image && $image->isValid() && !$image->hasMoved()) {
-            $newName = $image->getRandomName();
-            $image->move(FCPATH . 'uploads/products', $newName);
-            $imageUrl = '/uploads/products/' . $newName;
+        if (!empty($images)) {
+            foreach ($images as $image) {
+                if ($image->isValid() && !$image->hasMoved()) {
+                    $newName = $image->getRandomName();
+                    $image->move(FCPATH . 'uploads/products', $newName);
+                    $uploadedImages[] = '/uploads/products/' . $newName;
+                }
+            }
+        }
+
+        // Limit to 5 images
+        $uploadedImages = array_slice($uploadedImages, 0, 5);
+
+        // Store as JSON if multiple, or single string if one
+        if (count($uploadedImages) > 1) {
+            $imageUrl = json_encode($uploadedImages);
+        } elseif (count($uploadedImages) === 1) {
+            $imageUrl = $uploadedImages[0];
+        } else {
+            $imageUrl = null;
         }
 
         $data = [
@@ -327,12 +343,46 @@ class Buyer extends BaseController
             'location' => $this->request->getPost('location')
         ];
 
-        // Handle new image upload
-        $image = $this->request->getFile('image');
-        if ($image && $image->isValid() && !$image->hasMoved()) {
-            $newName = $image->getRandomName();
-            $image->move(FCPATH . 'uploads/products', $newName);
-            $data['image_url'] = '/uploads/products/' . $newName;
+        // Handle images
+        $existingImages = json_decode($this->request->getPost('existing_images'), true) ?? [];
+        $removedImages = json_decode($this->request->getPost('removed_images'), true) ?? [];
+        $newImages = $this->request->getFiles()['images'] ?? [];
+
+        // Remove deleted images from filesystem
+        foreach ($removedImages as $removedImage) {
+            if (file_exists(FCPATH . $removedImage)) {
+                unlink(FCPATH . $removedImage);
+            }
+            // Remove from existing images
+            $key = array_search($removedImage, $existingImages);
+            if ($key !== false) {
+                unset($existingImages[$key]);
+            }
+        }
+
+        // Upload new images
+        $uploadedImages = [];
+        if (!empty($newImages)) {
+            foreach ($newImages as $image) {
+                if ($image->isValid() && !$image->hasMoved()) {
+                    $newName = $image->getRandomName();
+                    $image->move(FCPATH . 'uploads/products', $newName);
+                    $uploadedImages[] = '/uploads/products/' . $newName;
+                }
+            }
+        }
+
+        // Combine existing and new images, limit to 5
+        $allImages = array_merge($existingImages, $uploadedImages);
+        $allImages = array_slice($allImages, 0, 5);
+
+        // Store as JSON if multiple, or single string if one
+        if (count($allImages) > 1) {
+            $data['image_url'] = json_encode($allImages);
+        } elseif (count($allImages) === 1) {
+            $data['image_url'] = $allImages[0];
+        } else {
+            $data['image_url'] = null;
         }
 
         // Update status based on stock
