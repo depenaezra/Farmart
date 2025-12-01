@@ -76,6 +76,94 @@
 
     </div>
 
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+
+        <!-- User Registration Chart -->
+        <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">User Registrations (Last 12 Months)</h3>
+            <canvas id="userRegistrationChart" class="w-full h-64"></canvas>
+        </div>
+
+        <!-- Orders Chart -->
+        <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Orders (Last 12 Months)</h3>
+            <canvas id="ordersChart" class="w-full h-64"></canvas>
+        </div>
+
+    </div>
+
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // User Registration Chart
+        const userRegCtx = document.getElementById('userRegistrationChart').getContext('2d');
+        const userRegData = <?= json_encode($charts['user_registrations'] ?? []) ?>;
+        new Chart(userRegCtx, {
+            type: 'line',
+            data: {
+                labels: userRegData.map(item => item.month),
+                datasets: [{
+                    label: 'New Users',
+                    data: userRegData.map(item => item.count),
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+
+        // Orders Chart
+        const ordersCtx = document.getElementById('ordersChart').getContext('2d');
+        const ordersData = <?= json_encode($charts['orders'] ?? []) ?>;
+        new Chart(ordersCtx, {
+            type: 'bar',
+            data: {
+                labels: ordersData.map(item => item.month),
+                datasets: [{
+                    label: 'Orders',
+                    data: ordersData.map(item => item.count),
+                    backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                    borderColor: 'rgb(16, 185, 129)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Recent Orders -->
         <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
