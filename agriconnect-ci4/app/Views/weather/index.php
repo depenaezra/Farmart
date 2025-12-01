@@ -36,12 +36,12 @@
         <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6 mb-8">
             <div class="flex items-center justify-between mb-6">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-900 mb-1" id="weatherLocation"><?= esc($location) ?></h2>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-1" id="weatherLocation">Nasugbu, Batangas</h2>
                     <p class="text-gray-600" id="weatherLastUpdated">Last updated: Loading...</p>
                 </div>
                 <div class="text-right">
                     <div class="flex items-center gap-3">
-                        <img id="weatherIcon" src="" alt="" class="w-16 h-16 hidden">
+                        <span id="weatherIcon" class="w-16 h-16 flex items-center justify-center text-5xl">🌤️</span>
                         <div>
                             <div class="text-4xl font-bold text-primary mb-1" id="weatherTemp">--°C</div>
                             <div class="text-lg text-gray-600" id="weatherCondition">--</div>
@@ -91,8 +91,8 @@
         <!-- Hourly Forecast -->
         <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6 mb-8">
             <h3 class="text-xl font-bold text-gray-900 mb-4">Hourly Forecast</h3>
-            <div class="overflow-x-auto">
-                <div class="flex gap-4 pb-2" id="hourlyContainer" style="min-width: max-content;">
+            <div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 justify-center items-center w-full" id="hourlyContainer">
                     <!-- Hourly items will be inserted here -->
                 </div>
             </div>
@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 hourlyItem.className = 'flex flex-col items-center min-w-[80px] p-3 border border-gray-200 rounded-lg';
                 hourlyItem.innerHTML = `
                     <div class="text-sm font-medium text-gray-600 mb-2">${hour.hour}</div>
-                    ${hour.icon ? `<img src="https://openweathermap.org/img/wn/${hour.icon}.png" alt="${hour.condition}" class="w-10 h-10 mb-2">` : ''}
+                    <span class="w-10 h-10 mb-2 flex items-center justify-center text-2xl">${getWeatherEmoji(hour.condition)}</span>
                     <div class="text-lg font-bold text-gray-900 mb-1">${hour.temperature}°</div>
                     <div class="text-xs text-blue-600">${hour.rain_chance}%</div>
                 `;
@@ -236,7 +236,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="text-sm text-gray-600">${day.date}</div>
                     </div>
                     <div class="flex items-center gap-3">
-                        ${day.icon ? `<img src="https://openweathermap.org/img/wn/${day.icon}.png" alt="${day.condition}" class="w-12 h-12">` : ''}
+                        <span class="w-12 h-12 flex items-center justify-center text-3xl">${getWeatherEmoji(day.condition)}</span>
                         <div class="text-sm text-gray-600 w-32">${day.condition}</div>
                     </div>
                     <div class="flex items-center gap-2 text-sm text-gray-500">
@@ -251,6 +251,17 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             forecastContainer.appendChild(forecastItem);
         });
+            // Helper: map condition to emoji
+            function getWeatherEmoji(condition) {
+                const cond = (condition || '').toLowerCase();
+                if (cond.includes('rain')) return '🌧️';
+                if (cond.includes('cloud')) return '⛅';
+                if (cond.includes('sun') || cond.includes('clear')) return '☀️';
+                if (cond.includes('storm') || cond.includes('thunder')) return '⛈️';
+                if (cond.includes('snow')) return '❄️';
+                return '🌤️';
+            }
+
         
         // Update advisories
         const advisoriesContainer = document.getElementById('advisoriesContainer');
