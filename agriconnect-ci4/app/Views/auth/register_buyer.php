@@ -2,8 +2,8 @@
 
 <?= $this->section('content') ?>
 
-<div class="min-h-screen flex items-center justify-center" style="background-image: url('<?= base_url('img/outdoor_2.png') ?>'); background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed;">
-    <div class="max-w-2xl mx-auto p-8" style="backdrop-filter: blur(2px); background-color: rgba(255, 255, 255, 0.1); border-width: 3px; border-color: white">
+<div class="min-h-screen flex items-center justify-center" style="background-image: url('<?= base_url('img/11.jpg') ?>'); background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed;">
+    <div class="max-w-2xl mx-auto p-8" style="backdrop-filter: blur(2px); background-color: rgba(255, 255, 255, 0.1); border-width: 3px; border-color: white; margin-bottom: 100px; margin-top: 100px;">
         
         
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-8">

@@ -22,6 +22,7 @@ class ComposerStaticInit657ac079313fab046eb8c29fe1d6992b
             'Psr\\Log\\' => 8,
             'Psr\\Container\\' => 14,
             'PhpParser\\' => 10,
+            'PHPMailer\\PHPMailer\\' => 20,
         ),
         'L' => 
         array (
@@ -62,6 +63,10 @@ class ComposerStaticInit657ac079313fab046eb8c29fe1d6992b
         'PhpParser\\' => 
         array (
             0 => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser',
+        ),
+        'PHPMailer\\PHPMailer\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
         ),
         'Laminas\\Escaper\\' => 
         array (
@@ -107,18 +112,21 @@ class ComposerStaticInit657ac079313fab046eb8c29fe1d6992b
         'App\\Controllers\\Buyer' => __DIR__ . '/../..' . '/app/Controllers/Buyer.php',
         'App\\Controllers\\Cart' => __DIR__ . '/../..' . '/app/Controllers/Cart.php',
         'App\\Controllers\\Checkout' => __DIR__ . '/../..' . '/app/Controllers/Checkout.php',
-        'App\\Controllers\\Farmer' => __DIR__ . '/../..' . '/app/Controllers/Farmer.php',
         'App\\Controllers\\Forum' => __DIR__ . '/../..' . '/app/Controllers/Forum.php',
         'App\\Controllers\\Home' => __DIR__ . '/../..' . '/app/Controllers/Home.php',
         'App\\Controllers\\Marketplace' => __DIR__ . '/../..' . '/app/Controllers/Marketplace.php',
         'App\\Controllers\\Messages' => __DIR__ . '/../..' . '/app/Controllers/Messages.php',
         'App\\Controllers\\Profile' => __DIR__ . '/../..' . '/app/Controllers/Profile.php',
         'App\\Controllers\\Report' => __DIR__ . '/../..' . '/app/Controllers/Report.php',
+        'App\\Controllers\\Users' => __DIR__ . '/../..' . '/app/Controllers/Users.php',
         'App\\Controllers\\Weather' => __DIR__ . '/../..' . '/app/Controllers/Weather.php',
         'App\\Filters\\AuthFilter' => __DIR__ . '/../..' . '/app/Filters/AuthFilter.php',
+        'App\\Libraries\\PHPMailerService' => __DIR__ . '/../..' . '/app/Libraries/PHPMailerService.php',
         'App\\Models\\AnnouncementModel' => __DIR__ . '/../..' . '/app/Models/AnnouncementModel.php',
+        'App\\Models\\CartModel' => __DIR__ . '/../..' . '/app/Models/CartModel.php',
         'App\\Models\\MessageModel' => __DIR__ . '/../..' . '/app/Models/MessageModel.php',
         'App\\Models\\OrderModel' => __DIR__ . '/../..' . '/app/Models/OrderModel.php',
+        'App\\Models\\OtpTokenModel' => __DIR__ . '/../..' . '/app/Models/OtpTokenModel.php',
         'App\\Models\\ProductModel' => __DIR__ . '/../..' . '/app/Models/ProductModel.php',
         'App\\Models\\UserModel' => __DIR__ . '/../..' . '/app/Models/UserModel.php',
         'App\\Models\\ViolationModel' => __DIR__ . '/../..' . '/app/Models/ViolationModel.php',
@@ -1101,6 +1109,13 @@ class ComposerStaticInit657ac079313fab046eb8c29fe1d6992b
         'Laminas\\Escaper\\Exception\\ExceptionInterface' => __DIR__ . '/..' . '/laminas/laminas-escaper/src/Exception/ExceptionInterface.php',
         'Laminas\\Escaper\\Exception\\InvalidArgumentException' => __DIR__ . '/..' . '/laminas/laminas-escaper/src/Exception/InvalidArgumentException.php',
         'Laminas\\Escaper\\Exception\\RuntimeException' => __DIR__ . '/..' . '/laminas/laminas-escaper/src/Exception/RuntimeException.php',
+        'PHPMailer\\PHPMailer\\DSNConfigurator' => __DIR__ . '/..' . '/phpmailer/phpmailer/src/DSNConfigurator.php',
+        'PHPMailer\\PHPMailer\\Exception' => __DIR__ . '/..' . '/phpmailer/phpmailer/src/Exception.php',
+        'PHPMailer\\PHPMailer\\OAuth' => __DIR__ . '/..' . '/phpmailer/phpmailer/src/OAuth.php',
+        'PHPMailer\\PHPMailer\\OAuthTokenProvider' => __DIR__ . '/..' . '/phpmailer/phpmailer/src/OAuthTokenProvider.php',
+        'PHPMailer\\PHPMailer\\PHPMailer' => __DIR__ . '/..' . '/phpmailer/phpmailer/src/PHPMailer.php',
+        'PHPMailer\\PHPMailer\\POP3' => __DIR__ . '/..' . '/phpmailer/phpmailer/src/POP3.php',
+        'PHPMailer\\PHPMailer\\SMTP' => __DIR__ . '/..' . '/phpmailer/phpmailer/src/SMTP.php',
         'PHPUnit\\Event\\Application\\Finished' => __DIR__ . '/..' . '/phpunit/phpunit/src/Event/Events/Application/Finished.php',
         'PHPUnit\\Event\\Application\\FinishedSubscriber' => __DIR__ . '/..' . '/phpunit/phpunit/src/Event/Events/Application/FinishedSubscriber.php',
         'PHPUnit\\Event\\Application\\Started' => __DIR__ . '/..' . '/phpunit/phpunit/src/Event/Events/Application/Started.php',
