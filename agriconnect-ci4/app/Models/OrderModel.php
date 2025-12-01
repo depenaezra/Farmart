@@ -18,6 +18,7 @@ class OrderModel extends Model
         'total_price',
         'status',
         'delivery_address',
+        'payment_method',
         'notes'
     ];
     

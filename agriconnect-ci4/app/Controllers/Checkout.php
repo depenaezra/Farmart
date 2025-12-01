@@ -4,16 +4,19 @@ namespace App\Controllers;
 
 use App\Models\OrderModel;
 use App\Models\ProductModel;
+use App\Models\UserModel;
 
 class Checkout extends BaseController
 {
     protected $orderModel;
     protected $productModel;
-    
+    protected $userModel;
+
     public function __construct()
     {
         $this->orderModel = new OrderModel();
         $this->productModel = new ProductModel();
+        $this->userModel = new UserModel();
     }
     
     /**
@@ -22,24 +25,100 @@ class Checkout extends BaseController
     public function index()
     {
         $cart = session()->get('cart') ?? [];
-        
-        if (empty($cart)) {
+
+        // Check if this is a success redirect (no cart needed)
+        $isSuccessRedirect = session()->has('checkout_success') && session()->get('checkout_success');
+
+        if (empty($cart) && !$isSuccessRedirect) {
             return redirect()->to('/marketplace')
                 ->with('error', 'Your cart is empty');
         }
-        
-        // Calculate totals
-        $subtotal = 0;
-        foreach ($cart as $item) {
-            $subtotal += $item['price'] * $item['quantity'];
+
+        // For success redirects, create empty cart data
+        if ($isSuccessRedirect && empty($cart)) {
+            $cart = [];
+            $subtotal = 0;
+        } else {
+            // Calculate totals
+            $subtotal = 0;
+            foreach ($cart as $item) {
+                $subtotal += $item['price'] * $item['quantity'];
+            }
         }
-        
+
+        // Get current user data for pre-filling delivery info
+        $userId = session()->get('user_id');
+        $user = null;
+        if ($userId) {
+            $user = $this->userModel->find($userId);
+        }
+
         $data = [
             'title' => 'Checkout',
             'cart' => $cart,
-            'subtotal' => $subtotal
+            'subtotal' => $subtotal,
+            'user' => $user,
+            'is_direct_checkout' => false,
+            'is_success_redirect' => $isSuccessRedirect
         ];
-        
+
+        return view('checkout/index', $data);
+    }
+
+    /**
+     * Direct checkout for Buy Now functionality
+     */
+    public function directCheckout()
+    {
+        // Check if user is authenticated and not admin
+        $userId = session()->get('user_id');
+        if (!$userId || session()->get('user_role') === 'admin') {
+            return redirect()->to('/auth/login')->with('error', 'Please login to checkout');
+        }
+
+        $productId = $this->request->getPost('product_id');
+        $quantity = $this->request->getPost('quantity') ?? 1;
+
+        // Validate product
+        $product = $this->productModel->getProductWithFarmer($productId);
+        if (!$product) {
+            return redirect()->back()->with('error', 'Product not found');
+        }
+
+        // Validate quantity
+        if ($quantity < 1 || $quantity > $product['stock_quantity']) {
+            return redirect()->back()->with('error', 'Invalid quantity');
+        }
+
+        // Create direct checkout cart with just this product
+        $directCart = [
+            'direct_' . $productId => [
+                'id' => 'direct_' . $productId,
+                'product_id' => $productId,
+                'product_name' => $product['name'],
+                'price' => $product['price'],
+                'unit' => $product['unit'],
+                'quantity' => $quantity,
+                'farmer_id' => $product['farmer_id'],
+                'farmer_name' => $product['farmer_name'],
+                'image_url' => $product['image_url'],
+                'location' => $product['location']
+            ]
+        ];
+
+        $subtotal = $product['price'] * $quantity;
+
+        // Get current user data for pre-filling delivery info
+        $user = $this->userModel->find($userId);
+
+        $data = [
+            'title' => 'Checkout',
+            'cart' => $directCart,
+            'subtotal' => $subtotal,
+            'user' => $user,
+            'is_direct_checkout' => true
+        ];
+
         return view('checkout/index', $data);
     }
     
@@ -48,18 +127,52 @@ class Checkout extends BaseController
      */
     public function placeOrder()
     {
+        $isDirectCheckout = $this->request->getPost('is_direct_checkout') === '1';
         $cart = session()->get('cart') ?? [];
-        
-        if (empty($cart)) {
+
+        // For direct checkout, get cart from POST data
+        if ($isDirectCheckout) {
+            $productId = $this->request->getPost('direct_product_id');
+            $quantity = $this->request->getPost('direct_quantity');
+
+            if (!$productId || !$quantity) {
+                return redirect()->back()->with('error', 'Invalid checkout data')->withInput();
+            }
+
+            $product = $this->productModel->getProductWithFarmer($productId);
+            if (!$product) {
+                return redirect()->back()->with('error', 'Product not found')->withInput();
+            }
+
+            // Check stock again
+            if ($quantity > $product['stock_quantity']) {
+                return redirect()->back()->with('error', 'Not enough stock available')->withInput();
+            }
+
+            $cart = [
+                'direct_' . $productId => [
+                    'product_id' => $productId,
+                    'product_name' => $product['name'],
+                    'price' => $product['price'],
+                    'unit' => $product['unit'],
+                    'quantity' => $quantity,
+                    'farmer_id' => $product['farmer_id'],
+                    'farmer_name' => $product['farmer_name'],
+                    'image_url' => $product['image_url'],
+                    'location' => $product['location']
+                ]
+            ];
+        } elseif (empty($cart)) {
             return redirect()->to('/marketplace')
                 ->with('error', 'Your cart is empty');
         }
         
         $validation = \Config\Services::validation();
-        
+
         $rules = [
             'delivery_address' => 'required|min_length[10]',
-            'contact_number' => 'required'
+            'contact_number' => 'required',
+            'payment_method' => 'required|in_list[in_person,gcash]'
         ];
         
         if (!$this->validate($rules)) {
@@ -70,6 +183,7 @@ class Checkout extends BaseController
         
         $deliveryAddress = $this->request->getPost('delivery_address');
         $contactNumber = $this->request->getPost('contact_number');
+        $paymentMethod = $this->request->getPost('payment_method');
         $notes = $this->request->getPost('notes');
         $buyerId = session()->get('user_id');
         
@@ -100,6 +214,7 @@ class Checkout extends BaseController
                         'unit' => $item['unit'],
                         'total_price' => $item['price'] * $item['quantity'],
                         'delivery_address' => $deliveryAddress . "\nContact: " . $contactNumber,
+                        'payment_method' => $paymentMethod,
                         'notes' => $notes
                     ];
                     
@@ -121,14 +236,22 @@ class Checkout extends BaseController
                     ->with('error', 'Failed to place order. Please try again.');
             }
             
-            // Clear cart
-            session()->remove('cart');
-            
-            // Store order IDs in session for success page
-            session()->setFlashdata('order_ids', $orderIds);
-            
-            return redirect()->to('/checkout/success')
-                ->with('success', 'Orders placed successfully!');
+            // Clear cart (only for regular checkout, not direct checkout)
+            if (!$isDirectCheckout) {
+                session()->remove('cart');
+            }
+
+            // Clear cart (only for regular checkout, not direct checkout)
+            if (!$isDirectCheckout) {
+                session()->remove('cart');
+            }
+
+            // Set success flag for popup and stay on checkout page
+            session()->set('checkout_success', true);
+            session()->set('checkout_order_count', count($orderIds));
+
+            // Return to checkout page to show success popup
+            return redirect()->to('/checkout')->with('success', 'Order placed successfully!');
                 
         } catch (\Exception $e) {
             $db->transRollback();

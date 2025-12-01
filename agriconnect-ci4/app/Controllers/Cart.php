@@ -43,22 +43,22 @@ class Cart extends BaseController
     {
         $productId = $this->request->getPost('product_id');
         $quantity = $this->request->getPost('quantity') ?? 1;
-        
+
         // Get product details
         $product = $this->productModel->getProductWithFarmer($productId);
-        
+
         if (!$product) {
             return redirect()->back()->with('error', 'Product not found');
         }
-        
+
         // Check stock
         if ($product['stock_quantity'] < $quantity) {
             return redirect()->back()->with('error', 'Not enough stock available');
         }
-        
+
         // Get current cart
         $cart = session()->get('cart') ?? [];
-        
+
         // Check if product already in cart
         $existingKey = null;
         foreach ($cart as $key => $item) {
@@ -67,7 +67,7 @@ class Cart extends BaseController
                 break;
             }
         }
-        
+
         if ($existingKey) {
             // Update quantity
             $cart[$existingKey]['quantity'] += $quantity;
@@ -87,10 +87,67 @@ class Cart extends BaseController
                 'location' => $product['location']
             ];
         }
-        
+
         session()->set('cart', $cart);
-        
+
         return redirect()->back()->with('success', 'Product added to cart!');
+    }
+
+    /**
+     * Buy now - add to cart and redirect to checkout
+     */
+    public function buyNow()
+    {
+        $productId = $this->request->getPost('product_id');
+        $quantity = $this->request->getPost('quantity') ?? 1;
+
+        // Get product details
+        $product = $this->productModel->getProductWithFarmer($productId);
+
+        if (!$product) {
+            return redirect()->back()->with('error', 'Product not found');
+        }
+
+        // Check stock
+        if ($product['stock_quantity'] < $quantity) {
+            return redirect()->back()->with('error', 'Not enough stock available');
+        }
+
+        // Get current cart
+        $cart = session()->get('cart') ?? [];
+
+        // Check if product already in cart
+        $existingKey = null;
+        foreach ($cart as $key => $item) {
+            if ($item['product_id'] == $productId) {
+                $existingKey = $key;
+                break;
+            }
+        }
+
+        if ($existingKey) {
+            // Update quantity
+            $cart[$existingKey]['quantity'] += $quantity;
+        } else {
+            // Add new item
+            $cartItemId = 'cart_' . time() . '_' . $productId;
+            $cart[$cartItemId] = [
+                'id' => $cartItemId,
+                'product_id' => $productId,
+                'product_name' => $product['name'],
+                'price' => $product['price'],
+                'unit' => $product['unit'],
+                'quantity' => $quantity,
+                'farmer_id' => $product['farmer_id'],
+                'farmer_name' => $product['farmer_name'],
+                'image_url' => $product['image_url'],
+                'location' => $product['location']
+            ];
+        }
+
+        session()->set('cart', $cart);
+
+        return redirect()->to('/checkout')->with('success', 'Product added to cart! Proceeding to checkout...');
     }
     
     /**
