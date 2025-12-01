@@ -113,10 +113,10 @@
                     </div>
                 </form>
             </div>
-
-            <!-- Guidelines Sidebar -->
-            <div class="w-80 flex-shrink-0">
-                <div class="sticky top-6">
+        </div>
+        <!-- Guidelines Sidebar -->
+            <div class="w-full lg:w-80 flex-shrink-0 mt-8 lg:mt-0 lg:ml-6">
+                <div class="lg:sticky lg:top-6">
                     <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
                         <h3 class="text-lg font-semibold text-blue-900 mb-3">Posting Guidelines</h3>
                         <ul class="text-sm text-blue-800 space-y-2">
@@ -129,7 +129,6 @@
                     </div>
                 </div>
             </div>
-        </div>
     </div>
 </div>
 
