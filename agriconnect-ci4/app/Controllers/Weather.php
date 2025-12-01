@@ -98,20 +98,26 @@ class Weather extends BaseController
      */
     public function getWeather()
     {
-        $lat = $this->request->getGet('lat') ?? 14.0667; // Nasugbu default
-        $lon = $this->request->getGet('lon') ?? 120.6333;
-        
-        $cacheKey = 'weather_' . round($lat, 4) . '_' . round($lon, 4);
+        $location = $this->request->getGet('location');
+        $lat = $this->request->getGet('lat');
+        $lon = $this->request->getGet('lon');
+
+        // If location, lat, or lon are missing or invalid, use Nasugbu Batangas
+        if (empty($location) || !is_numeric($lat) || !is_numeric($lon)) {
+            $location = 'Nasugbu Batangas';
+            $lat = 14.0667;
+            $lon = 120.6333;
+        }
+
+        $cacheKey = 'weather_' . md5($location . $lat . $lon);
         $cache = \Config\Services::cache();
-        
+
         // Try to get from cache first
         $cachedData = $cache->get($cacheKey);
-        
+
         if ($cachedData !== null) {
-            // Check if cache is still fresh (less than 5 minutes old)
             $cacheAge = time() - ($cachedData['cached_at'] ?? 0);
-            
-            if ($cacheAge < 300) { // 5 minutes = 300 seconds
+            if ($cacheAge < 300) {
                 return $this->response->setJSON([
                     'success' => true,
                     'data' => $cachedData['data'],
@@ -120,17 +126,15 @@ class Weather extends BaseController
                 ]);
             }
         }
-        
-        // Cache expired or doesn't exist, fetch fresh data
-        $weatherData = $this->fetchWeatherFromAPI($lat, $lon);
-        
+
+        // Always use Nasugbu Batangas for wttr.in
+        $weatherData = $this->fetchWeatherFromAPI(14.0667, 120.6333);
+
         if ($weatherData) {
-            // Store in cache for 5 minutes
             $cache->save($cacheKey, [
                 'data' => $weatherData,
                 'cached_at' => time()
-            ], 300); // 5 minutes cache
-            
+            ], 300);
             return $this->response->setJSON([
                 'success' => true,
                 'data' => $weatherData,
@@ -138,8 +142,7 @@ class Weather extends BaseController
                 'from_cache' => false
             ]);
         }
-        
-        // If API fails but we have cached data, use it even if expired
+
         if ($cachedData !== null) {
             return $this->response->setJSON([
                 'success' => true,
@@ -149,8 +152,7 @@ class Weather extends BaseController
                 'note' => 'Using cached data. API temporarily unavailable.'
             ]);
         }
-        
-        // Fallback to mock data if API fails and no cache
+
         return $this->response->setJSON([
             'success' => true,
             'data' => $this->getMockWeatherData(),
@@ -224,7 +226,7 @@ class Weather extends BaseController
 
             $current = $data['current_condition'][0];
             $weather = [
-                'location' => isset($data['nearest_area'][0]['areaName'][0]['value']) ? $data['nearest_area'][0]['areaName'][0]['value'] : 'Unknown',
+                'location' => 'Nasugbu, Batangas',
                 'current' => [
                     'temperature' => isset($current['temp_C']) ? intval($current['temp_C']) : null,
                     'feels_like' => isset($current['FeelsLikeC']) ? intval($current['FeelsLikeC']) : null,
