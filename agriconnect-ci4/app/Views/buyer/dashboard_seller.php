@@ -59,6 +59,33 @@
         </div>
     </div>
 
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Sales Over Time Chart -->
+        <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Sales Revenue (Last 12 Months)</h3>
+            <div class="relative h-64">
+                <canvas id="salesChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Order Status Distribution -->
+        <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Order Status Distribution</h3>
+            <div class="relative h-64 flex items-center justify-center">
+                <canvas id="statusChart" class="max-w-full max-h-full"></canvas>
+            </div>
+        </div>
+
+        <!-- Top Products Chart -->
+        <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Top Performing Products</h3>
+            <div class="relative h-64">
+                <canvas id="productsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
     <!-- Quick Actions -->
     <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6 mb-8">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
@@ -143,7 +170,134 @@
         <?php endif; ?>
     </div>
 </div>
-
 <?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Sales Over Time Chart
+    const salesCtx = document.getElementById('salesChart');
+    if (salesCtx) {
+        const salesData = <?= json_encode($chart_data['sales_over_time'] ?? []) ?>;
+
+        new Chart(salesCtx, {
+            type: 'line',
+            data: {
+                labels: salesData.map(item => {
+                    const date = new Date(item.month + '-01');
+                    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+                }),
+                datasets: [{
+                    label: 'Revenue (₱)',
+                    data: salesData.map(item => parseFloat(item.revenue)),
+                    borderColor: '#2d7a3e',
+                    backgroundColor: 'rgba(45, 122, 62, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '₱' + value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Order Status Distribution Chart
+    const statusCtx = document.getElementById('statusChart');
+    if (statusCtx) {
+        const statusData = <?= json_encode($chart_data['order_status'] ?? []) ?>;
+
+        const statusColors = {
+            'pending': '#f59e0b',
+            'confirmed': '#3b82f6',
+            'processing': '#8b5cf6',
+            'completed': '#10b981',
+            'cancelled': '#ef4444'
+        };
+
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: statusData.map(item => item.status.charAt(0).toUpperCase() + item.status.slice(1)),
+                datasets: [{
+                    data: statusData.map(item => parseInt(item.count)),
+                    backgroundColor: statusData.map(item => statusColors[item.status] || '#6b7280'),
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+
+    // Top Products Chart
+    const productsCtx = document.getElementById('productsChart');
+    if (productsCtx) {
+        const productsData = <?= json_encode($chart_data['top_products'] ?? []) ?>;
+
+        new Chart(productsCtx, {
+            type: 'bar',
+            data: {
+                labels: productsData.map(item => item.product_name.length > 20 ? item.product_name.substring(0, 20) + '...' : item.product_name),
+                datasets: [{
+                    label: 'Revenue (₱)',
+                    data: productsData.map(item => parseFloat(item.total_revenue)),
+                    backgroundColor: '#2d7a3e',
+                    borderColor: '#236330',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '₱' + value.toLocaleString();
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+<?= $this->endSection() ?>
+
 
 

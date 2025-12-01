@@ -32,6 +32,11 @@ class Buyer extends BaseController
                 'orders'   => $this->orderModel->getFarmerStatistics($userId),
             ],
             'recent_orders' => array_slice($this->orderModel->getOrdersByFarmer($userId, null), 0, 5),
+            'chart_data' => [
+                'sales_over_time' => $this->orderModel->getSalesChartData($userId),
+                'order_status' => $this->orderModel->getOrderStatusChartData($userId),
+                'top_products' => $this->productModel->getTopProductsChartData($userId, 5),
+            ],
         ];
 
         return view('buyer/dashboard_seller', $data);
