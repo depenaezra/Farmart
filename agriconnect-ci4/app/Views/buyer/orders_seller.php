@@ -3,6 +3,20 @@
 <?= $this->section('content') ?>
 
 <div class="container mx-auto px-4 py-8">
+    <!-- Flash Messages -->
+    <?php if (session()->getFlashdata('success')): ?>
+        <div role="alert" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
+            <i data-lucide="check-circle" class="w-5 h-5 inline mr-2"></i>
+            <?= session()->getFlashdata('success') ?>
+        </div>
+    <?php endif; ?>
+    <?php if (session()->getFlashdata('error')): ?>
+        <div role="alert" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+            <i data-lucide="x-circle" class="w-5 h-5 inline mr-2"></i>
+            <?= session()->getFlashdata('error') ?>
+        </div>
+    <?php endif; ?>
+
     <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-900 mb-2">Sales Orders</h1>
         <p class="text-gray-600">Track and manage the orders placed on your listings</p>
@@ -19,9 +33,6 @@
             </a>
             <a href="/buyer/sales/orders?status=confirmed" class="px-4 py-2 rounded-lg font-semibold <?= $current_status === 'confirmed' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
                 Confirmed
-            </a>
-            <a href="/buyer/sales/orders?status=processing" class="px-4 py-2 rounded-lg font-semibold <?= $current_status === 'processing' ? 'bg-indigo-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
-                Processing
             </a>
             <a href="/buyer/sales/orders?status=processing" class="px-4 py-2 rounded-lg font-semibold <?= $current_status === 'processing' ? 'bg-purple-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
                 Processing
@@ -119,6 +130,7 @@
                                         <form action="/buyer/sales/orders/<?= $order['id'] ?>/update-status" method="POST" class="inline-flex items-center gap-2">
                                             <?= csrf_field() ?>
                                             <select name="status" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
+                                                <option value="pending" <?= $order['status'] === 'pending' ? 'selected' : '' ?>>Pending</option>
                                                 <option value="confirmed" <?= $order['status'] === 'confirmed' ? 'selected' : '' ?>>Confirm</option>
                                                 <option value="processing" <?= $order['status'] === 'processing' ? 'selected' : '' ?>>Processing</option>
                                                 <option value="completed" <?= $order['status'] === 'completed' ? 'selected' : '' ?>>Mark Completed</option>
