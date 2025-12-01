@@ -101,6 +101,7 @@ $routes->group('cart', ['filter' => 'auth:user,admin'], function($routes) {
 // Checkout
 $routes->group('checkout', ['filter' => 'auth:user,admin'], function($routes) {
     $routes->get('/', 'Checkout::index');
+    $routes->post('/', 'Checkout::index'); // For form submission with selected items
     $routes->get('direct', 'Checkout::directCheckout');
     $routes->post('direct', 'Checkout::directCheckout');
     $routes->post('place-order', 'Checkout::placeOrder');

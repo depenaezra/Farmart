@@ -21,7 +21,7 @@
             <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6 mb-6">
                 <h2 class="text-xl font-semibold text-gray-900 mb-4">Delivery Information</h2>
                 
-                <form action="/checkout/place-order" method="POST">
+                <form action="/checkout/place-order" method="POST" id="checkoutForm">
                     <?= csrf_field() ?>
                     <?php if (isset($is_direct_checkout) && $is_direct_checkout): ?>
                         <input type="hidden" name="is_direct_checkout" value="1">
@@ -200,6 +200,129 @@ document.addEventListener('DOMContentLoaded', function() {
         lucide.createIcons();
     }
 
+    // Intercept form submission for order confirmation
+    const orderForm = document.querySelector('form[action="/checkout/place-order"]');
+    if (orderForm) {
+        orderForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Validate form
+            const deliveryAddress = document.getElementById('delivery_address').value.trim();
+            const contactNumber = document.getElementById('contact_number').value.trim();
+            const paymentMethod = document.querySelector('input[name="payment_method"]:checked');
+
+            if (!deliveryAddress || deliveryAddress.length < 10) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Delivery Address',
+                    text: 'Please enter a complete delivery address (minimum 10 characters).',
+                    confirmButtonColor: '#d33'
+                });
+                return;
+            }
+
+            if (!contactNumber) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Missing Contact Number',
+                    text: 'Please enter your contact number.',
+                    confirmButtonColor: '#d33'
+                });
+                return;
+            }
+
+            if (!paymentMethod) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Payment Method Required',
+                    text: 'Please select a payment method.',
+                    confirmButtonColor: '#d33'
+                });
+                return;
+            }
+
+            // Calculate order summary
+            const cartItems = <?= json_encode($cart) ?>;
+            const subtotal = <?= $subtotal ?>;
+            const paymentMethodText = paymentMethod.value === 'in_person' ? 'Cash on Delivery' : 'GCash';
+
+            // Create order summary HTML
+            let orderSummary = '';
+            cartItems.forEach(item => {
+                orderSummary += `
+                    <div class="flex justify-between text-sm mb-1">
+                        <span>${item.product_name} (${item.quantity} ${item.unit})</span>
+                        <span>₱${(item.price * item.quantity).toFixed(2)}</span>
+                    </div>
+                `;
+            });
+
+            // Show order confirmation
+            Swal.fire({
+                title: 'Confirm Your Order',
+                html: `
+                    <div class="text-left">
+                        <div class="mb-4">
+                            <h3 class="font-semibold text-lg mb-3">Order Summary</h3>
+                            <div class="max-h-32 overflow-y-auto mb-3">
+                                ${orderSummary}
+                            </div>
+                            <div class="border-t pt-2">
+                                <div class="flex justify-between font-bold text-lg mb-2">
+                                    <span>Subtotal:</span>
+                                    <span>₱${subtotal.toFixed(2)}</span>
+                                </div>
+                                <div class="flex justify-between text-sm text-gray-600 mb-2">
+                                    <span>Payment Method:</span>
+                                    <span>${paymentMethodText}</span>
+                                </div>
+                                <div class="flex justify-between font-bold text-xl text-primary border-t pt-2">
+                                    <span>Total:</span>
+                                    <span>₱${subtotal.toFixed(2)}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-blue-50 p-3 rounded-lg">
+                            <p class="text-sm text-blue-800">
+                                <strong>Delivery Address:</strong><br>
+                                ${deliveryAddress}
+                            </p>
+                            <p class="text-sm text-blue-800 mt-2">
+                                <strong>Contact:</strong> ${contactNumber}
+                            </p>
+                        </div>
+                    </div>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Place Order',
+                cancelButtonText: 'Review Order',
+                customClass: {
+                    popup: 'swal-wide'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show processing SweetAlert
+                    Swal.fire({
+                        title: 'Processing Your Order...',
+                        text: 'Please wait while we process your order.',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Submit the form
+                    orderForm.submit();
+                }
+            });
+        });
+    }
+
     // Check for checkout success
     <?php if (session()->has('checkout_success') && session()->get('checkout_success')): ?>
         <?php
@@ -219,7 +342,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }).then(function(result) {
                 if (result.isConfirmed) {
-                    window.location.href = '/marketplace';
+                    window.location.href = '/buyer/orders';
                 }
             });
         } else {
@@ -231,6 +354,12 @@ document.addEventListener('DOMContentLoaded', function() {
     <?php endif; ?>
 });
 </script>
+
+<style>
+.swal-wide {
+    width: 600px !important;
+}
+</style>
 
 <?= $this->endSection() ?>
 

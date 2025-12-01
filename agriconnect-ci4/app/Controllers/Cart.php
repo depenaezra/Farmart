@@ -227,13 +227,32 @@ class Cart extends BaseController
         $userId = session()->get('user_id');
 
         if (!$userId) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Please login first'
+                ]);
+            }
             return redirect()->to('/auth/login');
         }
 
         $result = $this->cartModel->clearUserCart($userId);
 
         if ($result) {
+            if ($this->request->isAJAX()) {
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'Cart cleared successfully'
+                ]);
+            }
             return redirect()->to('/cart')->with('success', 'Cart cleared');
+        }
+
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Failed to clear cart'
+            ]);
         }
 
         return redirect()->to('/cart')->with('error', 'Failed to clear cart');

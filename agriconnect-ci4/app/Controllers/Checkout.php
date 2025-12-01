@@ -40,15 +40,15 @@ class Checkout extends BaseController
 
         if (empty($cart) && !$isSuccessRedirect) {
             return redirect()->to('/cart')
-                ->with('error', 'Your cart is empty');
+                ->with('error', 'No items selected for checkout');
         }
 
-        // For success redirects, create empty cart data
-        if ($isSuccessRedirect && empty($cart)) {
-            $cart = [];
-            $subtotal = 0;
-        } else {
-            $subtotal = $this->cartModel->getCartTotal($userId);
+        // Calculate subtotal for selected items
+        $subtotal = 0;
+        if (!$isSuccessRedirect) {
+            foreach ($cart as $item) {
+                $subtotal += $item['price'] * $item['quantity'];
+            }
         }
 
         // Get current user data for pre-filling delivery info
@@ -128,11 +128,15 @@ class Checkout extends BaseController
      */
     public function placeOrder()
     {
+        $userId = session()->get('user_id');
         $isDirectCheckout = $this->request->getPost('is_direct_checkout') === '1';
-        $cart = session()->get('cart') ?? [];
 
-        // For direct checkout, get cart from POST data
+        // Debug logging
+        log_message('debug', 'PlaceOrder called - UserID: ' . $userId . ', User Role: ' . session()->get('user_role') . ', DirectCheckout: ' . ($isDirectCheckout ? 'Yes' : 'No'));
+
+        // Get cart items from database
         if ($isDirectCheckout) {
+            // For direct checkout, get cart from POST data
             $productId = $this->request->getPost('direct_product_id');
             $quantity = $this->request->getPost('direct_quantity');
 
@@ -163,9 +167,15 @@ class Checkout extends BaseController
                     'location' => $product['location']
                 ]
             ];
-        } elseif (empty($cart)) {
-            return redirect()->to('/marketplace')
-                ->with('error', 'Your cart is empty');
+        } else {
+            // For regular checkout, use all cart items (simplified for now)
+            $cart = $this->cartModel->getUserCart($userId);
+            log_message('debug', 'Using all cart items: ' . count($cart));
+
+            if (empty($cart)) {
+                return redirect()->to('/cart')
+                    ->with('error', 'Your cart is empty');
+            }
         }
         
         $validation = \Config\Services::validation();
@@ -218,29 +228,36 @@ class Checkout extends BaseController
                         'payment_method' => $paymentMethod,
                         'notes' => $notes
                     ];
-                    
+
+                    log_message('debug', 'Creating order with data: ' . json_encode($orderData));
+
                     $orderId = $this->orderModel->createOrder($orderData);
-                    
+
+                    log_message('debug', 'Order creation result for product ' . $item['product_id'] . ': ' . ($orderId ? 'Success (ID: ' . $orderId . ')' : 'Failed'));
+
                     if ($orderId) {
                         $orderIds[] = $orderId;
-                        
+
                         // Reduce stock
-                        $this->productModel->reduceStock($item['product_id'], $item['quantity']);
+                        $stockReduced = $this->productModel->reduceStock($item['product_id'], $item['quantity']);
+                        log_message('debug', 'Stock reduction for product ' . $item['product_id'] . ': ' . ($stockReduced ? 'Success' : 'Failed'));
                     }
                 }
             }
             
             $db->transComplete();
-            
+
+            log_message('debug', 'Transaction completed. Status: ' . ($db->transStatus() ? 'Success' : 'Failed') . ', Order IDs: ' . json_encode($orderIds));
+
             if ($db->transStatus() === false) {
+                log_message('error', 'Transaction failed during order placement');
                 return redirect()->back()
                     ->with('error', 'Failed to place order. Please try again.');
             }
             
             // Clear cart from database (only for regular checkout, not direct checkout)
             if (!$isDirectCheckout) {
-                $buyerId = session()->get('user_id');
-                $this->cartModel->clearUserCart($buyerId);
+                $this->cartModel->clearUserCart($userId);
             }
 
             // Set success flag for popup and stay on checkout page
