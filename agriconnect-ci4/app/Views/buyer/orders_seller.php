@@ -62,7 +62,7 @@
                     <div class="p-6">
                         <div class="flex items-center justify-between mb-4">
                             <div>
-                                <h3 class="text-lg font-semibold text-gray-900">Order #<?= $order['id'] ?></h3>
+                                <h3 class="text-lg font-semibold text-gray-900">Order #<?= $order['order_sequence'] ?></h3>
                                 <p class="text-sm text-gray-600">
                                     <?= date('M d, Y H:i', strtotime($order['created_at'])) ?> •
                                     Buyer: <?= esc($order['buyer_name']) ?>

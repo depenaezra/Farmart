@@ -15,7 +15,7 @@
             <div class="flex items-center justify-between mb-4">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900 mb-2">
-                        Order #<?= esc($order['order_number']) ?>
+                        Order #<?= esc($order['order_sequence']) ?>
                     </h1>
                     <p class="text-sm text-gray-600">
                         Placed on <?= date('F d, Y \a\t H:i', strtotime($order['created_at'])) ?>
