@@ -3,11 +3,8 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
             <!-- About -->
             <div>
-                <div class="flex items-center space-x-2 mb-4">
-                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                        <i data-lucide="sprout" class="w-5 h-5 text-white"></i>
-                    </div>
-                    <h3 class="text-lg font-bold">Farmart</h3>
+                <div class="mb-4">
+                    <img src="/img/farmart_logo_footer.png" alt="Farmart" class="h-16 w-auto">
                 </div>
                 <p class="text-gray-400 text-sm">
                     Connecting Nasugbu farmers directly with local buyers. Fresh produce, fair prices, strong community.
