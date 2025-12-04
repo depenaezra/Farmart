@@ -3,6 +3,7 @@
 <?= $this->section('content') ?>
 
 <div class="container mx-auto px-4 py-8">
+    <!-- Page Header -->
     <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-900 mb-2">Shopping Cart</h1>
         <p class="text-gray-600">Review your items before checkout</p>
@@ -13,7 +14,7 @@
         <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3">
             <i data-lucide="check-circle" class="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5"></i>
             <div>
-                <p class="text-green-800 font-semibold">Success!</p>
+                <p class="text-green-800">Success!</p>
                 <p class="text-green-700 text-sm"><?= esc(session()->get('success')) ?></p>
             </div>
         </div>
@@ -24,147 +25,225 @@
         <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
             <i data-lucide="alert-circle" class="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5"></i>
             <div>
-                <p class="text-red-800 font-semibold">Error!</p>
+                <p class="text-red-800">Error!</p>
                 <p class="text-red-700 text-sm"><?= esc(session()->get('error')) ?></p>
             </div>
         </div>
     <?php endif; ?>
 
     <?php if (empty($cart)): ?>
+        <!-- Empty Cart State -->
         <div class="bg-white rounded-xl shadow-md border border-gray-200 p-12 text-center">
-            <i data-lucide="shopping-cart" class="w-16 h-16 text-gray-400 mx-auto mb-4"></i>
-            <h2 class="text-2xl font-semibold text-gray-900 mb-2">Your cart is empty</h2>
-            <p class="text-gray-600 mb-6">Add some products to get started!</p>
-            <a href="/marketplace" class="inline-block bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-hover font-semibold transition-colors">
-                <i data-lucide="arrow-left" class="w-5 h-5 inline mr-2"></i>
-                Continue Shopping
-            </a>
+            <div class="max-w-md mx-auto">
+                <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="shopping-cart" class="w-10 h-10 text-gray-400"></i>
+                </div>
+                <h2 class="text-gray-900 mb-2">Your cart is empty</h2>
+                <p class="text-gray-600 mb-6">Add some fresh products from our marketplace!</p>
+                <a href="/marketplace" class="inline-flex items-center bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-hover transition-colors">
+                    <i data-lucide="arrow-left" class="w-5 h-5 mr-2"></i>
+                    Continue Shopping
+                </a>
+            </div>
         </div>
     <?php else: ?>
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Cart Items -->
-            <div class="lg:col-span-2">
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Cart Header -->
                 <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-                    <div class="p-6 border-b border-gray-200">
-                        <h2 class="text-xl font-semibold text-gray-900">
-                            Cart Items (0)
-                        </h2>
+                    <div class="bg-gray-50 border-b border-gray-200 px-6 py-4">
+                        <div class="flex items-center justify-between">
+                            <h2 class="font-semibold text-gray-900 flex items-center">
+                                <i data-lucide="shopping-bag" class="w-5 h-5 text-primary mr-2"></i>
+                                Cart Items (<span id="selectedCount">0</span>)
+                            </h2>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="checkbox" 
+                                       id="selectAll"
+                                       onchange="selectAllItems(this.checked)"
+                                       class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary mr-2">
+                                <span class="text-sm text-gray-700">Select All</span>
+                            </label>
+                        </div>
                     </div>
                     
                     <form id="cartForm">
                         <?= csrf_field() ?>
                         <div class="divide-y divide-gray-200">
                             <?php foreach ($cart as $item): ?>
-                                <div class="p-6 flex gap-4">
-                                    <!-- Checkbox -->
-                                    <div class="flex-shrink-0 flex items-center">
-                                        <input type="checkbox"
-                                               name="selected_items[]"
-                                               value="<?= esc($item['id']) ?>"
-                                               id="item_<?= $item['id'] ?>"
-                                               class="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary">
-                                    </div>
+                                <div class="p-6 hover:bg-gray-50 transition-colors">
+                                    <div class="flex gap-4">
+                                        <!-- Checkbox -->
+                                        <div class="flex-shrink-0 flex items-start pt-1">
+                                            <input type="checkbox"
+                                                   name="selected_items[]"
+                                                   value="<?= esc($item['id']) ?>"
+                                                   id="item_<?= $item['id'] ?>"
+                                                   class="item-checkbox w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary">
+                                        </div>
 
-                                    <!-- Product Image -->
-                                    <div class="flex-shrink-0">
-                                        <?php
-                                        $cartImage = null;
-                                        if (!empty($item['image_url'])) {
-                                            $decoded = json_decode($item['image_url'], true);
-                                            if (is_array($decoded)) {
-                                                $cartImage = $decoded[0];
-                                            } else {
-                                                $cartImage = $item['image_url'];
+                                        <!-- Product Image -->
+                                        <div class="flex-shrink-0">
+                                            <?php
+                                            $cartImage = null;
+                                            if (!empty($item['image_url'])) {
+                                                $decoded = json_decode($item['image_url'], true);
+                                                if (is_array($decoded)) {
+                                                    $cartImage = $decoded[0];
+                                                } else {
+                                                    $cartImage = $item['image_url'];
+                                                }
                                             }
-                                        }
-                                        ?>
-                                        <?php if (!empty($cartImage)): ?>
-                                            <img src="<?= esc($cartImage) ?>"
-                                                 alt="<?= esc($item['product_name']) ?>"
-                                                 class="w-24 h-24 object-cover rounded-lg">
-                                        <?php else: ?>
-                                            <div class="w-24 h-24 bg-gray-200 rounded-lg flex items-center justify-center">
-                                                <i data-lucide="image" class="w-8 h-8 text-gray-400"></i>
+                                            ?>
+                                            <?php if (!empty($cartImage)): ?>
+                                                <img src="<?= esc($cartImage) ?>"
+                                                     alt="<?= esc($item['product_name']) ?>"
+                                                     class="w-24 h-24 object-cover rounded-lg border border-gray-200">
+                                            <?php else: ?>
+                                                <div class="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200">
+                                                    <i data-lucide="image" class="w-8 h-8 text-gray-400"></i>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+
+                                        <!-- Product Details -->
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-start justify-between mb-2">
+                                                <div class="flex-1">
+                                                    <h3 class="text-gray-900 mb-1">
+                                                        <?= esc($item['product_name']) ?>
+                                                    </h3>
+                                                    <div class="flex flex-wrap items-center gap-3 text-sm text-gray-600 mb-2">
+                                                        <span class="flex items-center">
+                                                            <i data-lucide="user" class="w-4 h-4 mr-1"></i>
+                                                            <?= esc($item['farmer_name']) ?>
+                                                        </span>
+                                                        <?php if (!empty($item['location'])): ?>
+                                                            <span class="flex items-center">
+                                                                <i data-lucide="map-pin" class="w-4 h-4 mr-1"></i>
+                                                                <?= esc($item['location']) ?>
+                                                            </span>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- Remove Button -->
+                                                <button type="button" 
+                                                        onclick="removeFromCart('<?= esc($item['id']) ?>')" 
+                                                        class="ml-4 text-gray-400 hover:text-red-600 transition-colors"
+                                                        title="Remove item">
+                                                    <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                                </button>
                                             </div>
-                                        <?php endif; ?>
-                                    </div>
 
-                                    <!-- Product Details -->
-                                    <div class="flex-1 min-w-0">
-                                        <h3 class="text-lg font-semibold text-gray-900 mb-1">
-                                            <?= esc($item['product_name']) ?>
-                                        </h3>
-                                        <p class="text-sm text-gray-600 mb-2">
-                                            <i data-lucide="user" class="w-4 h-4 inline mr-1"></i>
-                                            <?= esc($item['farmer_name']) ?>
-                                        </p>
-                                        <?php if (!empty($item['location'])): ?>
-                                            <p class="text-sm text-gray-500 mb-3">
-                                                <i data-lucide="map-pin" class="w-4 h-4 inline mr-1"></i>
-                                                <?= esc($item['location']) ?>
-                                            </p>
-                                        <?php endif; ?>
-
-                                        <div class="flex items-center justify-between mt-4">
-                                            <div class="flex items-center gap-4">
-                                                <!-- Quantity Update -->
-                                                <div class="flex items-center gap-2">
-                                                    <label for="quantity_<?= $item['id'] ?>" class="text-sm font-medium text-gray-700">Qty:</label>
-                                                    <input
-                                                        type="number"
-                                                        id="quantity_<?= $item['id'] ?>"
-                                                        value="<?= $item['quantity'] ?>"
-                                                        data-original-quantity="<?= $item['quantity'] ?>"
-                                                        min="1"
-                                                        max="99"
-                                                        class="w-20 px-3 py-1 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-primary focus:border-transparent"
-                                                    >
-                                                    <button type="button" onclick="updateQuantity('<?= esc($item['id']) ?>')" class="px-2 py-1 bg-primary text-white text-xs rounded hover:bg-primary-hover transition-colors">
-                                                        Update
-                                                    </button>
+                                            <!-- Price and Quantity Row -->
+                                            <div class="flex flex-wrap items-center justify-between gap-4 mt-4">
+                                                <!-- Quantity Controls -->
+                                                <div class="flex items-center gap-3">
+                                                    <span class="text-sm text-gray-700">Quantity:</span>
+                                                    <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+                                                        <button type="button" 
+                                                                onclick="decrementQuantity('<?= esc($item['id']) ?>')"
+                                                                class="px-3 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 transition-colors">
+                                                            <i data-lucide="minus" class="w-4 h-4"></i>
+                                                        </button>
+                                                        <input type="number"
+                                                               id="quantity_<?= $item['id'] ?>"
+                                                               value="<?= $item['quantity'] ?>"
+                                                               data-original-quantity="<?= $item['quantity'] ?>"
+                                                               data-unit-price="<?= $item['price'] ?>"
+                                                               min="1"
+                                                               max="99"
+                                                               onchange="handleQuantityChange('<?= esc($item['id']) ?>')"
+                                                               class="w-16 px-3 py-2 text-center border-x border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary">
+                                                        <button type="button" 
+                                                                onclick="incrementQuantity('<?= esc($item['id']) ?>')"
+                                                                class="px-3 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 transition-colors">
+                                                            <i data-lucide="plus" class="w-4 h-4"></i>
+                                                        </button>
+                                                    </div>
                                                     <span class="text-sm text-gray-600"><?= esc($item['unit']) ?></span>
                                                 </div>
-                                            </div>
 
-                                            <div class="text-right">
-                                                <p class="text-lg font-bold text-primary">
-                                                    ₱<?= number_format($item['price'] * $item['quantity'], 2) ?>
-                                                </p>
-                                                <p class="text-sm text-gray-500">
-                                                    ₱<?= number_format($item['price'], 2) ?> per <?= esc($item['unit']) ?>
-                                                </p>
+                                                <!-- Price -->
+                                                <div class="text-right">
+                                                    <p class="text-primary item-total" id="total_<?= $item['id'] ?>">
+                                                        ₱<?= number_format($item['price'] * $item['quantity'], 2) ?>
+                                                    </p>
+                                                    <p class="text-sm text-gray-500">
+                                                        ₱<?= number_format($item['price'], 2) ?> / <?= esc($item['unit']) ?>
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-
-                                    <!-- Remove Button -->
-                                    <div class="flex-shrink-0">
-                                        <button type="button" onclick="removeFromCart('<?= esc($item['id']) ?>')" class="text-red-500 hover:text-red-700 transition-colors">
-                                            <i data-lucide="trash-2" class="w-5 h-5"></i>
-                                        </button>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
                         </div>
                     </form>
 
-                    <!-- Clear Cart -->
-                    <div class="p-6 border-t border-gray-200">
-                        <button type="button" onclick="clearCart()" class="text-red-600 hover:text-red-700 text-sm font-medium transition-colors">
-                            <i data-lucide="trash-2" class="w-4 h-4 inline mr-1"></i>
+                    <!-- Cart Footer -->
+                    <div class="bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-between">
+                        <button type="button" 
+                                onclick="clearCart()" 
+                                class="text-red-600 hover:text-red-700 text-sm font-medium transition-colors flex items-center">
+                            <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i>
                             Clear Cart
                         </button>
+                        <a href="/marketplace" class="text-primary hover:text-primary-hover text-sm font-medium transition-colors flex items-center">
+                            <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i>
+                            Continue Shopping
+                        </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Checkout Button -->
+            <!-- Order Summary Sidebar -->
             <div class="lg:col-span-1">
-                <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6 sticky top-4">
-                    <button type="button" onclick="proceedToCheckout()" class="w-full bg-primary text-white text-center px-6 py-3 rounded-lg hover:bg-primary-hover font-semibold transition-colors">
-                        <i data-lucide="shopping-bag" class="w-5 h-5 inline mr-2"></i>
-                        Proceed to Checkout
-                    </button>
+                <div class="bg-white rounded-xl shadow-md border border-gray-200 sticky top-4">
+                    <div class="bg-gray-50 border-b border-gray-200 px-6 py-4">
+                        <h2 class="font-semibold text-gray-900 flex items-center">
+                            <i data-lucide="receipt" class="w-5 h-5 text-primary mr-2"></i>
+                            Order Summary
+                        </h2>
+                    </div>
+
+                    <div class="p-6">
+                        <div class="space-y-4 mb-6">
+                            <div class="flex justify-between text-gray-700">
+                                <span id="subtotalLabel">Subtotal (0 items)</span>
+                                <span id="subtotalAmount">₱0.00</span>
+                            </div>
+                            <div class="flex justify-between text-gray-700">
+                                <span>Shipping</span>
+                                <span class="text-sm text-gray-500">Calculated at checkout</span>
+                            </div>
+                            <div class="border-t border-gray-200 pt-4">
+                                <div class="flex justify-between text-gray-900">
+                                    <span>Total</span>
+                                    <span id="totalAmount" class="text-primary">₱0.00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button" 
+                                onclick="proceedToCheckout()" 
+                                class="w-full bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-hover transition-colors flex items-center justify-center mb-3">
+                            <i data-lucide="shopping-bag" class="w-5 h-5 mr-2"></i>
+                            Proceed to Checkout
+                        </button>
+
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div class="flex items-start gap-2">
+                                <i data-lucide="info" class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"></i>
+                                <div>
+                                    <p class="text-sm text-blue-900 mb-1">Secure Checkout</p>
+                                    <p class="text-xs text-blue-700">Your payment information is protected</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -184,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function initializeCart() {
     // Add event listeners to checkboxes
-    const checkboxes = document.querySelectorAll('input[name="selected_items[]"]');
+    const checkboxes = document.querySelectorAll('.item-checkbox');
     checkboxes.forEach(checkbox => {
         checkbox.addEventListener('change', updateCartTotal);
     });
@@ -194,89 +273,183 @@ function initializeCart() {
 }
 
 function updateCartTotal() {
-    const checkboxes = document.querySelectorAll('input[name="selected_items[]"]');
+    const checkboxes = document.querySelectorAll('.item-checkbox');
     let total = 0;
     let selectedCount = 0;
 
     checkboxes.forEach(checkbox => {
         if (checkbox.checked) {
             const itemContainer = checkbox.closest('.p-6');
-            const priceText = itemContainer.querySelector('.text-primary').textContent.trim();
-            // Extract number from format like "₱1,234.56"
+            const priceText = itemContainer.querySelector('.item-total').textContent.trim();
             const priceMatch = priceText.match(/₱([\d,]+\.?\d*)/);
-            const itemTotal = priceMatch ? parseFloat(priceMatch[1].replace(',', '')) : 0;
+            const itemTotal = priceMatch ? parseFloat(priceMatch[1].replace(/,/g, '')) : 0;
 
             total += itemTotal;
             selectedCount++;
         }
     });
 
-    console.log('Selected items:', selectedCount, 'Total:', total); // Debug log
-
-    // Update main cart item count
-    const cartHeader = document.querySelector('.bg-white.rounded-xl.shadow-md.border .p-6.border-b h2');
-    if (cartHeader) {
-        cartHeader.textContent = `Cart Items (${selectedCount})`;
+    // Update selected count in header
+    const selectedCountElement = document.getElementById('selectedCount');
+    if (selectedCountElement) {
+        selectedCountElement.textContent = selectedCount;
     }
 
-    // Update Order Summary section
-    const orderSummaryContainer = document.querySelector('.lg\\:col-span-1 .bg-white.rounded-xl.shadow-md .space-y-3');
+    // Update order summary
+    const subtotalLabel = document.getElementById('subtotalLabel');
+    const subtotalAmount = document.getElementById('subtotalAmount');
+    const totalAmount = document.getElementById('totalAmount');
 
-    if (orderSummaryContainer) {
-        console.log('Found order summary container');
+    if (subtotalLabel) {
+        subtotalLabel.textContent = `Subtotal (${selectedCount} ${selectedCount === 1 ? 'item' : 'items'})`;
+    }
+    if (subtotalAmount) {
+        subtotalAmount.textContent = `₱${total.toFixed(2)}`;
+    }
+    if (totalAmount) {
+        totalAmount.textContent = `₱${total.toFixed(2)}`;
+    }
 
-        // Find all rows in order summary
-        const allRows = orderSummaryContainer.querySelectorAll('.flex.justify-between');
-        console.log('Found', allRows.length, 'rows in order summary');
-
-        allRows.forEach((row, index) => {
-            const label = row.querySelector('span:first-child');
-            const amount = row.querySelector('span:last-child');
-
-            if (label && amount) {
-                console.log(`Row ${index}: label="${label.textContent}", amount="${amount.textContent}"`);
-
-                if (label.textContent.includes('Subtotal')) {
-                    console.log('Updating subtotal row');
-                    // Update subtotal label and amount
-                    label.textContent = `Subtotal (${selectedCount} items)`;
-                    amount.textContent = `₱${total.toFixed(2)}`;
-                } else if (label.textContent.includes('Total')) {
-                    console.log('Updating total row');
-                    // Update total amount
-                    amount.textContent = `₱${total.toFixed(2)}`;
-                }
-            }
-        });
-    } else {
-        console.log('Order summary container not found');
+    // Update select all checkbox state
+    const selectAllCheckbox = document.getElementById('selectAll');
+    if (selectAllCheckbox) {
+        const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+        selectAllCheckbox.checked = allChecked;
     }
 }
 
-function removeFromCart(cartItemId) {
-    // Find the cart item element to get details
-    const cartItemElement = document.querySelector(`input[id="quantity_${cartItemId}"]`);
-    if (!cartItemElement) {
+function selectAllItems(checked) {
+    const checkboxes = document.querySelectorAll('.item-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = checked;
+    });
+    updateCartTotal();
+}
+
+function incrementQuantity(cartItemId) {
+    const input = document.getElementById(`quantity_${cartItemId}`);
+    const currentValue = parseInt(input.value) || 1;
+    if (currentValue < 99) {
+        input.value = currentValue + 1;
+        handleQuantityChange(cartItemId);
+    }
+}
+
+function decrementQuantity(cartItemId) {
+    const input = document.getElementById(`quantity_${cartItemId}`);
+    const currentValue = parseInt(input.value) || 1;
+    if (currentValue > 1) {
+        input.value = currentValue - 1;
+        handleQuantityChange(cartItemId);
+    }
+}
+
+function handleQuantityChange(cartItemId) {
+    const quantityInput = document.getElementById(`quantity_${cartItemId}`);
+    const newQuantity = parseInt(quantityInput.value);
+
+    if (newQuantity < 1 || newQuantity > 99 || isNaN(newQuantity)) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Invalid Quantity',
+            text: 'Please enter a quantity between 1 and 99.',
+            confirmButtonColor: '#f59e0b'
+        });
+        quantityInput.value = quantityInput.getAttribute('data-original-quantity');
+        return;
+    }
+
+    updateQuantity(cartItemId);
+}
+
+function updateQuantity(cartItemId) {
+    const quantityInput = document.getElementById(`quantity_${cartItemId}`);
+    const newQuantity = parseInt(quantityInput.value);
+    const unitPrice = parseFloat(quantityInput.getAttribute('data-unit-price'));
+    const newTotal = unitPrice * newQuantity;
+
+    // Update the price display immediately
+    const totalElement = document.getElementById(`total_${cartItemId}`);
+    totalElement.textContent = `₱${newTotal.toFixed(2)}`;
+
+    // Update cart totals
+    updateCartTotal();
+
+    // Get CSRF token
+    const csrfToken = document.querySelector('input[name="<?= csrf_token() ?>"]').value;
+
+    fetch(`/cart/update/${cartItemId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: new URLSearchParams({
+            '<?= csrf_token() ?>': csrfToken,
+            'quantity': newQuantity
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            quantityInput.setAttribute('data-original-quantity', newQuantity);
+            // Refresh icons after DOM update
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        } else {
+            // Revert changes
+            const oldQuantity = data.old_quantity || quantityInput.getAttribute('data-original-quantity');
+            quantityInput.value = oldQuantity;
+            const oldTotal = unitPrice * parseInt(oldQuantity);
+            totalElement.textContent = `₱${oldTotal.toFixed(2)}`;
+            updateCartTotal();
+            Swal.fire({
+                icon: 'error',
+                title: 'Update Failed',
+                text: data.message || 'Failed to update quantity.',
+                confirmButtonColor: '#ef4444'
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        const oldQuantity = quantityInput.getAttribute('data-original-quantity');
+        quantityInput.value = oldQuantity;
+        const oldTotal = unitPrice * parseInt(oldQuantity);
+        totalElement.textContent = `₱${oldTotal.toFixed(2)}`;
+        updateCartTotal();
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'Could not find item details'
+            text: 'An error occurred while updating quantity.',
+            confirmButtonColor: '#ef4444'
+        });
+    });
+}
+
+function removeFromCart(cartItemId) {
+    const quantityInput = document.getElementById(`quantity_${cartItemId}`);
+    if (!quantityInput) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Could not find item details',
+            confirmButtonColor: '#ef4444'
         });
         return;
     }
 
-    const itemContainer = cartItemElement.closest('.p-6');
+    const itemContainer = quantityInput.closest('.p-6');
     const productName = itemContainer.querySelector('h3').textContent.trim();
-    const farmerName = itemContainer.querySelector('.text-gray-600').textContent.replace('by ', '').trim();
-    const quantity = parseInt(cartItemElement.value) || 0;
-    const priceText = itemContainer.querySelector('.text-primary').textContent.trim();
-    // Extract number from format like "₱1,234.56"
-    const priceMatch = priceText.match(/₱([\d,]+\.?\d*)/);
-    const itemTotal = priceMatch ? parseFloat(priceMatch[1].replace(',', '')) : 0;
-    const unitPrice = quantity > 0 ? itemTotal / quantity : 0;
+    const farmerElement = itemContainer.querySelector('.text-gray-600');
+    const farmerName = farmerElement ? farmerElement.textContent.trim() : 'Unknown';
+    const quantity = parseInt(quantityInput.value) || 0;
+    const unitPrice = parseFloat(quantityInput.getAttribute('data-unit-price'));
+    const itemTotal = unitPrice * quantity;
 
     Swal.fire({
-        title: 'Remove Item',
+        title: 'Remove Item?',
         html: `
             <div class="text-left">
                 <div class="mb-4">
@@ -284,21 +457,18 @@ function removeFromCart(cartItemId) {
                     <p class="text-gray-600 mb-2">Seller: ${farmerName}</p>
                 </div>
                 <div class="border-t pt-3">
-                    <div class="flex justify-between mb-2">
-                        <span>Quantity:</span>
-                        <span>${quantity}</span>
+                    <div class="flex justify-between mb-2 text-sm">
+                        <span class="text-gray-600">Quantity:</span>
+                        <span class="font-medium">${quantity}</span>
                     </div>
-                    <div class="flex justify-between mb-2">
-                        <span>Unit Price:</span>
-                        <span>₱${unitPrice.toFixed(2)}</span>
-                    </div>
-                    <div class="flex justify-between mb-2">
-                        <span>Total (${quantity} items):</span>
-                        <span>₱${itemTotal.toFixed(2)}</span>
+                    <div class="flex justify-between mb-2 text-sm">
+                        <span class="text-gray-600">Unit Price:</span>
+                        <span class="font-medium">₱${unitPrice.toFixed(2)}</span>
                     </div>
                     <div class="border-t pt-2 mt-2">
-                        <div class="flex justify-between font-bold text-red-600">
-                            <span>This will be removed from your cart</span>
+                        <div class="flex justify-between">
+                            <span class="font-bold">Total:</span>
+                            <span class="font-bold text-red-600">₱${itemTotal.toFixed(2)}</span>
                         </div>
                     </div>
                 </div>
@@ -306,13 +476,12 @@ function removeFromCart(cartItemId) {
         `,
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
         confirmButtonText: 'Yes, remove it!',
         cancelButtonText: 'Keep in cart'
     }).then((result) => {
         if (result.isConfirmed) {
-            // Get CSRF token
             const csrfToken = document.querySelector('input[name="<?= csrf_token() ?>"]').value;
 
             fetch(`/cart/remove/${cartItemId}`, {
@@ -328,36 +497,21 @@ function removeFromCart(cartItemId) {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Show success message and reload page
                     Swal.fire({
                         icon: 'success',
                         title: 'Removed!',
-                        html: `
-                            <div class="text-center">
-                                <p class="mb-2">${data.message}</p>
-                                <div class="bg-gray-50 p-3 rounded-lg mt-3">
-                                    <p class="text-sm text-gray-600">Remaining items in cart: <strong>${data.cart_count}</strong></p>
-                                </div>
-                            </div>
-                        `,
-                        showConfirmButton: true,
-                        confirmButtonText: 'Continue Shopping',
-                        showCancelButton: true,
-                        cancelButtonText: 'View Updated Cart',
-                        confirmButtonColor: '#10b981',
-                        cancelButtonColor: '#3b82f6'
-                    }).then((result) => {
-                        if (result.dismiss === Swal.DismissReason.cancel) {
-                            location.reload();
-                        } else {
-                            window.location.href = '/marketplace';
-                        }
+                        text: data.message,
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#10b981'
+                    }).then(() => {
+                        location.reload();
                     });
                 } else {
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: data.message
+                        text: data.message,
+                        confirmButtonColor: '#ef4444'
                     });
                 }
             })
@@ -366,7 +520,8 @@ function removeFromCart(cartItemId) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: 'An error occurred. Please try again.'
+                    text: 'An error occurred. Please try again.',
+                    confirmButtonColor: '#ef4444'
                 });
             });
         }
@@ -375,19 +530,19 @@ function removeFromCart(cartItemId) {
 
 function clearCart() {
     Swal.fire({
-        title: 'Clear Cart',
-        text: 'Clear entire cart? This cannot be undone.',
+        title: 'Clear Entire Cart?',
+        text: 'This will remove all items from your cart. This action cannot be undone.',
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Yes, clear it!'
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Yes, clear cart!',
+        cancelButtonText: 'Cancel'
     }).then((result) => {
         if (result.isConfirmed) {
-            // Show loading indicator
             Swal.fire({
                 title: 'Clearing Cart...',
-                text: 'Please wait while we clear your cart.',
+                text: 'Please wait',
                 allowOutsideClick: false,
                 allowEscapeKey: false,
                 showConfirmButton: false,
@@ -395,9 +550,6 @@ function clearCart() {
                     Swal.showLoading();
                 }
             });
-
-            // Get CSRF token
-            const csrfToken = document.querySelector('input[name="<?= csrf_token() ?>"]').value;
 
             fetch('/cart/clear', {
                 method: 'GET',
@@ -407,7 +559,6 @@ function clearCart() {
             })
             .then(response => {
                 if (response.ok) {
-                    // Show success message
                     Swal.fire({
                         icon: 'success',
                         title: 'Cart Cleared!',
@@ -427,7 +578,7 @@ function clearCart() {
                     icon: 'error',
                     title: 'Error',
                     text: 'Failed to clear cart. Please try again.',
-                    confirmButtonColor: '#d33'
+                    confirmButtonColor: '#ef4444'
                 });
             });
         }
@@ -443,135 +594,17 @@ function proceedToCheckout() {
         Swal.fire({
             icon: 'warning',
             title: 'No Items Selected',
-            text: 'Please select at least one item to checkout.',
+            text: 'Please select at least one item to proceed to checkout.',
             confirmButtonColor: '#f59e0b'
         });
         return;
     }
 
-    // Submit form directly to checkout
+    // Submit form to checkout
     form.action = '/checkout';
     form.method = 'POST';
     form.submit();
 }
-
-function selectAllItems(checked) {
-    const checkboxes = document.querySelectorAll('input[name="selected_items[]"]');
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = checked;
-    });
-}
-
-function updateQuantity(cartItemId) {
-    const quantityInput = document.getElementById(`quantity_${cartItemId}`);
-
-    const newQuantity = parseInt(quantityInput.value);
-
-    if (newQuantity < 1 || newQuantity > 99 || isNaN(newQuantity)) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Invalid Quantity',
-            text: 'Please enter a quantity between 1 and 99.'
-        });
-        return;
-    }
-
-    const itemContainer = quantityInput.closest('.p-6');
-    const unitPriceText = itemContainer.querySelector('.text-gray-500').textContent.trim();
-    const unitPriceMatch = unitPriceText.match(/₱([\d,]+\.?\d*)/);
-    const unitPrice = unitPriceMatch ? parseFloat(unitPriceMatch[1].replace(',', '')) : 0;
-    const newTotal = unitPrice * newQuantity;
-
-    // Update the price display immediately
-    const priceSpan = itemContainer.querySelector('.text-primary');
-    priceSpan.textContent = `₱${newTotal.toFixed(2)}`;
-
-    // Get CSRF token
-    const csrfToken = document.querySelector('input[name="<?= csrf_token() ?>"]').value;
-
-    // Show loading
-    const updateButton = itemContainer.querySelector('button[onclick*="updateQuantity"]');
-    const originalText = updateButton.textContent;
-    updateButton.textContent = 'Updating...';
-    updateButton.disabled = true;
-
-    fetch(`/cart/update/${cartItemId}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: new URLSearchParams({
-            '<?= csrf_token() ?>': csrfToken,
-            'quantity': newQuantity
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Update original quantity
-            quantityInput.setAttribute('data-original-quantity', newQuantity);
-            // Update cart totals
-            updateCartTotal();
-            Swal.fire({
-                icon: 'success',
-                title: 'Updated!',
-                text: 'Quantity updated successfully.',
-                timer: 1500,
-                showConfirmButton: false
-            });
-        } else {
-            // Revert changes
-            const oldQuantity = data.old_quantity || quantityInput.getAttribute('data-original-quantity');
-            quantityInput.value = oldQuantity;
-            const oldTotal = unitPrice * parseInt(oldQuantity);
-            priceSpan.textContent = `₱${oldTotal.toFixed(2)}`;
-            Swal.fire({
-                icon: 'error',
-                title: 'Update Failed',
-                text: data.message || 'Failed to update quantity.'
-            });
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        // Revert changes
-        const oldQuantity = quantityInput.getAttribute('data-original-quantity');
-        quantityInput.value = oldQuantity;
-        const oldTotal = unitPrice * parseInt(oldQuantity);
-        priceSpan.textContent = `₱${oldTotal.toFixed(2)}`;
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'An error occurred while updating quantity.'
-        });
-    })
-    .finally(() => {
-        // Reset button
-        updateButton.textContent = originalText;
-        updateButton.disabled = false;
-    });
-}
-
-// Show checkout success notification if redirected from checkout
-document.addEventListener('DOMContentLoaded', function() {
-    <?php if (session()->has('success') && strpos(session()->get('success'), 'order') !== false): ?>
-        if (typeof Swal !== 'undefined') {
-            Swal.fire({
-                icon: 'success',
-                title: 'Checkout Successful!',
-                html: `<?= str_replace("'", "\\'", session()->get('success')) ?>`,
-                confirmButtonText: 'Great!',
-                confirmButtonColor: '#10b981'
-            });
-        }
-        // Reload cart to show updated items
-        setTimeout(function() {
-            window.location.reload();
-        }, 1500);
-    <?php endif; ?>
-});
 </script>
 
 <?= $this->endSection() ?>
-
