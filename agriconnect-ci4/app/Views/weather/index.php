@@ -2,114 +2,301 @@
 
 <?= $this->section('content') ?>
 
-<div class="container mx-auto px-4 py-8">
+<style>
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes bounce-subtle {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-slide-in-right {
+    animation: slideInRight 0.5s ease-out forwards;
+}
+
+.animate-pulse-slow {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.animate-bounce-subtle {
+    animation: bounce-subtle 2s ease-in-out infinite;
+}
+
+.stagger-1 { animation-delay: 0.1s; opacity: 0; }
+.stagger-2 { animation-delay: 0.2s; opacity: 0; }
+.stagger-3 { animation-delay: 0.3s; opacity: 0; }
+.stagger-4 { animation-delay: 0.4s; opacity: 0; }
+.stagger-5 { animation-delay: 0.5s; opacity: 0; }
+.stagger-6 { animation-delay: 0.6s; opacity: 0; }
+.stagger-7 { animation-delay: 0.7s; opacity: 0; }
+.stagger-8 { animation-delay: 0.8s; opacity: 0; }
+
+.weather-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.weather-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.stat-card {
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: scale(1.05);
+}
+
+.hourly-item {
+    transition: all 0.3s ease;
+}
+
+.hourly-item:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.forecast-item {
+    transition: all 0.3s ease;
+}
+
+.forecast-item:hover {
+    transform: translateX(8px);
+    background: linear-gradient(to right, #f9fafb, #f3f4f6);
+}
+
+.advisory-card {
+    transition: all 0.3s ease;
+}
+
+.advisory-card:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.refresh-button {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.refresh-button:hover {
+    transform: rotate(90deg);
+}
+
+.refresh-button:active {
+    transform: rotate(180deg);
+}
+</style>
+
+<div class="container mx-auto px-4 py-8 max-w-7xl">
     <!-- Warning Banner -->
-    <div id="weatherApiWarning" class="hidden mb-6">
-        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded">
-            <i data-lucide="alert-triangle" class="w-5 h-5 inline-block mr-2 align-middle"></i>
-            <span id="weatherApiWarningText"></span>
+    <div id="weatherApiWarning" class="hidden mb-6 animate-fade-in">
+        <div class="bg-gradient-to-r from-yellow-50 to-amber-50 border-l-4 border-yellow-500 text-yellow-800 p-5 rounded-xl shadow-sm">
+            <div class="flex items-start">
+                <i data-lucide="alert-triangle" class="w-5 h-5 mr-3 mt-0.5 flex-shrink-0 animate-pulse-slow"></i>
+                <span id="weatherApiWarningText" class="flex-1"></span>
+            </div>
         </div>
     </div>
-    <div class="mb-8 flex items-center justify-between">
+
+    <!-- Header -->
+    <div class="mb-8 flex items-center justify-between flex-wrap gap-4 animate-fade-in-up">
         <div>
             <div class="flex items-center gap-3 mb-2">
                 <h1 class="text-3xl font-bold text-gray-900">Weather</h1>
-                <span class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">Google Weather</span>
-            </div>
+                
+<span class="px-3 py-1.5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-full shadow-md inline-flex items-center gap-1.5">
+                    <i data-lucide="cloud" class="w-3 h-3"></i>
+                    <span>Live Data</span>
+                </span>            </div>
             <p class="text-gray-600">Real-time weather conditions and farming recommendations for <?= esc($location) ?></p>
         </div>
-        <div class="flex items-center gap-2 text-sm text-gray-600">
-            <i data-lucide="refresh-cw" id="refreshIcon" class="w-4 h-4"></i>
-            <span id="lastUpdated">Loading...</span>
+        <div class="flex items-center gap-3 bg-white px-4 py-2.5 rounded-xl border border-gray-200 shadow-sm">
+            <i data-lucide="refresh-cw" id="refreshIcon" class="w-4 h-4 text-primary refresh-button"></i>
+            <span id="lastUpdated" class="text-gray-600">Loading...</span>
         </div>
     </div>
 
     <!-- Loading State -->
-    <div id="loadingState" class="text-center py-12">
-        <i data-lucide="loader-2" class="w-12 h-12 text-primary mx-auto mb-4 animate-spin"></i>
-        <p class="text-gray-600">Loading weather data...</p>
+    <div id="loadingState" class="text-center py-20">
+        <div class="inline-flex flex-col items-center">
+            <div class="relative mb-6">
+                <div class="w-20 h-20 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                <i data-lucide="cloud-sun" class="w-8 h-8 text-primary absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-pulse-slow"></i>
+            </div>
+            <p class="text-gray-700 mb-2">Loading weather data...</p>
+            <p class="text-gray-500">Please wait</p>
+        </div>
     </div>
 
     <!-- Weather Content -->
     <div id="weatherContent" class="hidden">
-        <!-- Current Weather -->
-        <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6 mb-8">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h2 class="text-2xl font-bold text-gray-900 mb-1" id="weatherLocation">Nasugbu, Batangas</h2>
-                    <p class="text-gray-600" id="weatherLastUpdated">Last updated: Loading...</p>
-                </div>
-                <div class="text-right">
-                    <div class="flex items-center gap-3">
-                        <span id="weatherIcon" class="w-16 h-16 flex items-center justify-center text-5xl">🌤️</span>
+        <!-- Current Weather - Hero Card -->
+        <div class="bg-gradient-to-br from-green-500 via-green-600 to-green-700 rounded-3xl shadow-2xl border border-green-400 p-8 mb-8 text-white weather-card animate-fade-in-up overflow-hidden relative">
+            <!-- Decorative Elements -->
+            <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+            <div class="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -ml-24 -mb-24"></div>
+            
+            <div class="relative z-10">
+                <div class="flex items-start justify-between mb-8 flex-wrap gap-4">
+                    <div>
+                        <div class="flex items-center gap-2 mb-3">
+                            <i data-lucide="map-pin" class="w-5 h-5"></i>
+                            <h2 class="text-white/90" id="weatherLocation">Nasugbu, Batangas</h2>
+                        </div>
+                        <p class="text-green-100" id="weatherLastUpdated">Last updated: Loading...</p>
+                    </div>
+                    <div class="flex items-center gap-4 bg-white/10 backdrop-blur-sm px-6 py-4 rounded-2xl border border-white/20">
+                        <span id="weatherIcon" class="w-20 h-20 flex items-center justify-center text-6xl animate-bounce-subtle">🌤️</span>
                         <div>
-                            <div class="text-4xl font-bold text-primary mb-1" id="weatherTemp">--°C</div>
-                            <div class="text-lg text-gray-600" id="weatherCondition">--</div>
-                            <div class="text-sm text-gray-500" id="weatherFeelsLike"></div>
+                            <div class="text-5xl mb-1" id="weatherTemp">--°C</div>
+                            <div class="text-xl text-green-100 mb-1" id="weatherCondition">--</div>
+                            <div class="text-green-200" id="weatherFeelsLike"></div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-4">
-                <div class="text-center">
-                    <i data-lucide="droplets" class="w-8 h-8 text-blue-500 mx-auto mb-2"></i>
-                    <div class="text-2xl font-semibold text-gray-900" id="weatherHumidity">--%</div>
-                    <div class="text-sm text-gray-600">Humidity</div>
+                <!-- Weather Stats Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20 stat-card">
+                        <div class="flex items-center justify-between mb-3">
+                            <i data-lucide="droplets" class="w-8 h-8 text-green-200"></i>
+                        </div>
+                        <div class="text-3xl mb-1" id="weatherHumidity">--%</div>
+                        <div class="text-green-200">Humidity</div>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20 stat-card">
+                        <div class="flex items-center justify-between mb-3">
+                            <i data-lucide="wind" class="w-8 h-8 text-green-200"></i>
+                        </div>
+                        <div class="text-3xl mb-1" id="weatherWind">-- km/h</div>
+                        <div class="text-green-200">Wind Speed</div>
+                        <div class="text-green-300 mt-1" id="weatherWindDirection"></div>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20 stat-card">
+                        <div class="flex items-center justify-between mb-3">
+                            <i data-lucide="cloud-rain" class="w-8 h-8 text-green-200"></i>
+                        </div>
+                        <div class="text-3xl mb-1" id="weatherRainfall">-- mm</div>
+                        <div class="text-green-200">Rainfall</div>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20 stat-card">
+                        <div class="flex items-center justify-between mb-3">
+                            <i data-lucide="gauge" class="w-8 h-8 text-green-200"></i>
+                        </div>
+                        <div class="text-3xl mb-1" id="weatherPressure">-- hPa</div>
+                        <div class="text-green-200">Pressure</div>
+                    </div>
                 </div>
-                <div class="text-center">
-                    <i data-lucide="wind" class="w-8 h-8 text-gray-500 mx-auto mb-2"></i>
-                    <div class="text-2xl font-semibold text-gray-900" id="weatherWind">-- km/h</div>
-                    <div class="text-sm text-gray-600">Wind</div>
-                    <div class="text-xs text-gray-500 mt-1" id="weatherWindDirection"></div>
-                </div>
-                <div class="text-center">
-                    <i data-lucide="cloud-rain" class="w-8 h-8 text-blue-600 mx-auto mb-2"></i>
-                    <div class="text-2xl font-semibold text-gray-900" id="weatherRainfall">-- mm</div>
-                    <div class="text-sm text-gray-600">Rainfall</div>
-                </div>
-                <div class="text-center">
-                    <i data-lucide="gauge" class="w-8 h-8 text-purple-500 mx-auto mb-2"></i>
-                    <div class="text-2xl font-semibold text-gray-900" id="weatherPressure">-- hPa</div>
-                    <div class="text-sm text-gray-600">Pressure</div>
-                </div>
-            </div>
-            
-            <!-- Sunrise/Sunset -->
-            <div class="flex items-center justify-center gap-6 pt-4 border-t border-gray-200" id="sunTimes">
-                <div class="flex items-center gap-2 text-sm text-gray-600">
-                    <i data-lucide="sunrise" class="w-4 h-4"></i>
-                    <span id="sunriseTime">--:--</span>
-                </div>
-                <div class="flex items-center gap-2 text-sm text-gray-600">
-                    <i data-lucide="sunset" class="w-4 h-4"></i>
-                    <span id="sunsetTime">--:--</span>
+                
+                <!-- Sunrise/Sunset -->
+                <div class="flex items-center justify-center gap-8 pt-6 border-t border-white/20" id="sunTimes">
+                    <div class="flex items-center gap-3 bg-white/10 backdrop-blur-sm px-5 py-3 rounded-xl border border-white/20">
+                        <i data-lucide="sunrise" class="w-5 h-5 text-yellow-200"></i>
+                        <div>
+                            <div class="text-green-200 mb-1">Sunrise</div>
+                            <div class="text-xl" id="sunriseTime">--:--</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 bg-white/10 backdrop-blur-sm px-5 py-3 rounded-xl border border-white/20">
+                        <i data-lucide="sunset" class="w-5 h-5 text-orange-200"></i>
+                        <div>
+                            <div class="text-green-200 mb-1">Sunset</div>
+                            <div class="text-xl" id="sunsetTime">--:--</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Hourly Forecast -->
-        <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6 mb-8">
-            <h3 class="text-xl font-bold text-gray-900 mb-4">Hourly Forecast</h3>
-            <div>
-                <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 justify-center items-center w-full" id="hourlyContainer">
+        <div class="bg-white rounded-2xl shadow-md border border-gray-200 p-6 mb-8 weather-card animate-fade-in-up stagger-1">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="p-2 bg-green-100 rounded-xl">
+                    <i data-lucide="clock" class="w-6 h-6 text-green-600"></i>
+                </div>
+                <h3 class="text-gray-900">Hourly Forecast</h3>
+            </div>
+            <div class="overflow-x-auto -mx-2 px-2">
+                <div class="inline-flex gap-3 min-w-full pb-2" id="hourlyContainer">
                     <!-- Hourly items will be inserted here -->
                 </div>
             </div>
         </div>
 
         <!-- 10-Day Forecast -->
-        <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6 mb-8">
-            <h3 class="text-xl font-bold text-gray-900 mb-6">10-Day Forecast</h3>
+        <div class="bg-white rounded-2xl shadow-md border border-gray-200 p-6 mb-8 weather-card animate-fade-in-up stagger-2">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="p-2 bg-purple-100 rounded-xl">
+                    <i data-lucide="calendar-days" class="w-6 h-6 text-purple-600"></i>
+                </div>
+                <h3 class="text-gray-900">10-Day Forecast</h3>
+            </div>
             <div class="space-y-2" id="forecastContainer">
                 <!-- Forecast items will be inserted here -->
             </div>
         </div>
 
         <!-- Agricultural Advisories -->
-        <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-            <h3 class="text-xl font-bold text-gray-900 mb-6">Agricultural Advisories</h3>
-            <div class="space-y-4" id="advisoriesContainer"></div>
+        <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl shadow-md border border-green-200 p-6 weather-card animate-fade-in-up stagger-3">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="p-2 bg-green-500 rounded-xl shadow-lg shadow-green-500/30">
+                    <i data-lucide="sprout" class="w-6 h-6 text-white"></i>
+                </div>
+                <h3 class="text-gray-900">Agricultural Advisories</h3>
+            </div>
+            <div class="space-y-3" id="advisoriesContainer"></div>
         </div>
     </div>
 </div>
@@ -170,7 +357,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function displayWeather(weather) {
         // Hide loading, show content
         document.getElementById('loadingState').classList.add('hidden');
-        document.getElementById('weatherContent').classList.remove('hidden');
+        const weatherContent = document.getElementById('weatherContent');
+        weatherContent.classList.remove('hidden');
         
         // Update current weather
         document.getElementById('weatherLocation').textContent = weather.location;
@@ -182,11 +370,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Weather icon
-        if (weather.current.icon) {
-            const iconImg = document.getElementById('weatherIcon');
-            iconImg.src = `https://openweathermap.org/img/wn/${weather.current.icon}@2x.png`;
-            iconImg.classList.remove('hidden');
-        }
+        const iconEl = document.getElementById('weatherIcon');
+        iconEl.textContent = getWeatherEmoji(weather.current.condition);
         
         document.getElementById('weatherHumidity').textContent = weather.current.humidity + '%';
         document.getElementById('weatherWind').textContent = weather.current.wind_speed + ' km/h';
@@ -209,14 +394,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const hourlyContainer = document.getElementById('hourlyContainer');
             hourlyContainer.innerHTML = '';
             
-            weather.hourly.forEach(hour => {
+            weather.hourly.forEach((hour, index) => {
                 const hourlyItem = document.createElement('div');
-                hourlyItem.className = 'flex flex-col items-center min-w-[80px] p-3 border border-gray-200 rounded-lg';
+                hourlyItem.className = 'hourly-item flex flex-col items-center min-w-[100px] p-4 bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 rounded-2xl hover:border-green-300 hover:from-green-50 hover:to-green-100';
                 hourlyItem.innerHTML = `
-                    <div class="text-sm font-medium text-gray-600 mb-2">${hour.hour}</div>
-                    <span class="w-10 h-10 mb-2 flex items-center justify-center text-2xl">${getWeatherEmoji(hour.condition)}</span>
-                    <div class="text-lg font-bold text-gray-900 mb-1">${hour.temperature}°</div>
-                    <div class="text-xs text-blue-600">${hour.rain_chance}%</div>
+                    <div class="text-gray-600 mb-3">${hour.hour}</div>
+                    <span class="w-12 h-12 mb-3 flex items-center justify-center text-3xl">${getWeatherEmoji(hour.condition)}</span>
+                    <div class="text-xl text-gray-900 mb-2">${hour.temperature}°</div>
+                    <div class="flex items-center gap-1 text-green-600">
+                        <i data-lucide="droplet" class="w-3 h-3"></i>
+                        <span>${hour.rain_chance}%</span>
+                    </div>
                 `;
                 hourlyContainer.appendChild(hourlyItem);
             });
@@ -226,56 +414,48 @@ document.addEventListener('DOMContentLoaded', function() {
         const forecastContainer = document.getElementById('forecastContainer');
         forecastContainer.innerHTML = '';
         
-        weather.forecast.forEach(day => {
+        weather.forecast.forEach((day, index) => {
             const forecastItem = document.createElement('div');
-            forecastItem.className = 'flex items-center justify-between p-4 border-b border-gray-200 last:border-0 hover:bg-gray-50 transition-colors';
+            forecastItem.className = 'forecast-item flex items-center justify-between p-5 border-2 border-gray-100 rounded-xl hover:border-purple-200 bg-white';
             forecastItem.innerHTML = `
-                <div class="flex items-center gap-4 flex-1">
-                    <div class="w-24">
-                        <div class="font-semibold text-gray-900">${day.day}</div>
-                        <div class="text-sm text-gray-600">${day.date}</div>
+                <div class="flex items-center gap-6 flex-1">
+                    <div class="w-28">
+                        <div class="text-gray-900 mb-1">${day.day}</div>
+                        <div class="text-gray-500">${day.date}</div>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <span class="w-12 h-12 flex items-center justify-center text-3xl">${getWeatherEmoji(day.condition)}</span>
-                        <div class="text-sm text-gray-600 w-32">${day.condition}</div>
+                    <div class="flex items-center gap-4">
+                        <span class="w-14 h-14 flex items-center justify-center text-4xl">${getWeatherEmoji(day.condition)}</span>
+                        <div class="text-gray-700 w-36">${day.condition}</div>
                     </div>
-                    <div class="flex items-center gap-2 text-sm text-gray-500">
-                        <i data-lucide="cloud-rain" class="w-4 h-4"></i>
-                        <span>${day.rain_chance}%</span>
+                    <div class="flex items-center gap-2 bg-green-50 px-3 py-1.5 rounded-lg border border-green-200">
+                        <i data-lucide="cloud-rain" class="w-4 h-4 text-green-600"></i>
+                        <span class="text-green-700">${day.rain_chance}%</span>
                     </div>
                 </div>
-                <div class="flex items-center gap-3 text-right">
-                    <div class="text-lg font-semibold text-gray-900">${day.high}°</div>
-                    <div class="text-lg text-gray-400">${day.low}°</div>
+                <div class="flex items-center gap-4 text-right">
+                    <div class="text-xl text-gray-900">${day.high}°</div>
+                    <div class="text-xl text-gray-400">${day.low}°</div>
                 </div>
             `;
             forecastContainer.appendChild(forecastItem);
         });
-            // Helper: map condition to emoji
-            function getWeatherEmoji(condition) {
-                const cond = (condition || '').toLowerCase();
-                if (cond.includes('rain')) return '🌧️';
-                if (cond.includes('cloud')) return '⛅';
-                if (cond.includes('sun') || cond.includes('clear')) return '☀️';
-                if (cond.includes('storm') || cond.includes('thunder')) return '⛈️';
-                if (cond.includes('snow')) return '❄️';
-                return '🌤️';
-            }
-
         
         // Update advisories
         const advisoriesContainer = document.getElementById('advisoriesContainer');
         advisoriesContainer.innerHTML = '';
         
         if (weather.advisories && weather.advisories.length > 0) {
-            weather.advisories.forEach(advisory => {
+            weather.advisories.forEach((advisory, index) => {
                 const advisoryItem = document.createElement('div');
-                advisoryItem.className = `border-l-4 ${advisory.type === 'warning' ? 'border-l-red-500 bg-red-50' : 'border-l-blue-500 bg-blue-50'} p-4 rounded-r-lg`;
+                const isWarning = advisory.type === 'warning';
+                advisoryItem.className = `advisory-card border-l-4 ${isWarning ? 'border-l-red-500 bg-white' : 'border-l-green-500 bg-white'} p-5 rounded-r-xl shadow-sm hover:shadow-md`;
                 advisoryItem.innerHTML = `
-                    <div class="flex items-start">
-                        <i data-lucide="${advisory.type === 'warning' ? 'alert-triangle' : 'info'}" class="w-5 h-5 ${advisory.type === 'warning' ? 'text-red-600' : 'text-blue-600'} mr-3 mt-0.5"></i>
-                        <div>
-                            <h4 class="font-semibold text-gray-900 mb-1">${advisory.title}</h4>
+                    <div class="flex items-start gap-4">
+                        <div class="p-2 ${isWarning ? 'bg-red-100' : 'bg-green-100'} rounded-lg flex-shrink-0">
+                            <i data-lucide="${isWarning ? 'alert-triangle' : 'info'}" class="w-5 h-5 ${isWarning ? 'text-red-600' : 'text-green-600'}"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-gray-900 mb-2">${advisory.title}</h4>
                             <p class="text-gray-700">${advisory.message}</p>
                         </div>
                     </div>
@@ -283,13 +463,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 advisoriesContainer.appendChild(advisoryItem);
             });
         } else {
-            advisoriesContainer.innerHTML = '<p class="text-gray-500 text-center">No advisories at this time.</p>';
+            advisoriesContainer.innerHTML = `
+                <div class="text-center py-8 bg-white rounded-xl border-2 border-dashed border-gray-300">
+                    <i data-lucide="check-circle" class="w-12 h-12 text-green-500 mx-auto mb-3"></i>
+                    <p class="text-gray-600">No advisories at this time.</p>
+                    <p class="text-gray-500 mt-1">Weather conditions are favorable.</p>
+                </div>
+            `;
         }
         
         // Re-initialize icons
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
+    }
+
+    // Helper: map condition to emoji
+    function getWeatherEmoji(condition) {
+        const cond = (condition || '').toLowerCase();
+        if (cond.includes('rain')) return '🌧️';
+        if (cond.includes('cloud')) return '⛅';
+        if (cond.includes('sun') || cond.includes('clear')) return '☀️';
+        if (cond.includes('storm') || cond.includes('thunder')) return '⛈️';
+        if (cond.includes('snow')) return '❄️';
+        if (cond.includes('mist') || cond.includes('fog')) return '🌫️';
+        if (cond.includes('wind')) return '💨';
+        return '🌤️';
     }
     
     function updateLastUpdated(timestamp, fromCache = false) {
@@ -314,12 +513,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function showError(message) {
-        document.getElementById('loadingState').innerHTML = `
-            <i data-lucide="alert-circle" class="w-12 h-12 text-red-500 mx-auto mb-4"></i>
-            <p class="text-red-600">${message}</p>
-            <button onclick="updateWeather()" class="mt-4 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover">
-                Retry
-            </button>
+        const loadingState = document.getElementById('loadingState');
+        loadingState.innerHTML = `
+            <div class="inline-flex flex-col items-center bg-white rounded-2xl p-8 shadow-lg border border-red-200">
+                <div class="p-4 bg-red-100 rounded-full mb-4">
+                    <i data-lucide="alert-circle" class="w-12 h-12 text-red-600"></i>
+                </div>
+                <p class="text-red-700 text-xl mb-2">${message}</p>
+                <p class="text-gray-600 mb-6">Please try again</p>
+                <button onclick="location.reload()" class="bg-primary text-white px-6 py-3 rounded-xl hover:bg-primary-hover transition-all hover:shadow-lg">
+                    <i data-lucide="refresh-cw" class="w-4 h-4 inline mr-2"></i>
+                    Retry
+                </button>
+            </div>
         `;
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();

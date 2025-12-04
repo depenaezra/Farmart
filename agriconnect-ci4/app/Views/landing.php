@@ -18,9 +18,7 @@
                     <a href="/marketplace" class="bg-white text-[#2d7a3e] px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 text-center transition-colors">
                         Browse Products
                     </a>
-                    <a href="/auth/register-buyer" class="bg-[#d97706] text-white px-8 py-4 rounded-lg font-semibold hover:bg-[#b45309] text-center transition-colors">
-                        Register
-                    </a>
+
                 </div>
             </div>
             
