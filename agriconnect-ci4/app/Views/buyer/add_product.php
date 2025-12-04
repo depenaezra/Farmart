@@ -121,6 +121,40 @@
                         <?php endif; ?>
                     </div>
 
+                    <!-- Harvest Date -->
+                    <div>
+                        <label for="harvest_date" class="block text-sm font-semibold text-gray-700 mb-2">Harvest Date</label>
+                        <input
+                            type="date"
+                            id="harvest_date"
+                            name="harvest_date"
+                            value="<?= old('harvest_date') ?>"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                        >
+                        <p class="text-sm text-gray-500 mt-1">Leave blank if unknown. Used for spoilage prediction.</p>
+                        <?php if (isset($errors['harvest_date'])): ?>
+                            <p class="text-red-500 text-sm mt-1"><?= $errors['harvest_date'] ?></p>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- Shelf Life Days -->
+                    <div>
+                        <label for="shelf_life_days" class="block text-sm font-semibold text-gray-700 mb-2">Shelf Life (Days)</label>
+                        <input
+                            type="number"
+                            id="shelf_life_days"
+                            name="shelf_life_days"
+                            value="<?= old('shelf_life_days') ?>"
+                            min="1"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                            placeholder="e.g., 7"
+                        >
+                        <p class="text-sm text-gray-500 mt-1">Leave blank to use default based on category.</p>
+                        <?php if (isset($errors['shelf_life_days'])): ?>
+                            <p class="text-red-500 text-sm mt-1"><?= $errors['shelf_life_days'] ?></p>
+                        <?php endif; ?>
+                    </div>
+
                     <!-- Location -->
                     <div class="md:col-span-2">
                         <label for="location" class="block text-sm font-semibold text-gray-700 mb-2">Location *</label>

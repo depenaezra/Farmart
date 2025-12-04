@@ -59,6 +59,220 @@
         </div>
     </div>
 
+    <!-- Spoilage Alerts -->
+    <?php
+    $hasAlerts = !empty($spoilage_alerts['early_warning']) || !empty($spoilage_alerts['nearing_spoilage']) || !empty($spoilage_alerts['spoiled']);
+    if ($hasAlerts):
+    ?>
+
+    <!-- Early Warning Alerts (5-7 days) -->
+    <?php if (!empty($spoilage_alerts['early_warning'])): ?>
+    <div class="bg-white rounded-xl shadow-md border border-yellow-200 p-6 mb-6">
+        <div class="flex items-center mb-4">
+            <div class="p-2 bg-yellow-100 rounded-lg mr-3">
+                <i data-lucide="clock" class="w-6 h-6 text-yellow-600"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900">Early Spoilage Warning</h3>
+                <p class="text-sm text-gray-600">Products expiring in 5-7 days - plan ahead</p>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <?php foreach ($spoilage_alerts['early_warning'] as $product): ?>
+                <div class="flex items-center justify-between p-4 border border-yellow-200 rounded-lg bg-yellow-50">
+                    <div class="flex items-center">
+                        <?php
+                        $imageUrl = '';
+                        if (!empty($product['image_url'])) {
+                            $decoded = json_decode($product['image_url'], true);
+                            if (is_array($decoded) && !empty($decoded)) {
+                                $imageUrl = $decoded[0];
+                            } else {
+                                $imageUrl = $product['image_url'];
+                            }
+                        }
+                        ?>
+                        <?php if ($imageUrl): ?>
+                            <img src="<?= base_url($imageUrl) ?>" alt="<?= esc($product['name']) ?>" class="w-12 h-12 object-cover rounded-lg mr-4">
+                        <?php else: ?>
+                            <div class="w-12 h-12 bg-gray-200 rounded-lg mr-4 flex items-center justify-center">
+                                <i data-lucide="package" class="w-6 h-6 text-gray-400"></i>
+                            </div>
+                        <?php endif; ?>
+
+                        <div>
+                            <p class="font-semibold text-gray-900"><?= esc($product['name']) ?></p>
+                            <p class="text-sm text-gray-600">
+                                Current Price: ₱<?= number_format($product['price'], 2) ?> |
+                                Stock: <?= $product['stock_quantity'] ?> |
+                                Expires: <?= date('M d, Y', strtotime($product['spoilage_date'])) ?> (<?= $product['days_until_spoilage'] ?> days)
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                            Early Warning
+                        </span>
+                        <a href="/buyer/products/edit/<?= $product['id'] ?>" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover text-sm font-medium">
+                            Update Details
+                        </a>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <!-- Critical Spoilage Alerts (1-3 days) -->
+    <?php if (!empty($spoilage_alerts['nearing_spoilage'])): ?>
+    <div class="bg-white rounded-xl shadow-md border border-orange-200 p-6 mb-6">
+        <div class="flex items-center mb-4">
+            <div class="p-2 bg-orange-100 rounded-lg mr-3">
+                <i data-lucide="alert-triangle" class="w-6 h-6 text-orange-600"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900">Urgent Spoilage Alert</h3>
+                <p class="text-sm text-gray-600">Products expiring within 3 days - immediate action needed</p>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <?php foreach ($spoilage_alerts['nearing_spoilage'] as $product): ?>
+                <div class="flex items-center justify-between p-4 border border-orange-200 rounded-lg bg-orange-50">
+                    <div class="flex items-center">
+                        <?php
+                        $imageUrl = '';
+                        if (!empty($product['image_url'])) {
+                            $decoded = json_decode($product['image_url'], true);
+                            if (is_array($decoded) && !empty($decoded)) {
+                                $imageUrl = $decoded[0];
+                            } else {
+                                $imageUrl = $product['image_url'];
+                            }
+                        }
+                        ?>
+                        <?php if ($imageUrl): ?>
+                            <img src="<?= base_url($imageUrl) ?>" alt="<?= esc($product['name']) ?>" class="w-12 h-12 object-cover rounded-lg mr-4">
+                        <?php else: ?>
+                            <div class="w-12 h-12 bg-gray-200 rounded-lg mr-4 flex items-center justify-center">
+                                <i data-lucide="package" class="w-6 h-6 text-gray-400"></i>
+                            </div>
+                        <?php endif; ?>
+
+                        <div>
+                            <p class="font-semibold text-gray-900"><?= esc($product['name']) ?></p>
+                            <p class="text-sm text-gray-600">
+                                Current Price: ₱<?= number_format($product['price'], 2) ?> |
+                                Stock: <?= $product['stock_quantity'] ?> |
+                                Expires: <?= date('M d, Y', strtotime($product['spoilage_date'])) ?> (<?= $product['days_until_spoilage'] ?> days)
+                            </p>
+                            <?php if (isset($product['price_suggestion'])): ?>
+                                <p class="text-sm text-orange-600 font-medium">
+                                    Suggested Price: ₱<?= number_format($product['price_suggestion']['suggested_price'], 2) ?>
+                                    (<?= $product['price_suggestion']['reduction_percent'] ?>% discount)
+                                </p>
+                                <p class="text-xs text-orange-500 italic">
+                                    Reason: <?= $product['price_suggestion']['reason'] ?>
+                                </p>
+                            <?php else: ?>
+                                <p class="text-sm text-green-600 font-medium">
+                                    ✓ Price appropriately adjusted
+                                </p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
+                            Expires Soon
+                        </span>
+                        <a href="/buyer/products/edit/<?= $product['id'] ?>" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover text-sm font-medium">
+                            Update Price
+                        </a>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <!-- Spoiled Products Alerts -->
+    <?php if (!empty($spoilage_alerts['spoiled'])): ?>
+    <div class="bg-white rounded-xl shadow-md border border-red-200 p-6 mb-8">
+        <div class="flex items-center mb-4">
+            <div class="p-2 bg-red-100 rounded-lg mr-3">
+                <i data-lucide="x-circle" class="w-6 h-6 text-red-600"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900">Spoiled Products</h3>
+                <p class="text-sm text-gray-600">These products have expired - update pricing or remove from sale</p>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <?php foreach ($spoilage_alerts['spoiled'] as $product): ?>
+                <div class="flex items-center justify-between p-4 border border-red-200 rounded-lg bg-red-50">
+                    <div class="flex items-center">
+                        <?php
+                        $imageUrl = '';
+                        if (!empty($product['image_url'])) {
+                            $decoded = json_decode($product['image_url'], true);
+                            if (is_array($decoded) && !empty($decoded)) {
+                                $imageUrl = $decoded[0];
+                            } else {
+                                $imageUrl = $product['image_url'];
+                            }
+                        }
+                        ?>
+                        <?php if ($imageUrl): ?>
+                            <img src="<?= base_url($imageUrl) ?>" alt="<?= esc($product['name']) ?>" class="w-12 h-12 object-cover rounded-lg mr-4">
+                        <?php else: ?>
+                            <div class="w-12 h-12 bg-gray-200 rounded-lg mr-4 flex items-center justify-center">
+                                <i data-lucide="package" class="w-6 h-6 text-gray-400"></i>
+                            </div>
+                        <?php endif; ?>
+
+                        <div>
+                            <p class="font-semibold text-gray-900"><?= esc($product['name']) ?></p>
+                            <p class="text-sm text-gray-600">
+                                Current Price: ₱<?= number_format($product['price'], 2) ?> |
+                                Stock: <?= $product['stock_quantity'] ?> |
+                                Expired: <?= date('M d, Y', strtotime($product['spoilage_date'])) ?> (<?= abs($product['days_until_spoilage']) ?> days ago)
+                            </p>
+                            <?php if (isset($product['price_suggestion'])): ?>
+                                <p class="text-sm text-red-600 font-medium">
+                                    Suggested Price: ₱<?= number_format($product['price_suggestion']['suggested_price'], 2) ?>
+                                    (<?= $product['price_suggestion']['reduction_percent'] ?>% discount)
+                                </p>
+                                <p class="text-xs text-red-500 italic">
+                                    Reason: <?= $product['price_suggestion']['reason'] ?>
+                                </p>
+                            <?php else: ?>
+                                <p class="text-sm text-green-600 font-medium">
+                                    ✓ Price appropriately adjusted
+                                </p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                            Spoiled
+                        </span>
+                        <a href="/buyer/products/edit/<?= $product['id'] ?>?spoiled=1" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover text-sm font-medium">
+                            Update Price Only
+                        </a>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <?php endif; ?>
+
     <!-- Charts Section -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <!-- Sales Over Time Chart -->

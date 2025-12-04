@@ -224,15 +224,23 @@ class Admin extends BaseController
     public function products()
     {
         $status = $this->request->getGet('status');
-        
-        $products = $this->productModel->getAllProductsForAdmin($status);
-        
+        $type = $this->request->getGet('type'); // 'normal' or 'spoiled'
+
+        if ($type === 'spoiled') {
+            $products = $this->productModel->getSpoiledProductsForAdmin();
+            $title = 'Spoiled Products Management';
+        } else {
+            $products = $this->productModel->getAllProductsForAdmin($status);
+            $title = 'Product Management';
+        }
+
         $data = [
-            'title' => 'Product Management',
+            'title' => $title,
             'products' => $products,
-            'current_status' => $status
+            'current_status' => $status,
+            'current_type' => $type
         ];
-        
+
         return view('admin/products', $data);
     }
     

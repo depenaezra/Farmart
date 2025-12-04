@@ -32,6 +32,7 @@ class Buyer extends BaseController
                 'orders'   => $this->orderModel->getFarmerStatistics($userId),
             ],
             'recent_orders' => array_slice($this->orderModel->getOrdersByFarmer($userId, null), 0, 5),
+            'spoilage_alerts' => $this->productModel->getSpoilageAlerts($userId),
             'chart_data' => [
                 'sales_over_time' => $this->orderModel->getSalesChartData($userId),
                 'order_status' => $this->orderModel->getOrderStatusChartData($userId),
@@ -139,6 +140,8 @@ class Buyer extends BaseController
             'location'       => $this->request->getPost('location'),
             'image_url'      => $imageUrl,
             'status'         => 'available',
+            'harvest_date'   => $this->request->getPost('harvest_date') ?: null,
+            'shelf_life_days' => $this->request->getPost('shelf_life_days') ?: null,
         ];
 
         if ($this->productModel->save($data)) {
@@ -303,10 +306,15 @@ class Buyer extends BaseController
                 ->with('error', 'Product not found.');
         }
 
+        // Check if product is spoiled (for price-only editing)
+        $isSpoiled = $this->request->getGet('spoiled') === '1' ||
+                     $this->productModel->getSpoilageStatus($product) === 'spoiled';
+
         $data = [
-            'title' => 'Edit Product',
+            'title' => $isSpoiled ? 'Update Spoiled Product Price' : 'Edit Product',
             'product' => $product,
             'errors' => session()->get('errors') ?? [],
+            'is_spoiled' => $isSpoiled,
         ];
 
         return view('buyer/edit_product', $data);
@@ -325,13 +333,24 @@ class Buyer extends BaseController
                 ->with('error', 'Product not found.');
         }
 
+        // Check if product is spoiled (for price-only editing)
+        $isSpoiled = $this->productModel->getSpoilageStatus($product) === 'spoiled';
+
         $validation = \Config\Services::validation();
 
-        $rules = [
-            'name' => 'required|min_length[3]',
-            'price' => 'required|decimal|greater_than[0]',
-            'stock_quantity' => 'required|integer|greater_than_equal_to[0]'
-        ];
+        if ($isSpoiled) {
+            // For spoiled products, only validate price
+            $rules = [
+                'price' => 'required|decimal|greater_than[0]'
+            ];
+        } else {
+            // For normal products, validate all fields
+            $rules = [
+                'name' => 'required|min_length[3]',
+                'price' => 'required|decimal|greater_than[0]',
+                'stock_quantity' => 'required|integer|greater_than_equal_to[0]'
+            ];
+        }
 
         if (!$this->validate($rules)) {
             return redirect()->back()
@@ -339,64 +358,84 @@ class Buyer extends BaseController
                 ->with('errors', $validation->getErrors());
         }
 
-        $data = [
-            'name' => $this->request->getPost('name'),
-            'description' => $this->request->getPost('description'),
-            'price' => $this->request->getPost('price'),
-            'unit' => $this->request->getPost('unit'),
-            'category' => $this->request->getPost('category'),
-            'stock_quantity' => $this->request->getPost('stock_quantity'),
-            'location' => $this->request->getPost('location')
-        ];
+        if ($isSpoiled) {
+            // For spoiled products, only update price but prevent increases
+            $newPrice = $this->request->getPost('price');
+            $originalSpoiledPrice = $product['original_price_when_spoiled'] ?? $product['price'];
 
-        // Handle images
-        $existingImages = json_decode($this->request->getPost('existing_images'), true) ?? [];
-        $removedImages = json_decode($this->request->getPost('removed_images'), true) ?? [];
-        $newImages = $this->request->getFiles()['images'] ?? [];
-
-        // Remove deleted images from filesystem
-        foreach ($removedImages as $removedImage) {
-            if (file_exists(FCPATH . $removedImage)) {
-                unlink(FCPATH . $removedImage);
+            if ($newPrice > $originalSpoiledPrice) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Cannot increase price for spoiled products. Maximum allowed price is ₱' . number_format($originalSpoiledPrice, 2));
             }
-            // Remove from existing images
-            $key = array_search($removedImage, $existingImages);
-            if ($key !== false) {
-                unset($existingImages[$key]);
-            }
-        }
 
-        // Upload new images
-        $uploadedImages = [];
-        if (!empty($newImages)) {
-            foreach ($newImages as $image) {
-                if ($image->isValid() && !$image->hasMoved()) {
-                    $newName = $image->getRandomName();
-                    $image->move(FCPATH . 'uploads/products', $newName);
-                    $uploadedImages[] = '/uploads/products/' . $newName;
+            $data = [
+                'price' => $newPrice
+            ];
+        } else {
+            // For normal products, update all fields
+            $data = [
+                'name' => $this->request->getPost('name'),
+                'description' => $this->request->getPost('description'),
+                'price' => $this->request->getPost('price'),
+                'unit' => $this->request->getPost('unit'),
+                'category' => $this->request->getPost('category'),
+                'stock_quantity' => $this->request->getPost('stock_quantity'),
+                'location' => $this->request->getPost('location'),
+                'harvest_date' => $this->request->getPost('harvest_date') ?: null,
+                'shelf_life_days' => $this->request->getPost('shelf_life_days') ?: null
+            ];
+
+            // Handle images
+            $existingImages = json_decode($this->request->getPost('existing_images'), true) ?? [];
+            $removedImages = json_decode($this->request->getPost('removed_images'), true) ?? [];
+            $newImages = $this->request->getFiles()['images'] ?? [];
+
+            // Remove deleted images from filesystem
+            foreach ($removedImages as $removedImage) {
+                if (file_exists(FCPATH . $removedImage)) {
+                    unlink(FCPATH . $removedImage);
+                }
+                // Remove from existing images
+                $key = array_search($removedImage, $existingImages);
+                if ($key !== false) {
+                    unset($existingImages[$key]);
                 }
             }
+
+            // Upload new images
+            $uploadedImages = [];
+            if (!empty($newImages)) {
+                foreach ($newImages as $image) {
+                    if ($image->isValid() && !$image->hasMoved()) {
+                        $newName = $image->getRandomName();
+                        $image->move(FCPATH . 'uploads/products', $newName);
+                        $uploadedImages[] = '/uploads/products/' . $newName;
+                    }
+                }
+            }
+
+            // Combine existing and new images, limit to 5
+            $allImages = array_merge($existingImages, $uploadedImages);
+            $allImages = array_slice($allImages, 0, 5);
+
+            // Store as JSON if multiple, or single string if one
+            if (count($allImages) > 1) {
+                $data['image_url'] = json_encode($allImages);
+            } elseif (count($allImages) === 1) {
+                $data['image_url'] = $allImages[0];
+            } else {
+                $data['image_url'] = null;
+            }
+
+            // Update status based on stock
+            $data['status'] = $data['stock_quantity'] > 0 ? 'available' : 'out-of-stock';
         }
-
-        // Combine existing and new images, limit to 5
-        $allImages = array_merge($existingImages, $uploadedImages);
-        $allImages = array_slice($allImages, 0, 5);
-
-        // Store as JSON if multiple, or single string if one
-        if (count($allImages) > 1) {
-            $data['image_url'] = json_encode($allImages);
-        } elseif (count($allImages) === 1) {
-            $data['image_url'] = $allImages[0];
-        } else {
-            $data['image_url'] = null;
-        }
-
-        // Update status based on stock
-        $data['status'] = $data['stock_quantity'] > 0 ? 'available' : 'out-of-stock';
 
         if ($this->productModel->update($id, $data)) {
+            $message = $isSpoiled ? 'Product price updated successfully!' : 'Product updated successfully!';
             return redirect()->to('/buyer/inventory')
-                ->with('success', 'Product updated successfully!');
+                ->with('success', $message);
         } else {
             return redirect()->back()
                 ->withInput()

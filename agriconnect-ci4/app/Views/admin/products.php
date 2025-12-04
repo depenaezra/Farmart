@@ -18,15 +18,22 @@
                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
             </div>
             <div class="sm:w-48">
-                <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Filter by Status</label>
-                <select id="status" name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
-                    <option value="">All Products</option>
-                    <option value="available" <?= $current_status === 'available' ? 'selected' : '' ?>>Available</option>
-                    <option value="pending" <?= $current_status === 'pending' ? 'selected' : '' ?>>Pending Approval</option>
-                    <option value="out-of-stock" <?= $current_status === 'out-of-stock' ? 'selected' : '' ?>>Out of Stock</option>
-                    <option value="rejected" <?= $current_status === 'rejected' ? 'selected' : '' ?>>Rejected</option>
-                </select>
-            </div>
+                 <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Filter by Status</label>
+                 <select id="status" name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
+                     <option value="">All Products</option>
+                     <option value="available" <?= $current_status === 'available' ? 'selected' : '' ?>>Available</option>
+                     <option value="pending" <?= $current_status === 'pending' ? 'selected' : '' ?>>Pending Approval</option>
+                     <option value="out-of-stock" <?= $current_status === 'out-of-stock' ? 'selected' : '' ?>>Out of Stock</option>
+                     <option value="rejected" <?= $current_status === 'rejected' ? 'selected' : '' ?>>Rejected</option>
+                 </select>
+             </div>
+             <div class="sm:w-48">
+                 <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Product Type</label>
+                 <select id="type" name="type" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
+                     <option value="">Normal Products</option>
+                     <option value="spoiled" <?= ($current_type ?? '') === 'spoiled' ? 'selected' : '' ?>>Spoiled Products</option>
+                 </select>
+             </div>
             <div class="flex items-end">
                 <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors text-sm">
                     <i data-lucide="search" class="w-4 h-4 inline mr-1"></i>
@@ -51,14 +58,18 @@
                 <table class="w-full min-w-full">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Seller</th>
-                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Stock</th>
-                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Category</th>
-                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
+                             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Seller</th>
+                             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Stock</th>
+                             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Category</th>
+                             <?php if (($current_type ?? '') === 'spoiled'): ?>
+                                 <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Spoiled Date</th>
+                                 <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Days Since Spoiled</th>
+                             <?php endif; ?>
+                             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         <?php foreach ($products as $product): ?>
@@ -116,6 +127,21 @@
                                 <td class="px-3 py-3 text-sm text-gray-900 hidden lg:table-cell">
                                     <?= ucfirst($product['category']) ?>
                                 </td>
+                                <?php if (($current_type ?? '') === 'spoiled'): ?>
+                                    <td class="px-3 py-3 text-sm text-gray-900 hidden lg:table-cell">
+                                        <?= $product['spoiled_date'] ? date('M d, Y H:i', strtotime($product['spoiled_date'])) : 'N/A' ?>
+                                    </td>
+                                    <td class="px-3 py-3 text-sm text-gray-900 hidden lg:table-cell">
+                                        <?php
+                                        if ($product['spoiled_date']) {
+                                            $daysSinceSpoiled = floor((time() - strtotime($product['spoiled_date'])) / (60 * 60 * 24));
+                                            echo $daysSinceSpoiled . ' days';
+                                        } else {
+                                            echo 'N/A';
+                                        }
+                                        ?>
+                                    </td>
+                                <?php endif; ?>
                                 <td class="px-3 py-3">
                                     <a href="/admin/products/<?= $product['id'] ?>" class="inline-flex items-center px-3 py-1.5 bg-primary text-white text-xs font-medium rounded hover:bg-primary-hover transition-colors">
                                         <i data-lucide="eye" class="w-3 h-3 mr-1"></i>
