@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= esc($title ?? 'Admin Panel - Farmart') ?></title>
     <meta name="description" content="Admin panel for Farmart">
+    <link rel="icon" href="/img/farmart_logo_only.png" type="image/png">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>

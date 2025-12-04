@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= esc($title ?? 'Farmart - Nasugbu Agricultural Marketplace') ?></title>
     <meta name="description" content="Farmart - Direct marketplace connecting Nasugbu farmers with local buyers">
+    <link rel="icon" href="/img/farmart_logo_only.png" type="image/png">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
