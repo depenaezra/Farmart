@@ -217,6 +217,74 @@ class ProductModel extends Model
     }
 
     /**
+     * Get seasonal products based on current month
+     * Using typical Philippine agricultural calendar
+     */
+    public function getSeasonalProducts($limit = 8)
+    {
+        $currentMonth = date('n'); // 1-12
+
+        // Define seasonal products by month (Philippine agricultural calendar)
+        $seasonalProducts = [
+            1 => ['tomato', 'lettuce', 'cabbage', 'carrot', 'onion', 'garlic'], // January
+            2 => ['tomato', 'lettuce', 'cabbage', 'carrot', 'onion', 'garlic'], // February
+            3 => ['tomato', 'eggplant', 'calabaza', 'malunggay', 'sitaw'], // March
+            4 => ['tomato', 'eggplant', 'calabaza', 'malunggay', 'sitaw'], // April
+            5 => ['corn', 'rice', 'munggo', 'sitaw', 'kalabasa'], // May
+            6 => ['corn', 'rice', 'munggo', 'sitaw', 'kalabasa'], // June
+            7 => ['rice', 'corn', 'eggplant', 'tomato', 'okra'], // July
+            8 => ['rice', 'corn', 'eggplant', 'tomato', 'okra'], // August
+            9 => ['rice', 'corn', 'sweet potato', 'cassava', 'okra'], // September
+            10 => ['rice', 'corn', 'sweet potato', 'cassava', 'okra'], // October
+            11 => ['rice', 'corn', 'sweet potato', 'cassava', 'okra'], // November
+            12 => ['rice', 'corn', 'sweet potato', 'cassava', 'okra'] // December
+        ];
+
+        // Fruits by season
+        $seasonalFruits = [
+            1 => ['calamansi', 'banana', 'pineapple'], // January
+            2 => ['calamansi', 'banana', 'pineapple'], // February
+            3 => ['mango', 'calamansi', 'banana'], // March
+            4 => ['mango', 'calamansi', 'banana'], // April
+            5 => ['mango', 'calamansi', 'banana'], // May
+            6 => ['mango', 'calamansi', 'banana'], // June
+            7 => ['mango', 'calamansi', 'banana'], // July
+            8 => ['mango', 'calamansi', 'banana'], // August
+            9 => ['calamansi', 'banana', 'pineapple'], // September
+            10 => ['calamansi', 'banana', 'pineapple'], // October
+            11 => ['calamansi', 'banana', 'pineapple'], // November
+            12 => ['calamansi', 'banana', 'pineapple'] // December
+        ];
+
+        $currentSeasonalProducts = $seasonalProducts[$currentMonth] ?? [];
+        $currentSeasonalFruits = $seasonalFruits[$currentMonth] ?? [];
+
+        // Build query to get products that match seasonal names
+        $builder = $this->select('products.*, users.name as farmer_name, users.cooperative')
+                        ->join('users', 'users.id = products.farmer_id')
+                        ->where('products.status', 'available')
+                        ->where('products.stock_quantity >', 0)
+                        ->groupStart();
+
+        $seasonalNames = array_merge($currentSeasonalProducts, $currentSeasonalFruits);
+        $first = true;
+        foreach ($seasonalNames as $productName) {
+            if (!$first) {
+                $builder->orLike('products.name', $productName);
+            } else {
+                $builder->like('products.name', $productName);
+                $first = false;
+            }
+        }
+
+        $builder->groupEnd()
+                ->orderBy('products.created_at', 'DESC')
+                ->limit($limit);
+
+        return $builder->get()->getResultArray();
+    }
+
+    /**
      * Get top performing products by sales for charts
      */
     public function getTopProductsChartData($farmerId, $limit = 10)

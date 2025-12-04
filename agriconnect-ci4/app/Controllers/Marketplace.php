@@ -23,7 +23,7 @@ class Marketplace extends BaseController
         $minPrice = $this->request->getGet('min_price');
         $maxPrice = $this->request->getGet('max_price');
         $location = $this->request->getGet('location');
-        
+
         $products = $this->productModel->searchProducts([
             'keyword' => $keyword,
             'category' => $category,
@@ -31,10 +31,14 @@ class Marketplace extends BaseController
             'max_price' => $maxPrice,
             'location' => $location
         ]);
-        
+
+        // Get seasonal products for the info board
+        $seasonalProducts = $this->productModel->getSeasonalProducts(8);
+
         $data = [
             'title' => 'Marketplace - Fresh Local Produce',
             'products' => $products,
+            'seasonal_products' => $seasonalProducts,
             'filters' => [
                 'keyword' => $keyword,
                 'category' => $category,
@@ -43,7 +47,7 @@ class Marketplace extends BaseController
                 'location' => $location
             ]
         ];
-        
+
         return view('marketplace/index', $data);
     }
     
