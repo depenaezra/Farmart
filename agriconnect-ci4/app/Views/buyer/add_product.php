@@ -175,15 +175,58 @@
                     <!-- Image Upload -->
                     <div class="md:col-span-2">
                         <label for="images" class="block text-gray-700 mb-2">Product Images (Max 5)</label>
-                        <input
-                            type="file"
-                            id="images"
-                            name="images[]"
-                            accept="image/*"
-                            multiple
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary file:text-white hover:file:bg-primary-hover"
-                        >
-                        <p class="text-sm text-gray-500 mt-1">Select up to 5 images. Supported formats: JPG, PNG, GIF (Max 5MB each)</p>
+                        
+                        <!-- Upload Method Toggle -->
+                        <div class="flex gap-2 mb-3">
+                            <button type="button" id="uploadFileBtn" class="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors flex items-center justify-center gap-2">
+                                <i data-lucide="upload" class="w-4 h-4"></i>
+                                Upload Files
+                            </button>
+                            <button type="button" id="useCameraBtn" class="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex items-center justify-center gap-2">
+                                <i data-lucide="camera" class="w-4 h-4"></i>
+                                Use Camera
+                            </button>
+                        </div>
+                        
+                        <!-- File Upload Section -->
+                        <div id="fileUploadSection">
+                            <input
+                                type="file"
+                                id="images"
+                                name="images[]"
+                                accept="image/*"
+                                multiple
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary file:text-white hover:file:bg-primary-hover"
+                            >
+                            <p class="text-sm text-gray-500 mt-1">Select up to 5 images. Supported formats: JPG, PNG, GIF (Max 5MB each)</p>
+                        </div>
+                        
+                        <!-- Camera Capture Section -->
+                        <div id="cameraCaptureSection" class="hidden">
+                            <div class="bg-gray-900 rounded-lg overflow-hidden relative">
+                                <video id="cameraPreview" autoplay playsinline class="w-full h-64 object-cover"></video>
+                                <div id="cameraOverlay" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                                    <button type="button" id="startCameraBtn" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-hover transition-colors flex items-center gap-2">
+                                        <i data-lucide="video" class="w-5 h-5"></i>
+                                        Start Camera
+                                    </button>
+                                </div>
+                                <canvas id="captureCanvas" class="hidden"></canvas>
+                            </div>
+                            <div id="cameraControls" class="mt-3 flex gap-2 hidden">
+                                <button type="button" id="capturePhotoBtn" class="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2">
+                                    <i data-lucide="camera" class="w-4 h-4"></i>
+                                    Capture Photo (<span id="captureCount">0</span>/5)
+                                </button>
+                                <button type="button" id="switchCameraBtn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                </button>
+                                <button type="button" id="stopCameraBtn" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                                    <i data-lucide="x" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-2">Capture up to 5 photos. Camera will analyze each photo automatically.</p>
+                        </div>
                     </div>
 
                     <!-- Image Preview & Analytics Section -->
@@ -526,6 +569,220 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
+});
+
+// Camera Capture Functionality
+const cameraPreview = document.getElementById('cameraPreview');
+const captureCanvas = document.getElementById('captureCanvas');
+const capturePhotoBtn = document.getElementById('capturePhotoBtn');
+const switchCameraBtn = document.getElementById('switchCameraBtn');
+const stopCameraBtn = document.getElementById('stopCameraBtn');
+const startCameraBtn = document.getElementById('startCameraBtn');
+const cameraOverlay = document.getElementById('cameraOverlay');
+const cameraControls = document.getElementById('cameraControls');
+const captureCount = document.getElementById('captureCount');
+
+let stream;
+let currentCamera = 0;
+let capturedImages = [];
+
+async function startCamera() {
+    try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        
+        if (videoDevices.length === 0) {
+            alert('No camera devices found.');
+            return;
+        }
+        
+        const constraints = {
+            video: {
+                deviceId: videoDevices[currentCamera].deviceId,
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            }
+        };
+        
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+        cameraPreview.srcObject = stream;
+        cameraOverlay.classList.add('hidden');
+        cameraControls.classList.remove('hidden');
+    } catch (error) {
+        console.error('Error accessing camera:', error);
+        alert('Failed to access camera. Please check your device settings and grant camera permissions.');
+    }
+}
+
+function stopCamera() {
+    if (stream) {
+        const tracks = stream.getTracks();
+        tracks.forEach(track => track.stop());
+        cameraPreview.srcObject = null;
+        cameraOverlay.classList.remove('hidden');
+        cameraControls.classList.add('hidden');
+    }
+}
+
+async function processCapturedImages() {
+    if (capturedImages.length === 0) {
+        document.getElementById('imageAnalyticsSection').classList.add('hidden');
+        return;
+    }
+    
+    // Show analytics section
+    document.getElementById('imageAnalyticsSection').classList.remove('hidden');
+    
+    // Clear previous content
+    const previewContainer = document.getElementById('imagePreviews');
+    const resultsContainer = document.getElementById('analyticsResults');
+    const statusContainer = document.getElementById('analysisStatus');
+    
+    previewContainer.innerHTML = '';
+    resultsContainer.innerHTML = '';
+    statusContainer.classList.remove('hidden');
+    analysisResults = [];
+    
+    // Display image previews
+    capturedImages.forEach((imageData, index) => {
+        const previewDiv = document.createElement('div');
+        previewDiv.className = 'relative group';
+        previewDiv.innerHTML = `
+            <img src="${imageData}" alt="Captured ${index + 1}" 
+                 class="w-full h-32 object-cover rounded-lg border-2 border-gray-200">
+            <div class="absolute top-2 right-2 bg-blue-600 text-white text-xs px-2 py-1 rounded">
+                #${index + 1}
+            </div>
+            <button type="button" class="absolute top-2 left-2 bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity" onclick="removeCapturedImage(${index})">
+                <i data-lucide="trash-2" class="w-3 h-3"></i>
+            </button>
+        `;
+        previewContainer.appendChild(previewDiv);
+    });
+    
+    lucide.createIcons();
+    
+    // Analyze images
+    try {
+        const files = capturedImages.map((dataURL, index) => {
+            const blob = dataURLtoBlob(dataURL);
+            return new File([blob], `captured_${index}.png`, { type: 'image/png' });
+        });
+        
+        const analyses = await Promise.all(files.map(file => analyzer.analyzeImage(file)));
+        analysisResults = analyses;
+        
+        // Hide status
+        statusContainer.classList.add('hidden');
+        
+        // Display results
+        displayAnalysisResults(analyses);
+        
+        // Auto-fill form if high confidence
+        if (analyses.length > 0 && analyses[0].confidence > 80) {
+            autoFillForm(analyses[0]);
+        }
+        
+    } catch (error) {
+        statusContainer.innerHTML = `
+            <div class="flex items-center gap-3 text-red-600">
+                <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                <span>Analysis failed. Please try again.</span>
+            </div>
+        `;
+        lucide.createIcons();
+    }
+}
+
+function removeCapturedImage(index) {
+    capturedImages.splice(index, 1);
+    captureCount.textContent = capturedImages.length;
+    capturePhotoBtn.disabled = false;
+    processCapturedImages();
+}
+
+capturePhotoBtn.addEventListener('click', function() {
+    if (capturedImages.length >= 5) {
+        alert('Maximum 5 photos reached.');
+        return;
+    }
+    
+    const ctx = captureCanvas.getContext('2d');
+    captureCanvas.width = cameraPreview.videoWidth;
+    captureCanvas.height = cameraPreview.videoHeight;
+    ctx.drawImage(cameraPreview, 0, 0, captureCanvas.width, captureCanvas.height);
+    
+    const dataURL = captureCanvas.toDataURL('image/png');
+    capturedImages.push(dataURL);
+    
+    captureCount.textContent = capturedImages.length;
+    
+    if (capturedImages.length >= 5) {
+        capturePhotoBtn.disabled = true;
+    }
+    
+    // Trigger image analysis
+    processCapturedImages();
+    
+    // Visual feedback
+    cameraPreview.style.opacity = '0.5';
+    setTimeout(() => {
+        cameraPreview.style.opacity = '1';
+    }, 200);
+});
+
+switchCameraBtn.addEventListener('click', async function() {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const videoDevices = devices.filter(device => device.kind === 'videoinput');
+    
+    if (videoDevices.length > 1) {
+        currentCamera = (currentCamera + 1) % videoDevices.length;
+        stopCamera();
+        startCamera();
+    } else {
+        alert('No additional cameras found.');
+    }
+});
+
+stopCameraBtn.addEventListener('click', stopCamera);
+startCameraBtn.addEventListener('click', startCamera);
+
+function dataURLtoBlob(dataURL) {
+    const parts = dataURL.split(';base64,');
+    const contentType = parts[0].split(':')[1];
+    const raw = window.atob(parts[1]);
+    const rawLength = raw.length;
+    const uInt8Array = new Uint8Array(rawLength);
+    
+    for (let i = 0; i < rawLength; ++i) {
+        uInt8Array[i] = raw.charCodeAt(i);
+    }
+    
+    return new Blob([uInt8Array], { type: contentType });
+}
+
+// Upload Method Toggle
+document.getElementById('uploadFileBtn').addEventListener('click', function() {
+    this.classList.remove('bg-gray-200', 'text-gray-700');
+    this.classList.add('bg-primary', 'text-white');
+    document.getElementById('useCameraBtn').classList.remove('bg-primary', 'text-white');
+    document.getElementById('useCameraBtn').classList.add('bg-gray-200', 'text-gray-700');
+    
+    document.getElementById('fileUploadSection').classList.remove('hidden');
+    document.getElementById('cameraCaptureSection').classList.add('hidden');
+    stopCamera();
+    lucide.createIcons();
+});
+
+document.getElementById('useCameraBtn').addEventListener('click', function() {
+    this.classList.remove('bg-gray-200', 'text-gray-700');
+    this.classList.add('bg-primary', 'text-white');
+    document.getElementById('uploadFileBtn').classList.remove('bg-primary', 'text-white');
+    document.getElementById('uploadFileBtn').classList.add('bg-gray-200', 'text-gray-700');
+    
+    document.getElementById('fileUploadSection').classList.add('hidden');
+    document.getElementById('cameraCaptureSection').classList.remove('hidden');
+    lucide.createIcons();
 });
 </script>
 
