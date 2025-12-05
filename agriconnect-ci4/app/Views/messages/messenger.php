@@ -60,9 +60,13 @@
                                     <div class="ml-3 text-right">
                                         <?php if (!empty($conv['last_message_time'])): ?>
                                             <span class="text-xs text-gray-500">
-                                                <?= date('M d', strtotime($conv['last_message_time'])) == date('M d') 
-                                                    ? date('H:i', strtotime($conv['last_message_time']))
-                                                    : date('M d', strtotime($conv['last_message_time'])) ?>
+                                                <?php
+                                                $dt = new DateTime($conv['last_message_time'], new DateTimeZone('UTC'));
+                                                $dt->setTimezone(new DateTimeZone('Asia/Manila'));
+                                                $today = date('M d');
+                                                $msgDate = $dt->format('M d');
+                                                echo ($msgDate == $today) ? $dt->format('h:i A') : $msgDate;
+                                                ?>
                                             </span>
                                         <?php endif; ?>
                                     </div>
@@ -137,7 +141,7 @@
                                             <?php endif; ?>
 
                                             <p class="text-xs mt-1 opacity-70">
-                                                <?= date('H:i', strtotime($msg['created_at'])) ?>
+                                                <?php $dt = new DateTime($msg['created_at'], new DateTimeZone('UTC')); $dt->setTimezone(new DateTimeZone('Asia/Manila')); echo $dt->format('h:i A'); ?>
                                             </p>
                                         </div>
                                         <?php if ($isSent): ?>

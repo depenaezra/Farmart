@@ -60,7 +60,7 @@
                                     <i data-lucide="user" class="w-4 h-4 mr-1"></i>
                                     <span class="mr-4">From: <?= esc($message['sender_name']) ?></span>
                                     <i data-lucide="calendar" class="w-4 h-4 mr-1"></i>
-                                    <span><?= date('M d, Y H:i', strtotime($message['created_at'])) ?></span>
+                                    <span><?php $dt = new DateTime($message['created_at'], new DateTimeZone('UTC')); $dt->setTimezone(new DateTimeZone('Asia/Manila')); echo $dt->format('M d, Y h:i A'); ?></span>
                                 </div>
 
                                 <p class="text-gray-700 line-clamp-2">

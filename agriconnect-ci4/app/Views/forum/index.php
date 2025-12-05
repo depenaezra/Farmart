@@ -169,7 +169,7 @@
                             <div class="px-4 py-2 flex items-center justify-between text-sm text-gray-500 border-b border-gray-200">
                                 <div class="flex items-center gap-1">
                                     <?php if (($post['likes'] ?? 0) > 0): ?>
-                                        <span class="text-base">🍃</span>
+                                        <i data-lucide="heart" class="w-4 h-4"></i>
                                         <span><?= $post['likes'] ?></span>
                                     <?php endif; ?>
                                 </div>
@@ -187,20 +187,20 @@
                                     <form action="/forum/post/<?= $post['id'] ?>/like" method="POST" class="flex-1">
                                         <?= csrf_field() ?>
                                         <button type="submit" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 hover:bg-gray-100 rounded-lg transition-colors group <?= (isset($post['user_liked']) && $post['user_liked']) ? 'text-green-600' : 'text-gray-600' ?>">
-                                            <span class="text-lg group-hover:scale-110 transition-transform">🍃</span>
+                                            <i data-lucide="heart" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
                                             <span class="text-sm font-medium">Like</span>
                                         </button>
                                     </form>
                                 <?php else: ?>
                                     <div class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-gray-400">
-                                        <span class="text-lg">🍃</span>
+                                        <i data-lucide="heart" class="w-5 h-5"></i>
                                         <span class="text-sm font-medium">Like</span>
                                     </div>
                                 <?php endif; ?>
 
                                 <!-- Comment Button -->
                                 <button class="toggle-post flex-1 flex items-center justify-center gap-2 px-4 py-2.5 hover:bg-gray-100 rounded-lg transition-colors text-gray-600 group" data-post-id="<?= $post['id'] ?>">
-                                    <span class="text-lg group-hover:scale-110 transition-transform">🍒</span>
+                                    <i data-lucide="message-circle" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
                                     <span class="text-sm font-medium">Comment</span>
                                 </button>
 
@@ -361,12 +361,12 @@
                                                 <span>by <?= esc($popular_post['author_name']) ?></span>
                                                 <span>•</span>
                                                 <div class="flex items-center gap-1">
-                                                    <span>🍃</span>
+                                                    <i data-lucide="heart" class="w-3 h-3"></i>
                                                     <span><?= $popular_post['likes'] ?? 0 ?></span>
                                                 </div>
                                                 <span>•</span>
                                                 <div class="flex items-center gap-1">
-                                                    <span>💬</span>
+                                                    <i data-lucide="message-circle" class="w-3 h-3"></i>
                                                     <span><?= $popular_post['comment_count'] ?? 0 ?></span>
                                                 </div>
                                             </div>
