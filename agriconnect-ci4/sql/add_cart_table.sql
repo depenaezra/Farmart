@@ -1,5 +1,8 @@
 -- Add Cart Table to Existing Database
--- Run this SQL script to add the cart functionality to your existing database
+-- Run this SQL script in phpMyAdmin after selecting the agriconnect database.
+-- It restores the cart table required by the CartModel and Checkout/Profile pages.
+
+START TRANSACTION;
 
 -- Create cart table with primary key
 CREATE TABLE IF NOT EXISTS `cart` (

@@ -55,6 +55,9 @@ $routes->group('auth', function($routes) {
     $routes->post('register-farmer', 'AuthController::registerBuyerProcess');
     $routes->get('register-buyer', 'AuthController::registerBuyer');
     $routes->post('register-buyer', 'AuthController::registerBuyerProcess');
+    $routes->get('register-verify', 'AuthController::registerVerify');
+    $routes->post('register-verify', 'AuthController::registerVerifyProcess');
+    $routes->post('register-resend-otp', 'AuthController::resendRegistrationOtp');
     
     // Logout (both GET and POST)
     $routes->get('logout', 'AuthController::logout');
@@ -73,7 +76,7 @@ $routes->group('auth', function($routes) {
 // BUYER ROUTES (Protected - Unified buyer/seller functionality)
 // ============================================================
 
-$routes->group('buyer', ['filter' => 'auth:user,admin'], function($routes) {
+$routes->group('buyer', ['filter' => 'auth:buyer,admin'], function($routes) {
     // Seller dashboard & products (buyer as seller)
     $routes->get('dashboard', 'Buyer::dashboard');
     $routes->get('products', 'Buyer::products');
@@ -97,7 +100,7 @@ $routes->group('buyer', ['filter' => 'auth:user,admin'], function($routes) {
 });
 
 // Cart
-$routes->group('cart', ['filter' => 'auth:user,admin'], function($routes) {
+$routes->group('cart', ['filter' => 'auth:buyer,admin'], function($routes) {
     $routes->get('/', 'Cart::index');
     $routes->post('add', 'Cart::add');
     $routes->post('buy_now', 'Cart::buyNow');
@@ -107,7 +110,7 @@ $routes->group('cart', ['filter' => 'auth:user,admin'], function($routes) {
 });
 
 // Checkout
-$routes->group('checkout', ['filter' => 'auth:user,admin'], function($routes) {
+$routes->group('checkout', ['filter' => 'auth:buyer,admin'], function($routes) {
     $routes->get('/', 'Checkout::index');
     $routes->post('/', 'Checkout::index'); // For form submission with selected items
     $routes->get('direct', 'Checkout::directCheckout');
@@ -119,6 +122,8 @@ $routes->group('checkout', ['filter' => 'auth:user,admin'], function($routes) {
 // ============================================================
 // PROFILE ROUTES (Protected - All authenticated users)
 // ============================================================
+
+$routes->get('/profile.php', 'Profile::index', ['filter' => 'auth']);
 
 $routes->group('profile', ['filter' => 'auth'], function($routes) {
     $routes->get('/', 'Profile::index');

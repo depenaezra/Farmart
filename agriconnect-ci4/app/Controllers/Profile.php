@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\UserModel;
+use CodeIgniter\Database\Exceptions\DatabaseException;
 
 class Profile extends BaseController
 {
@@ -55,14 +56,21 @@ class Profile extends BaseController
             ->getResultArray();
 
         // Get recent cart additions (last 10)
-        $recentCartItems = $db->table('cart')
-            ->select('cart.created_at, cart.quantity, products.name as product_name, products.price, products.id as product_id')
-            ->join('products', 'products.id = cart.product_id')
-            ->where('cart.user_id', $userId)
-            ->orderBy('cart.created_at', 'DESC')
-            ->limit(10)
-            ->get()
-            ->getResultArray();
+        $recentCartItems = [];
+        try {
+            if ($db->tableExists('cart')) {
+                $recentCartItems = $db->table('cart')
+                    ->select('cart.created_at, cart.quantity, products.name as product_name, products.price, products.id as product_id')
+                    ->join('products', 'products.id = cart.product_id')
+                    ->where('cart.user_id', $userId)
+                    ->orderBy('cart.created_at', 'DESC')
+                    ->limit(10)
+                    ->get()
+                    ->getResultArray();
+            }
+        } catch (DatabaseException $e) {
+            log_message('error', 'Profile cart query failed: ' . $e->getMessage());
+        }
 
         $data = [
             'title' => 'My Profile',

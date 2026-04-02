@@ -20,21 +20,28 @@ class PHPMailerService
         }
         $mail = new PHPMailer(true);
         try {
+            $smtpUser = getenv('SMTP_USERNAME') ?: '23-72068@g.batstate-u.edu.ph';
+            $smtpPassword = getenv('SMTP_PASSWORD') ?: '';
+
+            if ($smtpPassword === '') {
+                return 'SMTP_PASSWORD is not configured in your environment.';
+            }
+
             // SMTP config (example for Gmail, change for SendGrid or other)
             $mail->isSMTP();
             $mail->Host = 'smtp.gmail.com'; // or smtp.sendgrid.net
             $mail->SMTPAuth = true;
-            $mail->Username = 'betitaniel9@gmail.com'; // change to your email
-            $mail->Password = 'msqc gcni xpba zbly'; // Gmail App Password or SendGrid API Key
+            $mail->Username = $smtpUser;
+            $mail->Password = $smtpPassword;
             $mail->SMTPSecure = 'tls';
             $mail->Port = 587;
 
-            $mail->setFrom('betitaniel9@gmail.com', 'Farmart OTP');
+            $mail->setFrom('23-72068@g.batstate-u.edu.ph', 'Farmart OTP');
             $mail->addAddress($toEmail);
             $mail->isHTML(true);
-            $mail->Subject = 'Your Farmart OTP Code';
-            $mail->Body = "Your OTP code is: <b>$otp</b><br>This code will expire in 10 minutes.";
-            $mail->AltBody = "Your OTP code is: $otp. This code will expire in 10 minutes.";
+            $mail->Subject = 'Farmart OTP Verification Code';
+            $mail->Body = "Welcome to Farmart! Thank you for joining us, here is your code: <b>{$otp}</b><br>This code will expire in 10 minutes.";
+            $mail->AltBody = "Welcome to Farmart! Thank you for joining us, here is your code: {$otp}. This code will expire in 10 minutes.";
 
             $mail->send();
             return true;

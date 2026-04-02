@@ -6,6 +6,8 @@ use App\Models\UserModel;
 
 class AuthController extends BaseController
 {
+    private const REGISTRATION_SESSION_KEY = 'pending_registration';
+    private const REGISTRATION_OTP_TTL = 600;
 
 
     /**
@@ -140,8 +142,13 @@ class AuthController extends BaseController
     public function login()
     {
         // Redirect if already logged in
-        if (session()->has('logged_in') && session()->get('logged_in')) {
+        if (session()->has('logged_in') && session()->get('logged_in') && session()->get('user_id')) {
             return redirect()->to($this->getUserHomePage(session()->get('user_role')));
+        }
+
+        // Clean up inconsistent session state so login works normally.
+        if (session()->has('logged_in') && session()->get('logged_in') && !session()->get('user_id')) {
+            session()->destroy();
         }
         
         return view('auth/login');
@@ -227,55 +234,7 @@ class AuthController extends BaseController
      */
     public function registerFarmerProcess()
     {
-        $validation = \Config\Services::validation();
-        
-        $rules = [
-            'name' => 'required|min_length[3]',
-            'email' => 'required|valid_email|is_unique[users.email]',
-            'phone' => 'required',
-            'password' => 'required|min_length[8]',
-            'confirm_password' => 'required|matches[password]',
-            'location' => 'required',
-            'cooperative' => 'permit_empty'
-        ];
-        
-        if (!$this->validate($rules)) {
-            return redirect()->back()
-                ->withInput()
-                ->with('errors', $validation->getErrors());
-        }
-        
-        $data = [
-            'name' => $this->request->getPost('name'),
-            'email' => $this->request->getPost('email'),
-            'phone' => $this->request->getPost('phone'),
-            'password' => $this->request->getPost('password'),
-            'role' => 'buyer',
-            'location' => $this->request->getPost('location'),
-            'cooperative' => $this->request->getPost('cooperative'),
-            'status' => 'active'
-        ];
-        
-        if ($this->userModel->save($data)) {
-            $userId = $this->userModel->insertID();
-            $user = $this->userModel->find($userId);
-
-            // Set session
-            session()->set([
-                'user_id' => $user['id'],
-                'user_name' => $user['name'],
-                'user_email' => $user['email'],
-                'user_role' => $user['role'],
-                'logged_in' => true
-            ]);
-
-            return redirect()->to('/marketplace')
-                ->with('success', 'Registration successful! Welcome to the marketplace.');
-        } else {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Registration failed. Please try again.');
-        }
+        return $this->registerBuyerProcess();
     }
     
     /**
@@ -307,37 +266,137 @@ class AuthController extends BaseController
                 ->withInput()
                 ->with('errors', $validation->getErrors());
         }
-        
+
         $data = [
             'name' => $this->request->getPost('name'),
             'email' => $this->request->getPost('email'),
             'phone' => $this->request->getPost('phone'),
             'password' => $this->request->getPost('password'),
-            'role' => 'user',
+            'role' => 'buyer',
             'location' => $this->request->getPost('location'),
+            'cooperative' => $this->request->getPost('cooperative'),
             'status' => 'active'
         ];
-        
-        if ($this->userModel->save($data)) {
-            $userId = $this->userModel->insertID();
-            $user = $this->userModel->find($userId);
 
-            // Set session
+        $otp = random_int(100000, 999999);
+        $registrationPayload = [
+            'data' => $data,
+            'otp' => (string) $otp,
+            'expires_at' => time() + self::REGISTRATION_OTP_TTL,
+            'sent_at' => time(),
+        ];
+
+        session()->set(self::REGISTRATION_SESSION_KEY, $registrationPayload);
+
+        $sendResult = \App\Libraries\PHPMailerService::sendOTP($data['email'], $otp);
+        if ($sendResult !== true) {
+            session()->remove(self::REGISTRATION_SESSION_KEY);
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Unable to send verification code. ' . $sendResult);
+        }
+
+        return redirect()->to('/auth/register-verify')
+            ->with('success', 'Verification code sent. Please check your email before creating your account.');
+    }
+
+    /**
+     * Show registration OTP verification page.
+     */
+    public function registerVerify()
+    {
+        $pending = session()->get(self::REGISTRATION_SESSION_KEY);
+        if (!$pending || !isset($pending['data']['email'])) {
+            return redirect()->to('/auth/register-buyer')
+                ->with('error', 'No pending registration found. Please register first.');
+        }
+
+        if (time() > (int) ($pending['expires_at'] ?? 0)) {
+            session()->remove(self::REGISTRATION_SESSION_KEY);
+
+            return redirect()->to('/auth/register-buyer')
+                ->with('error', 'Verification code expired. Please register again.');
+        }
+
+        return view('auth/register_verify', [
+            'email' => $pending['data']['email'],
+        ]);
+    }
+
+    /**
+     * Verify registration OTP and create account.
+     */
+    public function registerVerifyProcess()
+    {
+        $pending = session()->get(self::REGISTRATION_SESSION_KEY);
+        if (!$pending || !isset($pending['data'], $pending['otp'])) {
+            return redirect()->to('/auth/register-buyer')
+                ->with('error', 'No pending registration found. Please register first.');
+        }
+
+        if (time() > (int) ($pending['expires_at'] ?? 0)) {
+            session()->remove(self::REGISTRATION_SESSION_KEY);
+
+            return redirect()->to('/auth/register-buyer')
+                ->with('error', 'Verification code expired. Please register again.');
+        }
+
+        $inputOtp = trim((string) $this->request->getPost('otp'));
+        if ($inputOtp === '' || $inputOtp !== (string) $pending['otp']) {
+            return redirect()->back()->with('error', 'Invalid verification code. Please try again.');
+        }
+
+        $data = $pending['data'];
+        if (!$this->userModel->save($data)) {
+            session()->remove(self::REGISTRATION_SESSION_KEY);
+
+            return redirect()->to('/auth/register-buyer')
+                ->with('error', 'Registration failed. Please try again.');
+        }
+
+        $userId = $this->userModel->insertID();
+        $user = $this->userModel->find($userId);
+
+        session()->remove(self::REGISTRATION_SESSION_KEY);
+
+        if ($user) {
             session()->set([
                 'user_id' => $user['id'],
                 'user_name' => $user['name'],
                 'user_email' => $user['email'],
                 'user_role' => $user['role'],
-                'logged_in' => true
+                'logged_in' => true,
             ]);
-
-            return redirect()->to('/marketplace')
-                ->with('success', 'Registration successful! Welcome to the marketplace.');
-        } else {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Registration failed. Please try again.');
         }
+
+        return redirect()->to('/marketplace')
+            ->with('success', 'Registration successful! Welcome to Farmart.');
+    }
+
+    /**
+     * Resend registration OTP email.
+     */
+    public function resendRegistrationOtp()
+    {
+        $pending = session()->get(self::REGISTRATION_SESSION_KEY);
+        if (!$pending || !isset($pending['data']['email'])) {
+            return redirect()->to('/auth/register-buyer')
+                ->with('error', 'No pending registration found. Please register first.');
+        }
+
+        $otp = random_int(100000, 999999);
+        $pending['otp'] = (string) $otp;
+        $pending['expires_at'] = time() + self::REGISTRATION_OTP_TTL;
+        $pending['sent_at'] = time();
+        session()->set(self::REGISTRATION_SESSION_KEY, $pending);
+
+        $sendResult = \App\Libraries\PHPMailerService::sendOTP($pending['data']['email'], $otp);
+        if ($sendResult !== true) {
+            return redirect()->back()->with('error', 'Unable to resend verification code. ' . $sendResult);
+        }
+
+        return redirect()->back()->with('success', 'A new verification code has been sent to your email.');
     }
     
     /**

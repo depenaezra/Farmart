@@ -18,7 +18,10 @@ class AuthFilter implements FilterInterface
     public function before(RequestInterface $request, $arguments = null)
     {
         // Check if user is logged in
-        if (!session()->has('logged_in') || !session()->get('logged_in')) {
+        if (!session()->has('logged_in') || !session()->get('logged_in') || !session()->get('user_id')) {
+            // Clear stale/incomplete auth session before redirecting.
+            session()->destroy();
+
             // Store intended URL
             session()->set('redirect_url', current_url());
             
