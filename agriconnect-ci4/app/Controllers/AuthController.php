@@ -416,6 +416,8 @@ class AuthController extends BaseController
     {
         switch ($role) {
             case 'buyer':
+            case 'farmer':
+            case 'user':
                 return '/marketplace';
             case 'admin':
                 return '/admin/dashboard';

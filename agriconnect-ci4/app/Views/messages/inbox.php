@@ -3,13 +3,18 @@
 <?= $this->section('content') ?>
 
 <div class="container mx-auto px-4 py-8">
-    <div class="mb-8">
+    <div class="mb-8 bg-gradient-to-r from-primary to-primary-hover rounded-2xl p-6 text-white shadow-lg border border-mint-dark/30">
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-3xl font-bold text-gray-900 mb-2">Inbox</h1>
-                <p class="text-gray-600">Your received messages</p>
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="w-10 h-10 rounded-xl bg-white/20 inline-flex items-center justify-center">
+                        <i data-lucide="inbox" class="w-5 h-5"></i>
+                    </span>
+                    <h1 class="text-3xl font-bold mb-0">Inbox</h1>
+                </div>
+                <p class="text-mint-light">Your received messages</p>
             </div>
-            <a href="/messages/compose" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-hover font-semibold transition-colors">
+            <a href="/messages/compose" class="bg-white text-primary px-6 py-3 rounded-lg hover:bg-gray-100 font-semibold transition-colors">
                 <i data-lucide="plus" class="w-5 h-5 inline mr-2"></i>
                 Compose
             </a>
@@ -19,10 +24,12 @@
     <!-- Navigation Tabs -->
     <div class="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-8">
         <div class="flex gap-4">
-            <a href="/messages/inbox" class="px-4 py-2 bg-primary text-white rounded-lg font-semibold">
+            <a href="/messages/inbox" class="px-4 py-2 bg-primary text-white rounded-lg font-semibold inline-flex items-center gap-2">
+                <i data-lucide="inbox" class="w-4 h-4"></i>
                 Inbox (<?= $unread_count ?>)
             </a>
-            <a href="/messages/sent" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold">
+            <a href="/messages/sent" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold inline-flex items-center gap-2">
+                <i data-lucide="send" class="w-4 h-4"></i>
                 Sent
             </a>
         </div>
@@ -42,7 +49,7 @@
         <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden mb-40">
             <div class="divide-y divide-gray-200">
                 <?php foreach ($messages as $message): ?>
-                    <div class="p-6 hover:bg-gray-50 transition-colors <?= !$message['is_read'] ? 'bg-blue-50' : '' ?>">
+                    <div class="p-6 hover:bg-gray-50 transition-colors <?= !$message['is_read'] ? 'bg-mint-light/60 border-l-4 border-l-primary' : '' ?>">
                         <div class="flex items-start justify-between">
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center mb-2">
@@ -52,7 +59,7 @@
                                         </a>
                                     </h3>
                                     <?php if (!$message['is_read']): ?>
-                                        <span class="ml-2 inline-block w-2 h-2 bg-blue-500 rounded-full"></span>
+                                        <span class="ml-2 inline-block w-2 h-2 bg-primary rounded-full"></span>
                                     <?php endif; ?>
                                 </div>
 

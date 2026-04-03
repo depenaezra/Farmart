@@ -10,15 +10,18 @@
             <span id="weatherApiWarningText"></span>
         </div>
     </div>
-    <div class="mb-8 flex items-center justify-between">
+    <div class="mb-8 flex items-center justify-between bg-gradient-to-r from-primary to-primary-hover rounded-2xl p-6 text-white shadow-lg border border-mint-dark/30">
         <div>
             <div class="flex items-center gap-3 mb-2">
                 <h1 class="text-3xl font-bold text-gray-900">Weather</h1>
-                <span class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">Google Weather</span>
+                <span class="px-3 py-1 bg-white/20 text-white text-xs font-semibold rounded-full inline-flex items-center gap-1">
+                    <i data-lucide="satellite" class="w-3 h-3"></i>
+                    Weather API
+                </span>
             </div>
-            <p class="text-gray-600">Real-time weather conditions and farming recommendations for <?= esc($location) ?></p>
+            <p class="text-mint-light">Real-time weather conditions and farming recommendations for <?= esc($location) ?></p>
         </div>
-        <div class="flex items-center gap-2 text-sm text-gray-600">
+        <div class="flex items-center gap-2 text-sm text-mint-light bg-white/10 rounded-lg px-3 py-2">
             <i data-lucide="refresh-cw" id="refreshIcon" class="w-4 h-4"></i>
             <span id="lastUpdated">Loading...</span>
         </div>
@@ -53,23 +56,31 @@
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-4">
                 <div class="text-center">
-                    <i data-lucide="droplets" class="w-8 h-8 text-blue-500 mx-auto mb-2"></i>
+                    <div class="w-12 h-12 rounded-xl bg-mint-light mx-auto mb-2 flex items-center justify-center">
+                        <i data-lucide="droplets" class="w-6 h-6 text-primary"></i>
+                    </div>
                     <div class="text-2xl font-semibold text-gray-900" id="weatherHumidity">--%</div>
                     <div class="text-sm text-gray-600">Humidity</div>
                 </div>
                 <div class="text-center">
-                    <i data-lucide="wind" class="w-8 h-8 text-gray-500 mx-auto mb-2"></i>
+                    <div class="w-12 h-12 rounded-xl bg-gray-100 mx-auto mb-2 flex items-center justify-center">
+                        <i data-lucide="wind" class="w-6 h-6 text-gray-600"></i>
+                    </div>
                     <div class="text-2xl font-semibold text-gray-900" id="weatherWind">-- km/h</div>
                     <div class="text-sm text-gray-600">Wind</div>
                     <div class="text-xs text-gray-500 mt-1" id="weatherWindDirection"></div>
                 </div>
                 <div class="text-center">
-                    <i data-lucide="cloud-rain" class="w-8 h-8 text-blue-600 mx-auto mb-2"></i>
+                    <div class="w-12 h-12 rounded-xl bg-mint-light mx-auto mb-2 flex items-center justify-center">
+                        <i data-lucide="cloud-rain" class="w-6 h-6 text-primary"></i>
+                    </div>
                     <div class="text-2xl font-semibold text-gray-900" id="weatherRainfall">-- mm</div>
                     <div class="text-sm text-gray-600">Rainfall</div>
                 </div>
                 <div class="text-center">
-                    <i data-lucide="gauge" class="w-8 h-8 text-purple-500 mx-auto mb-2"></i>
+                    <div class="w-12 h-12 rounded-xl bg-amber-100 mx-auto mb-2 flex items-center justify-center">
+                        <i data-lucide="gauge" class="w-6 h-6 text-amber-700"></i>
+                    </div>
                     <div class="text-2xl font-semibold text-gray-900" id="weatherPressure">-- hPa</div>
                     <div class="text-sm text-gray-600">Pressure</div>
                 </div>

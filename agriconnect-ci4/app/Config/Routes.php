@@ -76,7 +76,7 @@ $routes->group('auth', function($routes) {
 // BUYER ROUTES (Protected - Unified buyer/seller functionality)
 // ============================================================
 
-$routes->group('buyer', ['filter' => 'auth:buyer,admin'], function($routes) {
+$routes->group('buyer', ['filter' => 'auth:buyer,farmer,user,admin'], function($routes) {
     // Seller dashboard & products (buyer as seller)
     $routes->get('dashboard', 'Buyer::dashboard');
     $routes->get('products', 'Buyer::products');
@@ -100,7 +100,7 @@ $routes->group('buyer', ['filter' => 'auth:buyer,admin'], function($routes) {
 });
 
 // Cart
-$routes->group('cart', ['filter' => 'auth:buyer,admin'], function($routes) {
+$routes->group('cart', ['filter' => 'auth:buyer,farmer,user,admin'], function($routes) {
     $routes->get('/', 'Cart::index');
     $routes->post('add', 'Cart::add');
     $routes->post('buy_now', 'Cart::buyNow');
@@ -110,7 +110,7 @@ $routes->group('cart', ['filter' => 'auth:buyer,admin'], function($routes) {
 });
 
 // Checkout
-$routes->group('checkout', ['filter' => 'auth:buyer,admin'], function($routes) {
+$routes->group('checkout', ['filter' => 'auth:buyer,farmer,user,admin'], function($routes) {
     $routes->get('/', 'Checkout::index');
     $routes->post('/', 'Checkout::index'); // For form submission with selected items
     $routes->get('direct', 'Checkout::directCheckout');
@@ -129,6 +129,9 @@ $routes->group('profile', ['filter' => 'auth'], function($routes) {
     $routes->get('/', 'Profile::index');
     $routes->get('edit', 'Profile::edit');
     $routes->post('update', 'Profile::update');
+    $routes->get('verify-otp', 'Profile::verifyOtp');
+    $routes->post('verify-otp', 'Profile::verifyOtpProcess');
+    $routes->post('resend-otp', 'Profile::resendOtp');
 });
 
 // ============================================================

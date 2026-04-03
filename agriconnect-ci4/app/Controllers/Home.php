@@ -44,9 +44,11 @@ class Home extends BaseController
             case 'admin':
                 return redirect()->to('/admin/dashboard');
             case 'farmer':
-                return redirect()->to('/farmer/dashboard');
+                return redirect()->to('/buyer/dashboard');
             case 'buyer':
                 // Buyers now have a seller dashboard where they can also list products
+                return redirect()->to('/buyer/dashboard');
+            case 'user':
                 return redirect()->to('/buyer/dashboard');
             default:
                 return redirect()->to('/')->with('error', 'Invalid user role.');

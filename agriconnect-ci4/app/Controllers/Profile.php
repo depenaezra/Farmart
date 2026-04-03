@@ -7,6 +7,9 @@ use CodeIgniter\Database\Exceptions\DatabaseException;
 
 class Profile extends BaseController
 {
+    private const PROFILE_UPDATE_SESSION_KEY = 'pending_profile_update';
+    private const PROFILE_OTP_TTL = 600;
+
     protected $userModel;
     
     public function __construct()
@@ -171,21 +174,141 @@ class Profile extends BaseController
             $updateData['password'] = $password;
         }
         
-        // Skip validation if password is not being updated
-        $skipValidation = empty($password);
-        
-        if ($this->userModel->skipValidation($skipValidation)->update($userId, $updateData)) {
-            // Update session data
+        $phoneChanged = ($updateData['phone'] ?? '') !== ($user['phone'] ?? '');
+        $passwordChanged = !empty($password);
+
+        // Require OTP verification before updating contact number or password.
+        if ($phoneChanged || $passwordChanged) {
+            $otp = (string) random_int(100000, 999999);
+
+            session()->set(self::PROFILE_UPDATE_SESSION_KEY, [
+                'user_id' => $userId,
+                'data' => $updateData,
+                'otp' => $otp,
+                'expires_at' => time() + self::PROFILE_OTP_TTL,
+            ]);
+
+            $sendResult = \App\Libraries\PHPMailerService::sendOTP($user['email'], $otp);
+            if ($sendResult !== true) {
+                session()->remove(self::PROFILE_UPDATE_SESSION_KEY);
+
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Unable to send OTP. ' . $sendResult);
+            }
+
+            return redirect()->to('/profile/verify-otp')
+                ->with('success', 'OTP sent to your email. Enter the code to confirm contact/password change.');
+        }
+
+        if ($this->userModel->skipValidation(true)->update($userId, $updateData)) {
             session()->set('user_name', $updateData['name']);
             session()->set('user_email', $updateData['email']);
-            
+
             return redirect()->to('/profile')
                 ->with('success', 'Profile updated successfully!');
-        } else {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Failed to update profile. Please try again.');
         }
+
+        return redirect()->back()
+            ->withInput()
+            ->with('error', 'Failed to update profile. Please try again.');
+    }
+
+    /**
+     * Show OTP verification page for pending profile updates.
+     */
+    public function verifyOtp()
+    {
+        $pending = session()->get(self::PROFILE_UPDATE_SESSION_KEY);
+        $userId = session()->get('user_id');
+
+        if (!$pending || !isset($pending['user_id']) || (int) $pending['user_id'] !== (int) $userId) {
+            return redirect()->to('/profile')
+                ->with('error', 'No pending OTP verification found.');
+        }
+
+        if (time() > (int) ($pending['expires_at'] ?? 0)) {
+            session()->remove(self::PROFILE_UPDATE_SESSION_KEY);
+
+            return redirect()->to('/profile')
+                ->with('error', 'OTP has expired. Please submit your changes again.');
+        }
+
+        return view('profile/verify_otp');
+    }
+
+    /**
+     * Verify OTP and apply pending sensitive profile updates.
+     */
+    public function verifyOtpProcess()
+    {
+        $pending = session()->get(self::PROFILE_UPDATE_SESSION_KEY);
+        $userId = session()->get('user_id');
+
+        if (!$pending || !isset($pending['user_id'], $pending['data'], $pending['otp']) || (int) $pending['user_id'] !== (int) $userId) {
+            return redirect()->to('/profile')
+                ->with('error', 'No pending OTP verification found.');
+        }
+
+        if (time() > (int) ($pending['expires_at'] ?? 0)) {
+            session()->remove(self::PROFILE_UPDATE_SESSION_KEY);
+
+            return redirect()->to('/profile')
+                ->with('error', 'OTP has expired. Please submit your changes again.');
+        }
+
+        $otpInput = trim((string) $this->request->getPost('otp'));
+        if ($otpInput === '' || !hash_equals((string) $pending['otp'], $otpInput)) {
+            return redirect()->back()->with('error', 'Invalid OTP code. Please try again.');
+        }
+
+        $updateData = $pending['data'];
+        if ($this->userModel->skipValidation(true)->update($userId, $updateData)) {
+            session()->set('user_name', $updateData['name'] ?? session()->get('user_name'));
+            session()->set('user_email', $updateData['email'] ?? session()->get('user_email'));
+
+            session()->remove(self::PROFILE_UPDATE_SESSION_KEY);
+
+            return redirect()->to('/profile')
+                ->with('success', 'Profile changes verified and updated successfully!');
+        }
+
+        return redirect()->to('/profile')
+            ->with('error', 'Failed to apply profile changes. Please try again.');
+    }
+
+    /**
+     * Resend OTP for pending profile update verification.
+     */
+    public function resendOtp()
+    {
+        $pending = session()->get(self::PROFILE_UPDATE_SESSION_KEY);
+        $userId = session()->get('user_id');
+
+        if (!$pending || !isset($pending['user_id']) || (int) $pending['user_id'] !== (int) $userId) {
+            return redirect()->to('/profile')
+                ->with('error', 'No pending OTP verification found.');
+        }
+
+        $user = $this->userModel->find($userId);
+        if (!$user) {
+            session()->remove(self::PROFILE_UPDATE_SESSION_KEY);
+
+            return redirect()->back()
+                ->with('error', 'User not found. Please login again.');
+        }
+
+        $otp = (string) random_int(100000, 999999);
+        $pending['otp'] = $otp;
+        $pending['expires_at'] = time() + self::PROFILE_OTP_TTL;
+        session()->set(self::PROFILE_UPDATE_SESSION_KEY, $pending);
+
+        $sendResult = \App\Libraries\PHPMailerService::sendOTP($user['email'], $otp);
+        if ($sendResult !== true) {
+            return redirect()->back()->with('error', 'Unable to resend OTP. ' . $sendResult);
+        }
+
+        return redirect()->back()->with('success', 'A new OTP has been sent to your email.');
     }
 }
 

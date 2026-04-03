@@ -3,27 +3,37 @@
 <?= $this->section('content') ?>
 
 <div class="container mx-auto px-4 py-8">
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">Announcements</h1>
-        <p class="text-gray-600">Stay updated with the latest news and announcements from Farmart</p>
+    <div class="mb-8 bg-gradient-to-r from-primary to-primary-hover text-white rounded-2xl p-6 shadow-lg border border-mint-dark/30">
+        <div class="flex items-center gap-3 mb-2">
+            <span class="w-10 h-10 rounded-xl bg-white/20 inline-flex items-center justify-center">
+                <i data-lucide="megaphone" class="w-5 h-5"></i>
+            </span>
+            <h1 class="text-3xl font-bold mb-0">Announcements</h1>
+        </div>
+        <p class="text-mint-light">Stay updated with the latest news and announcements from Farmart</p>
     </div>
 
     <!-- Category Filter -->
     <div class="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-8">
         <div class="flex flex-wrap gap-2">
-            <a href="/announcements" class="px-4 py-2 rounded-lg font-semibold <?= empty($current_category) ? 'bg-primary text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
+            <a href="/announcements" class="px-4 py-2 rounded-lg font-semibold inline-flex items-center gap-2 <?= empty($current_category) ? 'bg-primary text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
+                <i data-lucide="layers" class="w-4 h-4"></i>
                 All
             </a>
-            <a href="/announcements?category=general" class="px-4 py-2 rounded-lg font-semibold <?= $current_category === 'general' ? 'bg-primary text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
+            <a href="/announcements?category=general" class="px-4 py-2 rounded-lg font-semibold inline-flex items-center gap-2 <?= $current_category === 'general' ? 'bg-primary text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
+                <i data-lucide="newspaper" class="w-4 h-4"></i>
                 General
             </a>
-            <a href="/announcements?category=weather" class="px-4 py-2 rounded-lg font-semibold <?= $current_category === 'weather' ? 'bg-primary text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
+            <a href="/announcements?category=weather" class="px-4 py-2 rounded-lg font-semibold inline-flex items-center gap-2 <?= $current_category === 'weather' ? 'bg-primary text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
+                <i data-lucide="cloud-sun" class="w-4 h-4"></i>
                 Weather
             </a>
-            <a href="/announcements?category=market" class="px-4 py-2 rounded-lg font-semibold <?= $current_category === 'market' ? 'bg-primary text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
+            <a href="/announcements?category=market" class="px-4 py-2 rounded-lg font-semibold inline-flex items-center gap-2 <?= $current_category === 'market' ? 'bg-primary text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
+                <i data-lucide="store" class="w-4 h-4"></i>
                 Market
             </a>
-            <a href="/announcements?category=policy" class="px-4 py-2 rounded-lg font-semibold <?= $current_category === 'policy' ? 'bg-primary text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
+            <a href="/announcements?category=policy" class="px-4 py-2 rounded-lg font-semibold inline-flex items-center gap-2 <?= $current_category === 'policy' ? 'bg-primary text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?>">
+                <i data-lucide="shield-check" class="w-4 h-4"></i>
                 Policy
             </a>
         </div>

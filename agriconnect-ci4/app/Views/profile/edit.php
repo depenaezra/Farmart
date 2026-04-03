@@ -42,6 +42,10 @@
         <?php endif; ?>
 
         <div class="bg-white rounded-xl shadow-md border border-gray-200 p-8">
+            <div class="mb-6 p-4 rounded-lg border border-blue-200 bg-blue-50 text-blue-800 text-sm">
+                <div class="font-semibold mb-1">Security Verification Notice</div>
+                <p>Changing your phone number or password requires OTP verification. After saving, you will be redirected to verify the OTP sent to your email.</p>
+            </div>
             <form action="/profile/update" method="POST">
                 <?= csrf_field() ?>
                 

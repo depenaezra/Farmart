@@ -3,13 +3,18 @@
 <?= $this->section('content') ?>
 
 <div class="container mx-auto px-4 py-4 h-[calc(100vh-120px)]">
-    <div class="bg-white rounded-xl shadow-lg border border-gray-200 h-full flex overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-xl border border-mint h-full flex overflow-hidden">
         <!-- Left Sidebar - Conversations List -->
         <div class="w-1/3 border-r border-gray-200 flex flex-col">
             <!-- Header -->
-            <div class="p-4 border-b border-gray-200 bg-gray-50">
+            <div class="p-4 border-b border-mint bg-gradient-to-r from-mint-light to-white">
                 <div class="flex items-center justify-between mb-4">
-                    <h1 class="text-2xl font-bold text-gray-900">Messages</h1>
+                    <h1 class="text-2xl font-bold text-gray-900 inline-flex items-center gap-2">
+                        <span class="w-8 h-8 rounded-lg bg-primary text-white inline-flex items-center justify-center">
+                            <i data-lucide="messages-square" class="w-4 h-4"></i>
+                        </span>
+                        Messages
+                    </h1>
                     <button id="newConversationBtn" class="bg-primary text-white p-2 rounded-lg hover:bg-primary-hover transition-colors">
                         <i data-lucide="plus" class="w-5 h-5"></i>
                     </button>
@@ -37,7 +42,7 @@
                     <div id="conversationsList">
                         <?php foreach ($conversations as $conv): ?>
                             <a href="/messages/conversation/<?= $conv['other_user_id'] ?>" 
-                               class="block p-4 hover:bg-gray-50 border-b border-gray-100 transition-colors conversation-item <?= (isset($selected_user_id) && $selected_user_id == $conv['other_user_id']) ? 'bg-blue-50 border-l-4 border-l-primary' : '' ?>"
+                               class="block p-4 hover:bg-gray-50 border-b border-gray-100 transition-colors conversation-item <?= (isset($selected_user_id) && $selected_user_id == $conv['other_user_id']) ? 'bg-mint-light/60 border-l-4 border-l-primary' : '' ?>"
                                data-user-id="<?= $conv['other_user_id'] ?>">
                                 <div class="flex items-start justify-between">
                                     <div class="flex-1 min-w-0">
@@ -78,7 +83,7 @@
         <div class="flex-1 flex flex-col">
             <?php if (isset($selected_user) && isset($messages)): ?>
                 <!-- Chat Header -->
-                <div class="p-4 border-b border-gray-200 bg-gray-50">
+                <div class="p-4 border-b border-mint bg-gradient-to-r from-mint-light to-white">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center">
                             <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-semibold mr-3">

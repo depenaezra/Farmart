@@ -1,4 +1,4 @@
-<?= $this->extend(session()->get('user_role') === 'admin' ? 'layouts/admin' : 'layouts/main') ?>
+<?= $this->extend(session()->get('user_role') === 'admin' ? 'layouts/main' : 'layouts/main') ?>
 
 <?= $this->section('content') ?>
 
@@ -51,17 +51,17 @@
                         </div>
                         <h3 class="text-lg font-bold text-white mb-1"><?= esc($user['name']) ?></h3>
                         <p class="text-white/90 text-sm mb-3"><?= esc($user['email']) ?></p>
-                        <span class="inline-block px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs font-semibold rounded-full border border-white/30">
+                        <span class="inline-block px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs font-semibold rounded-full border border-white/30"> 
                             <i data-lucide="crown" class="w-3 h-3 inline mr-1"></i>
                             Administrator
                         </span>
                     </div>
 
-                    <div class="space-y-3 pt-4 border-t border-white/20">
+                    <div class="space-y-3 pt-4 border-t border-white/20">       
                         <div class="flex items-center text-white/90">
-                            <i data-lucide="calendar" class="w-5 h-5 mr-3"></i>
+                            <i data-lucide="calendar" class="w-5 h-5 mr-3"></i> 
                             <span class="text-sm">Admin since</span>
-                            <span class="ml-auto text-white font-semibold">
+                            <span class="ml-auto text-white font-semibold">     
                                 <?= date('M Y', strtotime($user['created_at'])) ?>
                             </span>
                         </div>
@@ -109,23 +109,23 @@
                 <div class="bg-gradient-to-br from-primary to-primary-hover rounded-xl shadow-lg border border-gray-100 p-4 transform hover:scale-105 transition-all duration-300">
                     <div class="text-center mb-4">
                         <div class="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center mx-auto mb-3 shadow-md">
-                            <span class="text-2xl font-bold text-white">
-                                <?= strtoupper(substr($user['name'], 0, 1)) ?>
+                            <span class="text-2xl font-bold text-white">        
+                                <?= strtoupper(substr($user['name'], 0, 1)) ?>  
                             </span>
                         </div>
                         <h3 class="text-lg font-bold text-white mb-1"><?= esc($user['name']) ?></h3>
                         <p class="text-white/90 text-sm mb-3"><?= esc($user['email']) ?></p>
-                        <span class="inline-block px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs font-semibold rounded-full border border-white/30">
+                        <span class="inline-block px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs font-semibold rounded-full border border-white/30"> 
                             <i data-lucide="user" class="w-3 h-3 inline mr-1"></i>
                             <?= ucfirst($user['role']) ?>
                         </span>
                     </div>
 
-                    <div class="space-y-3 pt-4 border-t border-white/20">
+                    <div class="space-y-3 pt-4 border-t border-white/20">       
                         <div class="flex items-center text-white/90">
-                            <i data-lucide="calendar" class="w-5 h-5 mr-3"></i>
+                            <i data-lucide="calendar" class="w-5 h-5 mr-3"></i> 
                             <span class="text-sm">Member since</span>
-                            <span class="ml-auto text-white font-semibold">
+                            <span class="ml-auto text-white font-semibold">     
                                 <?= date('M Y', strtotime($user['created_at'])) ?>
                             </span>
                         </div>
@@ -224,32 +224,38 @@
                                 <div>
                                     <label for="admin_name" class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
                                     <input type="text" id="admin_name" name="name" required
-                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+>
                                 </div>
                                 <div>
                                     <label for="admin_email" class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
                                     <input type="email" id="admin_email" name="email" required
-                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+>
                                 </div>
                                 <div>
                                     <label for="admin_phone" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
                                     <input type="tel" id="admin_phone" name="phone"
-                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+>
                                 </div>
                                 <div>
                                     <label for="admin_location" class="block text-sm font-medium text-gray-700 mb-1">Location</label>
                                     <input type="text" id="admin_location" name="location"
-                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+>
                                 </div>
                                 <div>
                                     <label for="admin_password" class="block text-sm font-medium text-gray-700 mb-1">Password *</label>
                                     <input type="password" id="admin_password" name="password" required
-                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+>
                                 </div>
                                 <div>
                                     <label for="admin_password_confirm" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password *</label>
                                     <input type="password" id="admin_password_confirm" name="password_confirm" required
-                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+>
                                 </div>
                                 <div class="flex space-x-3">
                                     <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
@@ -286,9 +292,9 @@
                     <!-- Activity Content -->
                     <div class="space-y-6 flex-1 overflow-y-auto custom-scrollbar">
                         <!-- Likes Content -->
-                        <div id="likes-content" class="activity-content">
+                        <div id="likes-content" class="activity-content">       
                             <?php if (!empty($recent_likes)): ?>
-                                <?php foreach ($recent_likes as $like): ?>
+                                <?php foreach ($recent_likes as $like): ?>      
                                     <a href="/forum/post/<?= $like['post_id'] ?>" class="block">
                                         <div class="flex items-start space-x-2 p-3 bg-gradient-to-r from-red-50 to-pink-50 rounded-lg border border-red-100 hover:shadow-sm transition-all duration-200 cursor-pointer">
                                             <div class="flex-shrink-0">
@@ -296,7 +302,7 @@
                                                     <i data-lucide="heart" class="w-4 h-4 text-red-500"></i>
                                                 </div>
                                             </div>
-                                            <div class="flex-1 min-w-0">
+                                            <div class="flex-1 min-w-0">        
                                                 <p class="text-xs font-medium text-gray-900 truncate">
                                                     <?= esc($like['post_title']) ?>
                                                 </p>
@@ -327,12 +333,12 @@
                                                     <i data-lucide="message-circle" class="w-4 h-4 text-blue-500"></i>
                                                 </div>
                                             </div>
-                                            <div class="flex-1 min-w-0">
+                                            <div class="flex-1 min-w-0">        
                                                 <p class="text-xs font-medium text-gray-900 truncate">
                                                     On: <?= esc($comment['post_title']) ?>
                                                 </p>
                                                 <p class="text-xs text-gray-600 line-clamp-2 italic">
-                                                    "<?= esc(substr($comment['comment'], 0, 30)) ?><?= strlen($comment['comment']) > 30 ? '...' : '' ?>"
+                                                    "<?= esc(substr($comment['comment'], 0, 30)) ?><?= strlen($comment['comment']) > 30 ? '...' : '' ?>"        
                                                 </p>
                                                 <p class="text-xs text-gray-500 flex items-center mt-0.5">
                                                     <i data-lucide="clock" class="w-2.5 h-2.5 mr-1"></i>
@@ -351,9 +357,9 @@
                         </div>
 
                         <!-- Cart Content -->
-                        <div id="cart-content" class="activity-content hidden">
+                        <div id="cart-content" class="activity-content hidden"> 
                             <?php if (!empty($recent_cart_items)): ?>
-                                <?php foreach ($recent_cart_items as $item): ?>
+                                <?php foreach ($recent_cart_items as $item): ?> 
                                     <a href="/marketplace/product/<?= $item['product_id'] ?>" class="block">
                                         <div class="flex items-start space-x-2 p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-100 hover:shadow-sm transition-all duration-200 cursor-pointer">
                                             <div class="flex-shrink-0">
@@ -361,7 +367,7 @@
                                                     <i data-lucide="shopping-cart" class="w-4 h-4 text-green-500"></i>
                                                 </div>
                                             </div>
-                                            <div class="flex-1 min-w-0">
+                                            <div class="flex-1 min-w-0">        
                                                 <p class="text-xs font-medium text-gray-900 truncate">
                                                     <?= esc($item['product_name']) ?>
                                                 </p>
@@ -449,4 +455,3 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <?= $this->endSection() ?>
-

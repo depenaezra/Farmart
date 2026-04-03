@@ -11,9 +11,14 @@
             <div class="flex-1 max-w-3xl mx-auto">
             
             <!-- Page Header -->
-            <div class="mb-8">
-                <h1 class="text-3xl font-bold text-gray-900 mb-2">Community Forum</h1>
-                <p class="text-gray-600">Connect with fellow farmers and share your thoughts</p>
+            <div class="mb-8 bg-gradient-to-r from-primary to-primary-hover text-white rounded-2xl p-6 shadow-lg border border-mint-dark/30">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="w-10 h-10 rounded-xl bg-white/20 inline-flex items-center justify-center">
+                        <i data-lucide="message-circle-heart" class="w-5 h-5"></i>
+                    </span>
+                    <h1 class="text-3xl font-bold mb-0">Community Forum</h1>
+                </div>
+                <p class="text-mint-light">Connect with fellow farmers and share your thoughts</p>
             </div>
 
             <!-- Create Post Box (Facebook-style "What's on your mind?") -->
@@ -33,7 +38,7 @@
                             <span class="text-sm font-medium text-gray-700">Photo</span>
                         </a>
                         <a href="/forum/create" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-lg transition-colors flex-1 justify-center">
-                            <i data-lucide="message-square" class="w-5 h-5 text-blue-600"></i>
+                            <i data-lucide="message-square" class="w-5 h-5 text-primary"></i>
                             <span class="text-sm font-medium text-gray-700">Post</span>
                         </a>
                     </div>
@@ -78,7 +83,7 @@
                         ]), ENT_QUOTES, 'UTF-8'); ?>
 
                         <!-- Facebook-style Post Card -->
-                        <div class="bg-white rounded-lg shadow hover:shadow-md transition-shadow post-card" data-post-id="<?= $post['id'] ?>">
+                        <div class="bg-white rounded-xl shadow hover:shadow-lg border border-mint/30 transition-shadow post-card" data-post-id="<?= $post['id'] ?>">
                             <!-- Post Header -->
                             <div class="p-4 pb-3">
                                 <div class="flex items-center gap-3">

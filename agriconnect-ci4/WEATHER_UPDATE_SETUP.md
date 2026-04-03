@@ -1,64 +1,93 @@
-# Weather Cache Update Setup
+# Weather Setup Guide
 
-The weather system now automatically caches weather data and updates it every 5 minutes. Here's how to set it up:
+The weather page now supports a real weather API when configured, and falls back to wttr.in or sample data when the key is missing.
 
-## Automatic Cache Updates
+## 1. Choose the API source
 
-### Option 1: Cron Job (Recommended for Production)
+Recommended: OpenWeatherMap.
 
-Set up a cron job to call the cache update endpoint every 5 minutes:
+If `OPENWEATHER_API_KEY` is not set, the app will automatically fall back to wttr.in.
 
-**Linux/Mac:**
+## 2. Add the API key to `.env`
+
+Open your project `.env` file and add:
+
+```env
+OPENWEATHER_API_KEY=your_openweather_api_key_here
+```
+
+If your key contains spaces or special characters, wrap it in quotes:
+
+```env
+OPENWEATHER_API_KEY="your key here"
+```
+
+## 3. Get an OpenWeatherMap key
+
+1. Create an account at OpenWeatherMap.
+2. Generate an API key from your dashboard.
+3. Paste the key into `OPENWEATHER_API_KEY`.
+
+## 4. Test the live endpoint
+
+Open this in your browser:
+
+```text
+http://localhost:8080/weather/api?lat=14.0667&lon=120.6333
+```
+
+You should see JSON with `success: true` and weather data.
+
+## 5. Test the cache updater
+
+Open this in your browser:
+
+```text
+http://localhost:8080/weather/update-cache?format=json
+```
+
+Or run:
+
+```bash
+curl http://localhost:8080/weather/update-cache?format=json
+```
+
+## 6. Set up automatic refresh
+
+### Production cron job
+
+Run every 5 minutes:
+
 ```bash
 */5 * * * * curl -s http://your-domain.com/weather/update-cache > /dev/null 2>&1
 ```
 
-**Windows (Task Scheduler):**
-1. Open Task Scheduler
-2. Create Basic Task
-3. Set trigger to "Daily" and repeat every 5 minutes
-4. Action: Start a program
+### Windows Task Scheduler
+
+1. Open Task Scheduler.
+2. Create a Basic Task.
+3. Set the trigger to repeat every 5 minutes.
+4. Set the action to start a program.
 5. Program: `curl`
-6. Arguments: `http://your-domain.com/weather/update-cache`
+6. Arguments: `http://localhost:8080/weather/update-cache?format=json`
 
-### Option 2: JavaScript Auto-Update (Already Implemented)
+## 7. What happens if no API key is set?
 
-The frontend JavaScript automatically triggers cache updates every 5 minutes when users are on the weather page. This works but is less reliable than a cron job.
+1. The app uses wttr.in automatically.
+2. If wttr.in is unavailable, the page falls back to sample weather data.
+3. Cached data is reused when available.
 
-## How It Works
+## 8. Cache behavior
 
-1. **Cache Storage**: Weather data is cached for 5 minutes using CodeIgniter's cache system
-2. **Auto-Refresh**: The cache is automatically checked and updated when:
-   - Cache is older than 5 minutes
-   - User manually refreshes
-   - Background update is triggered
-3. **Fallback**: If API fails, cached data (even if expired) is used as fallback
+1. Weather data is cached for 5 minutes.
+2. Manual refresh updates the cache.
+3. Background refresh also updates the cache when the page is open.
 
-## API Configuration
+## 9. Where cache lives
 
-Add to your `.env` file:
+Cache files are stored in:
+
+```text
+writable/cache/
 ```
-OPENWEATHER_API_KEY=your_api_key_here
-```
-
-Or:
-```
-GOOGLE_WEATHER_API_KEY=your_api_key_here
-```
-
-## Testing
-
-Test the cache update endpoint:
-```bash
-curl http://localhost/weather/update-cache
-```
-
-Or visit in browser:
-```
-http://your-domain.com/weather/update-cache
-```
-
-## Cache Location
-
-Cache files are stored in: `writable/cache/`
 

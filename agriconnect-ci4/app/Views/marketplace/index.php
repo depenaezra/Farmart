@@ -32,7 +32,12 @@
 
     <!-- Category Cards -->
     <div class="mb-8">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">Shop by Category</h2>
+        <h2 class="text-2xl font-bold text-gray-900 mb-6 inline-flex items-center gap-2">
+            <span class="w-9 h-9 rounded-lg bg-primary text-white inline-flex items-center justify-center">
+                <i data-lucide="layout-grid" class="w-5 h-5"></i>
+            </span>
+            Shop by Category
+        </h2>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
             <a href="/marketplace?category=vegetables" class="bg-white rounded-xl shadow-md border-2 <?= ($filters['category'] ?? '') === 'vegetables' ? 'border-green-500 bg-green-50 scale-105' : 'border-gray-200 hover:border-green-300 hover:scale-105' ?> transition-all duration-300 p-6 text-center group">
                 <div class="flex flex-col items-center">
@@ -78,7 +83,10 @@
 
     <!-- Filters -->
     <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-8">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">Filter Products</h3>
+        <h3 class="text-lg font-semibold text-gray-900 mb-4 inline-flex items-center gap-2">
+            <i data-lucide="sliders-horizontal" class="w-5 h-5 text-primary"></i>
+            Filter Products
+        </h3>
         <form action="/marketplace" method="GET" class="flex flex-col md:flex-row gap-4">
             <div class="flex-1">
                 <label for="min_price" class="block text-sm font-medium text-gray-700 mb-1">Min Price</label>
@@ -130,7 +138,12 @@
         </div>
     <?php else: ?>
         <div class="mb-4">
-            <h2 class="text-2xl font-bold text-gray-900 mb-6">Fresh Products</h2>
+            <h2 class="text-2xl font-bold text-gray-900 mb-6 inline-flex items-center gap-2">
+                <span class="w-9 h-9 rounded-lg bg-mint-light text-primary inline-flex items-center justify-center border border-mint">
+                    <i data-lucide="leaf" class="w-5 h-5"></i>
+                </span>
+                Fresh Products
+            </h2>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
             <?php foreach ($products as $product): ?>

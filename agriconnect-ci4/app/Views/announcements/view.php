@@ -13,8 +13,8 @@
         </div>
 
         <!-- Announcement Content -->
-        <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-            <div class="p-8">
+        <div class="bg-white rounded-2xl shadow-lg border border-mint overflow-hidden">
+            <div class="p-8 bg-gradient-to-r from-mint-light/70 to-white border-b border-mint">
                 <div class="inline-block px-3 py-1 bg-primary/10 text-primary text-sm font-semibold rounded mb-4">
                     <?= ucfirst(esc($announcement['category'] ?? 'general')) ?>
                 </div>
@@ -31,6 +31,9 @@
                     <i data-lucide="clock" class="w-4 h-4 mr-1"></i>
                     <span><?= date('H:i', strtotime($announcement['created_at'])) ?></span>
                 </div>
+            </div>
+
+            <div class="p-8">
 
                 <div class="prose prose-lg max-w-none">
                     <div class="text-gray-700 leading-relaxed whitespace-pre-line">

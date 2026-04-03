@@ -1,0 +1,51 @@
+<?= $this->extend('layouts/main') ?>
+
+<?= $this->section('content') ?>
+<div class="container mx-auto px-4 py-10 max-w-xl">
+    <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
+        <div class="text-center mb-6">
+            <div class="w-14 h-14 bg-primary rounded-full flex items-center justify-center mx-auto mb-3">
+                <i data-lucide="shield-check" class="w-7 h-7 text-white"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-900">Verify Profile Change</h1>
+            <p class="text-gray-600 mt-2">Enter the OTP sent to your registered email to confirm contact number/password update.</p>
+        </div>
+
+        <?php if (session()->getFlashdata('error')): ?>
+            <div class="mb-4 p-3 bg-red-100 text-red-800 rounded-lg"><?= esc(session()->getFlashdata('error')) ?></div>
+        <?php endif; ?>
+        <?php if (session()->getFlashdata('success')): ?>
+            <div class="mb-4 p-3 bg-green-100 text-green-800 rounded-lg"><?= esc(session()->getFlashdata('success')) ?></div>
+        <?php endif; ?>
+
+        <form method="post" action="/profile/verify-otp" class="space-y-4">
+            <?= csrf_field() ?>
+            <div>
+                <label for="otp" class="block text-sm font-semibold text-gray-700 mb-2">OTP Code</label>
+                <input
+                    type="text"
+                    id="otp"
+                    name="otp"
+                    required
+                    maxlength="6"
+                    pattern="[0-9]{6}"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-center tracking-[0.25em]"
+                    placeholder="000000"
+                >
+            </div>
+            <button type="submit" class="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary-hover transition-colors">
+                Verify and Apply Changes
+            </button>
+        </form>
+
+        <form method="post" action="/profile/resend-otp" class="mt-3">
+            <?= csrf_field() ?>
+            <button type="submit" class="w-full bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
+                Resend OTP
+            </button>
+        </form>
+
+        <a href="/profile" class="block text-center mt-4 text-sm text-primary hover:underline">Back to Profile</a>
+    </div>
+</div>
+<?= $this->endSection() ?>

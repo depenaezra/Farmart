@@ -19,6 +19,15 @@ class Weather extends BaseController
     }
 
     /**
+     * Build a stable cache key for a location.
+     */
+    private function getWeatherCacheKey($location, $lat, $lon)
+    {
+        $normalizedLocation = strtolower(trim((string) $location));
+        return 'weather_' . md5($normalizedLocation . '|' . round((float) $lat, 4) . '|' . round((float) $lon, 4));
+    }
+
+    /**
      * Generate dynamic agricultural advisories based on current weather
      */
     private function generateDynamicAdvisories($current)
@@ -109,7 +118,7 @@ class Weather extends BaseController
             $lon = 120.6333;
         }
 
-        $cacheKey = 'weather_' . md5($location . $lat . $lon);
+        $cacheKey = $this->getWeatherCacheKey($location, $lat, $lon);
         $cache = \Config\Services::cache();
 
         // Try to get from cache first
@@ -128,7 +137,7 @@ class Weather extends BaseController
         }
 
         // Always use Nasugbu Batangas for wttr.in
-        $weatherData = $this->fetchWeatherFromAPI(14.0667, 120.6333);
+        $weatherData = $this->fetchWeatherFromAPI($lat, $lon, $location);
 
         if ($weatherData) {
             $cache->save($cacheKey, [
@@ -157,7 +166,7 @@ class Weather extends BaseController
             'success' => true,
             'data' => $this->getMockWeatherData(),
             'last_updated' => date('Y-m-d H:i:s'),
-            'note' => 'Using sample data. Please configure Google Weather API key or OpenWeatherMap API key for real-time updates.'
+            'note' => 'Using sample data. Please configure OPENWEATHER_API_KEY for real-time updates.'
         ]);
     }
     
@@ -166,14 +175,15 @@ class Weather extends BaseController
      */
     public function updateCache()
     {
+        $location = 'Nasugbu Batangas';
         $lat = 14.0667; // Nasugbu default
         $lon = 120.6333;
         
-        $cacheKey = 'weather_' . round($lat, 4) . '_' . round($lon, 4);
+        $cacheKey = $this->getWeatherCacheKey($location, $lat, $lon);
         $cache = \Config\Services::cache();
         
         // Fetch fresh weather data
-        $weatherData = $this->fetchWeatherFromAPI($lat, $lon);
+        $weatherData = $this->fetchWeatherFromAPI($lat, $lon, $location);
         
         if ($weatherData) {
             // Store in cache for 5 minutes
@@ -210,14 +220,130 @@ class Weather extends BaseController
     /**
      * Fetch weather from Google Weather API
      */
-    private function fetchWeatherFromAPI($lat, $lon)
+    private function fetchWeatherFromAPI($lat, $lon, $location = 'Nasugbu Batangas')
     {
-        // Use wttr.in for simple weather data (no API key required)
         try {
             $client = \Config\Services::curlrequest();
-            $locationQuery = urlencode('Nasugbu Batangas');
+            $openWeatherKey = trim((string) env('OPENWEATHER_API_KEY'));
+
+            if ($openWeatherKey !== '' && $openWeatherKey !== 'your_api_key_here') {
+                $currentResponse = $client->get('https://api.openweathermap.org/data/2.5/weather', [
+                    'query' => [
+                        'lat' => $lat,
+                        'lon' => $lon,
+                        'appid' => $openWeatherKey,
+                        'units' => 'metric',
+                        'lang' => 'en'
+                    ],
+                    'timeout' => 10
+                ]);
+                $forecastResponse = $client->get('https://api.openweathermap.org/data/2.5/forecast', [
+                    'query' => [
+                        'lat' => $lat,
+                        'lon' => $lon,
+                        'appid' => $openWeatherKey,
+                        'units' => 'metric',
+                        'lang' => 'en'
+                    ],
+                    'timeout' => 10
+                ]);
+
+                $currentData = json_decode($currentResponse->getBody(), true);
+                $forecastData = json_decode($forecastResponse->getBody(), true);
+
+                if (!isset($currentData['main'], $currentData['weather'][0])) {
+                    return null;
+                }
+
+                $current = [
+                    'temp_C' => round($currentData['main']['temp'] ?? 0),
+                    'FeelsLikeC' => round($currentData['main']['feels_like'] ?? 0),
+                    'weatherDesc' => [[ 'value' => $currentData['weather'][0]['description'] ?? '' ]],
+                    'humidity' => $currentData['main']['humidity'] ?? null,
+                    'windspeedKmph' => isset($currentData['wind']['speed']) ? round($currentData['wind']['speed'] * 3.6) : null,
+                    'winddir16Point' => isset($currentData['wind']['deg']) ? $this->getWindDirection($currentData['wind']['deg']) : null,
+                    'pressure' => $currentData['main']['pressure'] ?? null,
+                    'precipMM' => (float) (($currentData['rain']['1h'] ?? $currentData['rain']['3h'] ?? 0)),
+                ];
+
+                $weather = [
+                    'location' => $location === '' ? 'Nasugbu, Batangas' : $location,
+                    'current' => [
+                        'temperature' => (int) $current['temp_C'],
+                        'feels_like' => (int) $current['FeelsLikeC'],
+                        'condition' => $current['weatherDesc'][0]['value'] ?? '',
+                        'humidity' => isset($current['humidity']) ? (int) $current['humidity'] : null,
+                        'wind_speed' => isset($current['windspeedKmph']) ? (int) $current['windspeedKmph'] : null,
+                        'wind_direction' => $current['winddir16Point'] ?? null,
+                        'pressure' => isset($current['pressure']) ? (int) $current['pressure'] : null,
+                        'rainfall' => isset($current['precipMM']) ? (float) $current['precipMM'] : 0,
+                        'icon' => $currentData['weather'][0]['icon'] ?? '01d',
+                        'sunrise' => $currentData['sys']['sunrise'] ?? null,
+                        'sunset' => $currentData['sys']['sunset'] ?? null,
+                    ],
+                    'forecast' => [],
+                    'hourly' => [],
+                    'advisories' => $this->generateDynamicAdvisories($current)
+                ];
+
+                if (isset($forecastData['list']) && is_array($forecastData['list'])) {
+                    $daily = [];
+                    foreach ($forecastData['list'] as $item) {
+                        $date = substr($item['dt_txt'] ?? '', 0, 10);
+                        if ($date === '') {
+                            continue;
+                        }
+                        if (!isset($daily[$date])) {
+                            $daily[$date] = [
+                                'high' => (float) ($item['main']['temp_max'] ?? $item['main']['temp'] ?? 0),
+                                'low' => (float) ($item['main']['temp_min'] ?? $item['main']['temp'] ?? 0),
+                                'condition' => $item['weather'][0]['description'] ?? '',
+                                'rain_chance' => (int) ($item['pop'] ?? 0) * 100,
+                                'icon' => $item['weather'][0]['icon'] ?? '01d',
+                            ];
+                        } else {
+                            $daily[$date]['high'] = max($daily[$date]['high'], (float) ($item['main']['temp_max'] ?? $item['main']['temp'] ?? 0));
+                            $daily[$date]['low'] = min($daily[$date]['low'], (float) ($item['main']['temp_min'] ?? $item['main']['temp'] ?? 0));
+                            $daily[$date]['rain_chance'] = max($daily[$date]['rain_chance'], (int) ($item['pop'] ?? 0) * 100);
+                        }
+                    }
+
+                    $today = date('Y-m-d');
+                    $dayIndex = 0;
+                    foreach ($daily as $date => $day) {
+                        if ($dayIndex >= 5) {
+                            break;
+                        }
+                        $weather['forecast'][] = [
+                            'day' => $date === $today ? 'Today' : ($date === date('Y-m-d', strtotime('+1 day')) ? 'Tomorrow' : date('D', strtotime($date))),
+                            'date' => date('M d', strtotime($date)),
+                            'high' => round($day['high']),
+                            'low' => round($day['low']),
+                            'condition' => ucfirst($day['condition']),
+                            'rain_chance' => $day['rain_chance'],
+                            'icon' => $day['icon']
+                        ];
+                        $dayIndex++;
+                    }
+
+                    foreach (array_slice($forecastData['list'], 0, 8) as $item) {
+                        $weather['hourly'][] = [
+                            'time' => $item['dt_txt'] ?? '',
+                            'hour' => isset($item['dt_txt']) ? date('g A', strtotime($item['dt_txt'])) : '',
+                            'temperature' => isset($item['main']['temp']) ? round($item['main']['temp']) : null,
+                            'condition' => ucfirst($item['weather'][0]['description'] ?? ''),
+                            'rain_chance' => (int) (($item['pop'] ?? 0) * 100),
+                            'icon' => $item['weather'][0]['icon'] ?? '01d'
+                        ];
+                    }
+                }
+
+                return $weather;
+            }
+
+            $locationQuery = urlencode($location ?: 'Nasugbu Batangas');
             $url = "https://wttr.in/{$locationQuery}?format=j1";
-            $response = $client->get($url);
+            $response = $client->get($url, ['timeout' => 10]);
             $data = json_decode($response->getBody(), true);
 
             if (!$data || !isset($data['current_condition'][0])) {
@@ -226,7 +352,7 @@ class Weather extends BaseController
 
             $current = $data['current_condition'][0];
             $weather = [
-                'location' => 'Nasugbu, Batangas',
+                'location' => $location ?: 'Nasugbu, Batangas',
                 'current' => [
                     'temperature' => isset($current['temp_C']) ? intval($current['temp_C']) : null,
                     'feels_like' => isset($current['FeelsLikeC']) ? intval($current['FeelsLikeC']) : null,
@@ -236,7 +362,7 @@ class Weather extends BaseController
                     'wind_direction' => isset($current['winddir16Point']) ? $current['winddir16Point'] : null,
                     'pressure' => isset($current['pressure']) ? intval($current['pressure']) : null,
                     'rainfall' => isset($current['precipMM']) ? floatval($current['precipMM']) : 0,
-                    'icon' => '01d', // wttr.in does not provide icons, use default
+                    'icon' => '01d',
                     'sunrise' => isset($data['weather'][0]['astronomy'][0]['sunrise']) ? $data['weather'][0]['astronomy'][0]['sunrise'] : null,
                     'sunset' => isset($data['weather'][0]['astronomy'][0]['sunset']) ? $data['weather'][0]['astronomy'][0]['sunset'] : null
                 ],
@@ -245,8 +371,6 @@ class Weather extends BaseController
                 'advisories' => $this->generateDynamicAdvisories($current)
             ];
 
-
-            // Simple daily forecast (next 3 days)
             if (isset($data['weather'])) {
                 foreach ($data['weather'] as $i => $day) {
                     $weather['forecast'][] = [
@@ -261,7 +385,6 @@ class Weather extends BaseController
                 }
             }
 
-            // Simple hourly forecast (next 8 hours)
             if (isset($data['weather'][0]['hourly'])) {
                 foreach ($data['weather'][0]['hourly'] as $hour) {
                     $weather['hourly'][] = [
@@ -451,9 +574,10 @@ class Weather extends BaseController
                 [
                     'type' => 'info',
                     'title' => 'Sample Data',
-                    'message' => 'This is sample weather data. Configure Google Weather API key or OpenWeatherMap API key for real-time updates.'
+                    'message' => 'This is sample weather data. Configure OPENWEATHER_API_KEY for real-time updates.'
                 ]
-            ]
+            ],
+            'note' => 'Using sample data. Please configure OPENWEATHER_API_KEY for real-time updates.'
         ];
     }
 }
