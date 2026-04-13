@@ -50,6 +50,12 @@ $routes->group('auth', function($routes) {
     $routes->get('login', 'AuthController::login');
     $routes->post('login', 'AuthController::loginProcess');
     
+    // Disabled account page
+    $routes->get('disabled', 'AuthController::disabled');
+    
+    // Blocked registration page
+    $routes->get('blocked-registration', 'AuthController::blockedRegistration');
+    
     // Register (farmer registration routes redirect to unified buyer registration)
     $routes->get('register-farmer', 'AuthController::registerBuyer');
     $routes->post('register-farmer', 'AuthController::registerBuyerProcess');
@@ -178,6 +184,8 @@ $routes->group('admin', ['filter' => 'auth:admin'], function($routes) {
     $routes->get('users', 'Admin::users');
     $routes->get('users/(:num)', 'Admin::userDetail/$1');
     $routes->post('users/(:num)/toggle-status', 'Admin::toggleUserStatus/$1');
+    $routes->post('users/(:num)/suspend-login', 'Admin::suspendUserLogin/$1');
+    $routes->post('users/(:num)/clear-suspension', 'Admin::clearUserSuspension/$1');
     $routes->post('users/(:num)/change-role', 'Admin::changeUserRole/$1');
     $routes->post('users/(:num)/delete', 'Admin::deleteUser/$1');
     
@@ -213,6 +221,11 @@ $routes->group('admin', ['filter' => 'auth:admin'], function($routes) {
     // Settings
     $routes->get('settings', 'Admin::settings');
     $routes->post('settings', 'Admin::updateSettings');
+    
+    // Email Blocker
+    $routes->get('email-blocker', 'Admin::emailBlocker');
+    $routes->post('email-blocker/block', 'Admin::blockEmail');
+    $routes->post('email-blocker/unblock/(:num)', 'Admin::unblockEmail/$1');
 });
 
 // ============================================================

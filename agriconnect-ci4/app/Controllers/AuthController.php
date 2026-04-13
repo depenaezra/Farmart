@@ -3,11 +3,22 @@
 namespace App\Controllers;
 
 use App\Models\UserModel;
+use App\Models\BlockedEmailModel;
 
 class AuthController extends BaseController
 {
     private const REGISTRATION_SESSION_KEY = 'pending_registration';
     private const REGISTRATION_OTP_TTL = 600;
+
+    protected $userModel;
+    protected $blockedEmailModel;
+
+    public function initController(\CodeIgniter\HTTP\RequestInterface $request, \CodeIgniter\HTTP\ResponseInterface $response, \Psr\Log\LoggerInterface $logger)
+    {
+        parent::initController($request, $response, $logger);
+        $this->userModel = new UserModel();
+        $this->blockedEmailModel = new BlockedEmailModel();
+    }
 
 
     /**
@@ -49,14 +60,6 @@ class AuthController extends BaseController
         session()->remove('otp_verified_user');
 
         return redirect()->to(base_url('auth/login'))->with('success', 'Password changed successfully. You may now log in.');
-    }
-    protected $userModel;
-    protected $otpTokenModel;
-
-    public function __construct()
-    {
-        $this->userModel = new UserModel();
-        $this->otpTokenModel = new \App\Models\OtpTokenModel();
     }
     
         /**
@@ -155,6 +158,22 @@ class AuthController extends BaseController
     }
     
     /**
+     * Show disabled account page
+     */
+    public function disabled()
+    {
+        return view('auth/disabled');
+    }
+    
+    /**
+     * Show blocked registration page
+     */
+    public function blockedRegistration()
+    {
+        return view('auth/blocked-registration');
+    }
+    
+    /**
      * Process login
      */
     public function loginProcess()
@@ -183,14 +202,21 @@ class AuthController extends BaseController
                 ->withInput()
                 ->with('error', 'Invalid email or password');
         }
+
+        // Check if email is blocked and disable account if so
+        if ($this->blockedEmailModel->isBlocked($email)) {
+            // Disable the account if it's not already disabled
+            if ($user['status'] === 'active') {
+                $this->userModel->update($user['id'], ['status' => 'disabled']);
+            }
+            return redirect()->to('/auth/disabled');
+        }
         
         // Check if user is active
         if ($user['status'] !== 'active') {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Your account has been deactivated. Please contact admin.');
+            return redirect()->to('/auth/disabled');
         }
-        
+
         // Verify password
         if (!password_verify($password, $user['password'])) {
             return redirect()->back()
@@ -267,9 +293,15 @@ class AuthController extends BaseController
                 ->with('errors', $validation->getErrors());
         }
 
+        // Check if email is blocked
+        $email = $this->request->getPost('email');
+        if ($this->blockedEmailModel->isBlocked($email)) {
+            return redirect()->to('/auth/blocked-registration');
+        }
+
         $data = [
             'name' => $this->request->getPost('name'),
-            'email' => $this->request->getPost('email'),
+            'email' => $email,
             'phone' => $this->request->getPost('phone'),
             'password' => $this->request->getPost('password'),
             'role' => 'buyer',

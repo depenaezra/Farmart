@@ -2,6 +2,7 @@
 
 namespace App\Filters;
 
+use App\Models\UserModel;
 use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -29,6 +30,15 @@ class AuthFilter implements FilterInterface
             return redirect()->to('/auth/login')
                 ->with('error', 'Please login to access this page.');
         }
+
+            // Enforce account status on every protected request so disabled users lose access immediately.
+            $userId = (int) session()->get('user_id');
+            $user = (new UserModel())->find($userId);
+            if (!$user || ($user['status'] ?? 'inactive') !== 'active') {
+                session()->destroy();
+
+                return redirect()->to('/auth/disabled');
+            }
 
         // If specific roles are required
         if ($arguments !== null && !empty($arguments)) {

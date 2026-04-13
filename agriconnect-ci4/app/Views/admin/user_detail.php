@@ -50,6 +50,13 @@
                             <?= $user['status'] === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' ?>">
                             <?= ucfirst($user['status']) ?>
                         </span>
+                        <?php $suspendedUntilTs = !empty($user['login_suspended_until']) ? strtotime((string) $user['login_suspended_until']) : false; ?>
+                        <?php $isManualSuspension = $suspendedUntilTs !== false && $suspendedUntilTs >= strtotime('2099-01-01 00:00:00'); ?>
+                        <?php if ($suspendedUntilTs !== false && $suspendedUntilTs > time()): ?>
+                            <p class="text-xs text-amber-700 mt-2">
+                                <?= $isManualSuspension ? 'Temporarily suspended until manually unsuspended' : 'Temporarily suspended until ' . date('M d, Y h:i A', $suspendedUntilTs) ?>
+                            </p>
+                        <?php endif; ?>
                     </div>
 
                     <div>
@@ -71,16 +78,18 @@
 
                 <div class="mt-6 pt-6 border-t border-gray-200">
                     <div class="flex space-x-2">
-                        <form method="post" action="/admin/users/<?= $user['id'] ?>/toggle-status" class="flex-1 swal-confirm-form" data-confirm="<?= $user['status'] === 'active' ? 'Are you sure you want to deactivate this user?' : 'Are you sure you want to activate this user?' ?>">
-                            <?= csrf_field() ?>
-                            <button type="submit" class="w-full px-4 py-2 text-sm font-medium rounded-lg
-                                <?= $user['status'] === 'active' ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-green-100 text-green-700 hover:bg-green-200' ?>
-                                transition-colors"
-                                >
-                                <i data-lucide="<?= $user['status'] === 'active' ? 'user-x' : 'user-check' ?>" class="w-4 h-4 inline mr-2"></i>
-                                <?= $user['status'] === 'active' ? 'Deactivate' : 'Activate' ?>
-                            </button>
-                        </form>
+                        <?php if ((int) $user['id'] !== (int) session()->get('user_id')): ?>
+                            <form method="post" action="/admin/users/<?= $user['id'] ?>/toggle-status" class="flex-1 swal-confirm-form" data-confirm="<?= $user['status'] === 'active' ? 'Disable this account login access?' : 'Re-enable this account login access?' ?>">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="w-full px-4 py-2 text-sm font-medium rounded-lg
+                                    <?= $user['status'] === 'active' ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-green-100 text-green-700 hover:bg-green-200' ?>
+                                    transition-colors"
+                                    >
+                                    <i data-lucide="<?= $user['status'] === 'active' ? 'user-x' : 'user-check' ?>" class="w-4 h-4 inline mr-2"></i>
+                                    <?= $user['status'] === 'active' ? 'Disable Login' : 'Enable Login' ?>
+                                </button>
+                            </form>
+                        <?php endif; ?>
 
                         <?php if ($user['id'] != session()->get('user_id')): ?>
                             <form method="post" action="/admin/users/<?= $user['id'] ?>/delete" class="flex-1 swal-confirm-form" data-confirm="Are you sure you want to delete this user? This action cannot be undone.">
@@ -92,6 +101,33 @@
                             </form>
                         <?php endif; ?>
                     </div>
+
+                    <?php if ((int) $user['id'] !== (int) session()->get('user_id')): ?>
+                        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <form method="post" action="/admin/users/<?= $user['id'] ?>/suspend-login" class="swal-confirm-form" data-confirm="Apply selected suspension option for this user?">
+                                <?= csrf_field() ?>
+                                <label for="suspend_duration" class="block text-sm font-medium text-gray-700 mb-1">Suspend Login</label>
+                                <div class="flex gap-2">
+                                    <select id="suspend_duration" name="suspend_duration" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                                        <option value="1h">1 hour</option>
+                                        <option value="6h">6 hours</option>
+                                        <option value="12h">12 hours</option>
+                                        <option value="until_enabled">Until I turn it back on</option>
+                                    </select>
+                                    <button type="submit" class="px-4 py-2 bg-amber-100 text-amber-800 text-sm font-medium rounded-lg hover:bg-amber-200 transition-colors whitespace-nowrap">
+                                        Suspend
+                                    </button>
+                                </div>
+                            </form>
+
+                            <form method="post" action="/admin/users/<?= $user['id'] ?>/clear-suspension" class="swal-confirm-form self-end" data-confirm="Remove temporary login suspension for this user?">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="w-full px-4 py-2 bg-emerald-100 text-emerald-800 text-sm font-medium rounded-lg hover:bg-emerald-200 transition-colors">
+                                    Clear Temporary Suspension
+                                </button>
+                            </form>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

@@ -7,6 +7,7 @@ use App\Models\ProductModel;
 use App\Models\OrderModel;
 use App\Models\AnnouncementModel;
 use App\Models\ViolationModel;
+use App\Models\BlockedEmailModel;
 
 class Admin extends BaseController
 {
@@ -15,6 +16,7 @@ class Admin extends BaseController
     protected $orderModel;
     protected $announcementModel;
     protected $violationModel;
+    protected $blockedEmailModel;
 
     public function __construct()
     {
@@ -23,6 +25,7 @@ class Admin extends BaseController
         $this->orderModel = new OrderModel();
         $this->announcementModel = new AnnouncementModel();
         $this->violationModel = new ViolationModel();
+        $this->blockedEmailModel = new BlockedEmailModel();
     }
     
     /**
@@ -168,6 +171,12 @@ class Admin extends BaseController
      */
     public function toggleUserStatus($id)
     {
+        // Prevent an admin from disabling their own access accidentally.
+        if ((int) $id === (int) session()->get('user_id')) {
+            return redirect()->back()
+                ->with('error', 'You cannot disable your own account.');
+        }
+
         if ($this->userModel->toggleStatus($id)) {
             return redirect()->back()
                 ->with('success', 'User status updated.');
@@ -175,6 +184,87 @@ class Admin extends BaseController
             return redirect()->back()
                 ->with('error', 'Failed to update user status.');
         }
+    }
+
+    /**
+     * Temporarily disable user login until a target datetime.
+     */
+    public function suspendUserLogin($id)
+    {
+        if ((int) $id === (int) session()->get('user_id')) {
+            return redirect()->back()
+                ->with('error', 'You cannot suspend your own account.');
+        }
+
+        $duration = (string) $this->request->getPost('suspend_duration');
+        $suspendUntilTimestamp = null;
+        $successMessage = '';
+
+        switch ($duration) {
+            case '1h':
+                $suspendUntilTimestamp = strtotime('+1 hour');
+                $successMessage = 'User login suspended for 1 hour.';
+                break;
+            case '6h':
+                $suspendUntilTimestamp = strtotime('+6 hours');
+                $successMessage = 'User login suspended for 6 hours.';
+                break;
+            case '12h':
+                $suspendUntilTimestamp = strtotime('+12 hours');
+                $successMessage = 'User login suspended for 12 hours.';
+                break;
+            case 'until_enabled':
+                // Sentinel far-future timestamp for manual unsuspend mode.
+                $suspendUntilTimestamp = strtotime('2099-12-31 23:59:59');
+                $successMessage = 'User login suspended until manually unsuspended.';
+                break;
+            default:
+                $suspendUntilInput = (string) $this->request->getPost('suspend_until');
+                if ($suspendUntilInput === '') {
+                    return redirect()->back()
+                        ->with('error', 'Please choose a suspension option.');
+                }
+
+                $suspendUntilTimestamp = strtotime($suspendUntilInput);
+                if ($suspendUntilTimestamp === false || $suspendUntilTimestamp <= time()) {
+                    return redirect()->back()
+                        ->with('error', 'Suspension time must be in the future.');
+                }
+
+                $successMessage = 'User login suspended until ' . date('M d, Y h:i A', $suspendUntilTimestamp) . '.';
+                break;
+        }
+
+        $suspendUntil = date('Y-m-d H:i:s', (int) $suspendUntilTimestamp);
+        $updated = $this->userModel->update($id, ['login_suspended_until' => $suspendUntil]);
+
+        if (!$updated) {
+            return redirect()->back()
+                ->with('error', 'Failed to suspend user login.');
+        }
+
+        return redirect()->back()
+            ->with('success', $successMessage);
+    }
+
+    /**
+     * Remove temporary login suspension.
+     */
+    public function clearUserSuspension($id)
+    {
+        if ((int) $id === (int) session()->get('user_id')) {
+            return redirect()->back()
+                ->with('error', 'You cannot change your own suspension from this action.');
+        }
+
+        $updated = $this->userModel->update($id, ['login_suspended_until' => null]);
+        if (!$updated) {
+            return redirect()->back()
+                ->with('error', 'Failed to clear login suspension.');
+        }
+
+        return redirect()->back()
+            ->with('success', 'Temporary login suspension removed.');
     }
     
     /**
@@ -779,5 +869,87 @@ class Admin extends BaseController
 
         return redirect()->back()
             ->with('success', 'Settings updated successfully!');
+    }
+    
+    /**
+     * Email Blocker Management
+     */
+    public function emailBlocker()
+    {
+        $blockedEmails = $this->blockedEmailModel->getBlockedEmailsWithAdmins();
+        
+        $data = [
+            'title' => 'Email Blocker',
+            'blockedEmails' => $blockedEmails
+        ];
+        
+        return view('admin/email_blocker', $data);
+    }
+    
+    /**
+     * Block Email
+     */
+    public function blockEmail()
+    {
+        $email = $this->request->getPost('email');
+        $reason = $this->request->getPost('reason');
+        
+        if (!$email) {
+            return redirect()->back()
+                ->with('error', 'Email is required.');
+        }
+        
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return redirect()->back()
+                ->with('error', 'Invalid email format.');
+        }
+        
+        // Check if already blocked
+        if ($this->blockedEmailModel->isBlocked($email)) {
+            return redirect()->back()
+                ->with('error', 'This email is already blocked.');
+        }
+        
+        // Block the email
+        $blocked = $this->blockedEmailModel->blockEmail($email, session()->get('user_id'), $reason);
+        
+        if (!$blocked) {
+            return redirect()->back()
+                ->with('error', 'Failed to block email.');
+        }
+        
+        // Check if user exists and disable account
+        $user = $this->userModel->getUserByEmail($email);
+        if ($user) {
+            $this->userModel->update($user['id'], ['status' => 'inactive']);
+        }
+        
+        return redirect()->back()
+            ->with('success', 'Email blocked successfully. Any existing account has been disabled.');
+    }
+    
+    /**
+     * Unblock Email
+     */
+    public function unblockEmail($id)
+    {
+        $blockedEmail = $this->blockedEmailModel->find($id);
+        
+        if (!$blockedEmail) {
+            return redirect()->back()
+                ->with('error', 'Blocked email not found.');
+        }
+        
+        $email = $blockedEmail['email'];
+        
+        if (!$this->blockedEmailModel->delete($id)) {
+            return redirect()->back()
+                ->with('error', 'Failed to unblock email.');
+        }
+        
+        // Note: Account remains disabled - admin can manually re-enable if needed
+        
+        return redirect()->back()
+            ->with('success', 'Email unblocked successfully.');
     }
 }

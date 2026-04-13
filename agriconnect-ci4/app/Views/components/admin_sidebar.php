@@ -44,6 +44,11 @@
                 <span class="sidebar-text">Analytics</span>
             </a>
 
+            <a href="/admin/email-blocker" class="sidebar-link flex items-center px-4 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-lg transition-colors">
+                <i data-lucide="shield-x" class="w-5 h-5 mr-3"></i>
+                <span class="sidebar-text">Email Blocker</span>
+            </a>
+
             <a href="/messages/inbox" class="sidebar-link flex items-center px-4 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-lg transition-colors">
                 <i data-lucide="mail" class="w-5 h-5 mr-3"></i>
                 <span class="sidebar-text">Messages</span>

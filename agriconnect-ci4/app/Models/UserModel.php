@@ -16,7 +16,8 @@ class UserModel extends Model
         'role',
         'location',
         'cooperative',
-        'status'
+        'status',
+        'login_suspended_until'
     ];
     
     protected $useTimestamps = true;
@@ -142,7 +143,14 @@ class UserModel extends Model
         $user = $this->find($id);
         if ($user) {
             $newStatus = $user['status'] === 'active' ? 'inactive' : 'active';
-            return $this->update($id, ['status' => $newStatus]);
+            $payload = ['status' => $newStatus];
+
+            // When re-enabling account status, also clear temporary login suspension.
+            if ($newStatus === 'active') {
+                $payload['login_suspended_until'] = null;
+            }
+
+            return $this->update($id, $payload);
         }
         return false;
     }

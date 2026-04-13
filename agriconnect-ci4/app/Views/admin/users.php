@@ -90,10 +90,18 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
+                                    <?php $suspendedUntilTs = !empty($user['login_suspended_until']) ? strtotime((string) $user['login_suspended_until']) : false; ?>
+                                    <?php $hasActiveSuspension = $suspendedUntilTs !== false && $suspendedUntilTs > time(); ?>
+                                    <?php $isManualSuspension = $hasActiveSuspension && $suspendedUntilTs >= strtotime('2099-01-01 00:00:00'); ?>
                                     <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
                                         <?= $user['status'] === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' ?>">
                                         <?= ucfirst($user['status']) ?>
                                     </span>
+                                    <?php if ($hasActiveSuspension): ?>
+                                        <div class="text-xs text-amber-700 mt-1">
+                                            <?= $isManualSuspension ? 'Suspended until manually unsuspended' : 'Suspended until ' . date('M d, Y h:i A', $suspendedUntilTs) ?>
+                                        </div>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     <?= esc($user['location'] ?: 'Not specified') ?>
@@ -102,10 +110,46 @@
                                     <?= date('M d, Y', strtotime($user['created_at'])) ?>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <a href="/admin/users/<?= $user['id'] ?>" class="inline-flex items-center px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-hover transition-colors">
-                                        <i data-lucide="eye" class="w-4 h-4 mr-2"></i>
-                                        View
-                                    </a>
+                                    <div class="flex items-center gap-2">
+                                        <a href="/admin/users/<?= $user['id'] ?>" class="inline-flex items-center px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-hover transition-colors">
+                                            <i data-lucide="eye" class="w-4 h-4 mr-2"></i>
+                                            View
+                                        </a>
+
+                                        <?php if ((int) $user['id'] !== (int) session()->get('user_id')): ?>
+                                            <form method="post" action="/admin/users/<?= $user['id'] ?>/toggle-status" class="swal-confirm-form" data-confirm="<?= $user['status'] === 'active' ? 'Disable this account login access?' : 'Re-enable this account login access?' ?>">
+                                                <?= csrf_field() ?>
+                                                <button type="submit" class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors <?= $user['status'] === 'active' ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-green-100 text-green-700 hover:bg-green-200' ?>">
+                                                    <i data-lucide="<?= $user['status'] === 'active' ? 'user-x' : 'user-check' ?>" class="w-4 h-4 mr-2"></i>
+                                                    <?= $user['status'] === 'active' ? 'Disable Login' : 'Enable Login' ?>
+                                                </button>
+                                            </form>
+
+                                            <?php if ($hasActiveSuspension): ?>
+                                                <form method="post" action="/admin/users/<?= $user['id'] ?>/clear-suspension" class="swal-confirm-form" data-confirm="Remove temporary login suspension for this user?">
+                                                    <?= csrf_field() ?>
+                                                    <button type="submit" class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors">
+                                                        <i data-lucide="shield-check" class="w-4 h-4 mr-2"></i>
+                                                        Unsuspend
+                                                    </button>
+                                                </form>
+                                            <?php else: ?>
+                                                <form method="post" action="/admin/users/<?= $user['id'] ?>/suspend-login" class="swal-confirm-form" data-confirm="Apply selected suspension option to this user?">
+                                                    <?= csrf_field() ?>
+                                                    <select name="suspend_duration" class="px-3 py-2 text-sm border border-amber-200 bg-amber-50 text-amber-900 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                                                        <option value="1h">Suspend 1hr</option>
+                                                        <option value="6h">Suspend 6hr</option>
+                                                        <option value="12h">Suspend 12hr</option>
+                                                        <option value="until_enabled">Until I turn it back on</option>
+                                                    </select>
+                                                    <button type="submit" class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors">
+                                                        <i data-lucide="shield-alert" class="w-4 h-4 mr-2"></i>
+                                                        Suspend
+                                                    </button>
+                                                </form>
+                                            <?php endif; ?>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
