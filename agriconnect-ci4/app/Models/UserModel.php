@@ -17,7 +17,12 @@ class UserModel extends Model
         'location',
         'cooperative',
         'status',
-        'login_suspended_until'
+        'login_suspended_until',
+        'failed_login_attempts',
+        'total_failed_login_attempts',
+        'last_failed_login',
+        'lockout_until',
+        'security_email_sent'
     ];
     
     protected $useTimestamps = true;
@@ -153,5 +158,131 @@ class UserModel extends Model
             return $this->update($id, $payload);
         }
         return false;
+    }
+
+    /**
+     * Increment failed login attempts for a user
+     * Increments both recent (failed_login_attempts) and total (total_failed_login_attempts)
+     */
+    public function incrementFailedAttempt($userId)
+    {
+        $now = date('Y-m-d H:i:s');
+        $builder = $this->builder();
+        $builder->set('failed_login_attempts', 'failed_login_attempts + 1', false)
+                ->set('total_failed_login_attempts', 'total_failed_login_attempts + 1', false)
+                ->set('last_failed_login', $now)
+                ->where('id', $userId)
+                ->update();
+        return $this->db->affectedRows() > 0;
+    }
+
+    /**
+     * Reset failed login attempts for a user (on successful login)
+     */
+    public function resetFailedAttempts($userId)
+    {
+        return $this->update($userId, [
+            'failed_login_attempts' => 0,
+            'total_failed_login_attempts' => 0,
+            'last_failed_login' => null,
+            'lockout_until' => null,
+            'security_email_sent' => 0
+        ]);
+    }
+
+    /**
+     * Check if user is currently locked out
+     */
+    public function isLockedOut($userId)
+    {
+        $user = $this->find($userId);
+        if (!$user) {
+            return false;
+        }
+        
+        $lockoutUntil = $user['lockout_until'];
+        if (!$lockoutUntil) {
+            return false;
+        }
+        
+        return strtotime($lockoutUntil) > time();
+    }
+
+    /**
+     * Clear expired lockout and reset recent failure counter
+     * Called before checking lockout status
+     */
+    public function clearExpiredLockout($userId)
+    {
+        $user = $this->find($userId);
+        if ($user && $user['lockout_until']) {
+            if (strtotime($user['lockout_until']) <= time()) {
+                // Lockout expired - reset recent counters but keep total
+                return $this->update($userId, [
+                    'failed_login_attempts' => 0,
+                    'last_failed_login' => null,
+                    'lockout_until' => null
+                ]);
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Get lockout expiration time for a user
+     */
+    public function getLockoutUntil($userId)
+    {
+        $user = $this->find($userId);
+        return $user ? $user['lockout_until'] : null;
+    }
+
+    /**
+     * Set lockout for a user
+     */
+    public function setLockout($userId, $minutes = 5)
+    {
+        $lockoutUntil = date('Y-m-d H:i:s', time() + ($minutes * 60));
+        return $this->update($userId, ['lockout_until' => $lockoutUntil]);
+    }
+
+    /**
+     * Check if security email should be sent (after 10 failed attempts)
+     */
+    public function shouldSendSecurityEmail($userId)
+    {
+        $user = $this->find($userId);
+        if (!$user) {
+            return false;
+        }
+        
+        return ($user['failed_login_attempts'] >= 10 && 
+                $user['security_email_sent'] == 0);
+    }
+
+    /**
+     * Mark security email as sent
+     */
+    public function markSecurityEmailSent($userId)
+    {
+        return $this->update($userId, ['security_email_sent' => 1]);
+    }
+
+    /**
+     * Get total failed login attempts count (lifetime)
+     */
+    public function getTotalFailedAttempts($userId)
+    {
+        $user = $this->find($userId);
+        return $user ? (int)$user['total_failed_login_attempts'] : 0;
+    }
+
+    /**
+     * Get failed login attempts count
+     */
+    public function getFailedAttempts($userId)
+    {
+        $user = $this->find($userId);
+        return $user ? (int)$user['failed_login_attempts'] : 0;
     }
 }

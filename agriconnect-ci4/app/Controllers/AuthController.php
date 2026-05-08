@@ -174,7 +174,9 @@ class AuthController extends BaseController
     }
     
     /**
-     * Process login
+     * Process login with security tracking
+     * - 5 failed attempts = 5 minute cooldown
+     * - 10 failed attempts = security alert email sent
      */
     public function loginProcess()
     {
@@ -205,7 +207,6 @@ class AuthController extends BaseController
 
         // Check if email is blocked and disable account if so
         if ($this->blockedEmailModel->isBlocked($email)) {
-            // Disable the account if it's not already disabled
             if ($user['status'] === 'active') {
                 $this->userModel->update($user['id'], ['status' => 'disabled']);
             }
@@ -217,12 +218,69 @@ class AuthController extends BaseController
             return redirect()->to('/auth/disabled');
         }
 
-        // Verify password
-        if (!password_verify($password, $user['password'])) {
+        // Clear any expired lockout (resets recent counter, keeps total)
+        $this->userModel->clearExpiredLockout($user['id']);
+
+        // Check if account is currently locked out
+        if ($this->userModel->isLockedOut($user['id'])) {
+            $lockoutUntil = $this->userModel->getLockoutUntil($user['id']);
+            $remainingSeconds = max(0, strtotime($lockoutUntil) - time());
+            session()->setFlashdata('lockout_seconds', $remainingSeconds);
+            $remainingMinutes = ceil($remainingSeconds / 60);
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Invalid email or password');
+                ->with('error', "Too many failed attempts. Please try again in {$remainingMinutes} minute(s).");
         }
+
+        // Verify password
+        if (!password_verify($password, $user['password'])) {
+            // Password incorrect - increment failed attempts (both recent and total)
+            $this->userModel->incrementFailedAttempt($user['id']);
+            
+            $failedAttempts = $this->userModel->getFailedAttempts($user['id']);
+            $totalAttempts = $this->userModel->getTotalFailedAttempts($user['id']);
+            
+            $sentEmail = false;
+            
+            // After 10 total failed attempts, send security alert email (once)
+            if ($totalAttempts >= 10 && $user['security_email_sent'] == 0) {
+                $userName = $user['name'];
+                $userEmail = $user['email'];
+                
+                // Send security alert email
+                $result = \App\Libraries\PHPMailerService::sendSecurityAlert(
+                    $userEmail,
+                    $userName,
+                    $totalAttempts
+                );
+                
+                if ($result === true) {
+                    $this->userModel->markSecurityEmailSent($user['id']);
+                    $sentEmail = true;
+                }
+            }
+            
+            // After 5 recent failed attempts, apply 5-minute cooldown
+            if ($failedAttempts >= 5 && $failedAttempts < 10) {
+                $this->userModel->setLockout($user['id'], 5);
+            }
+            
+            // Build error message
+            $errorMsg = 'Invalid email or password.';
+            if ($failedAttempts >= 5) {
+                $errorMsg .= ' Too many failed attempts. Your account is locked for 5 minutes.';
+            }
+            if ($sentEmail) {
+                $errorMsg .= ' A security alert has been sent to your email.';
+            }
+            
+            return redirect()->back()
+                ->withInput()
+                ->with('error', $errorMsg);
+        }
+
+        // Password correct - reset failed attempts and lockout
+        $this->userModel->resetFailedAttempts($user['id']);
         
         // Set session
         session()->set([
@@ -234,7 +292,6 @@ class AuthController extends BaseController
         ]);
 
         // Redirect to appropriate homepage
-        // Admin users always go to admin dashboard, ignoring any redirect_url
         if ($user['role'] === 'admin') {
             $redirectUrl = '/admin/dashboard';
         } else {
@@ -246,7 +303,7 @@ class AuthController extends BaseController
 
         return redirect()->to($redirectUrl);
     }
-    
+     
     /**
      * Show farmer registration form
      */

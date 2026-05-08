@@ -8,6 +8,10 @@ class CreateBlockedEmailsTable extends Migration
 {
     public function up()
     {
+        // Skip if table already exists
+        if ($this->db->tableExists('blocked_emails')) {
+            return;
+        }
         $this->forge->addField([
             'id' => [
                 'type' => 'INT',
@@ -37,7 +41,7 @@ class CreateBlockedEmailsTable extends Migration
 
         $this->forge->addKey('id', true);
         $this->forge->addForeignKey('blocked_by', 'users', 'id', 'CASCADE', 'CASCADE');
-        $this->forge->createTable('blocked_emails');
+        $this->forge->createTable('blocked_emails', true);
     }
 
     public function down()
