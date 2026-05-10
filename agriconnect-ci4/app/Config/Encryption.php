@@ -21,7 +21,10 @@ class Encryption extends BaseConfig
      * You need to ensure it is long enough for the cipher and mode you plan to use.
      * See the user guide for more info.
      */
-    public string $key = '';
+    // NOTE: Must be a non-empty value.
+    // If this changes, previously encrypted 2FA secrets may not be decryptable.
+    public string $key = 'CHANGE_ME_TO_A_LONG_RANDOM_STRING_32_PLUS_CHARS';
+
 
     /**
      * --------------------------------------------------------------------------

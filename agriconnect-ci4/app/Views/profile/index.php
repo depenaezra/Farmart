@@ -1,4 +1,4 @@
-<?= $this->extend(session()->get('user_role') === 'admin' ? 'layouts/main' : 'layouts/main') ?>
+<?= $this->extend('layouts/main') ?>
 
 <?= $this->section('content') ?>
 
@@ -25,7 +25,6 @@
 <div class="container mx-auto px-4 pt-4 py-2 max-w-6xl">
     <div class="w-full">
 
-
         <!-- Success/Error Messages -->
         <?php if (session()->getFlashdata('success')): ?>
             <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6">
@@ -39,7 +38,7 @@
             </div>
         <?php endif; ?>
 
-        <?php if (session()->get('user_role') === 'admin'): ?>
+        <?php if (isset($user) && session()->get('user_role') === 'admin'): ?>
         <!-- Admin Profile Content -->
         <div class="flex flex-col lg:flex-row gap-6 max-w-4xl mx-auto justify-center min-h-screen">
             <!-- Left Side: Admin Profile Card and Buttons -->

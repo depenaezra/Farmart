@@ -45,38 +45,43 @@ $routes->get('/orders', 'Buyer::orders', ['filter' => 'auth']);
 // AUTHENTICATION ROUTES
 // ============================================================
 
-$routes->group('auth', function($routes) {
-    // Login
-    $routes->get('login', 'AuthController::login');
-    $routes->post('login', 'AuthController::loginProcess');
-    
-    // Disabled account page
-    $routes->get('disabled', 'AuthController::disabled');
-    
-    // Blocked registration page
-    $routes->get('blocked-registration', 'AuthController::blockedRegistration');
-    
-    // Register (farmer registration routes redirect to unified buyer registration)
-    $routes->get('register-farmer', 'AuthController::registerBuyer');
-    $routes->post('register-farmer', 'AuthController::registerBuyerProcess');
-    $routes->get('register-buyer', 'AuthController::registerBuyer');
-    $routes->post('register-buyer', 'AuthController::registerBuyerProcess');
-    $routes->get('register-verify', 'AuthController::registerVerify');
-    $routes->post('register-verify', 'AuthController::registerVerifyProcess');
-    $routes->post('register-resend-otp', 'AuthController::resendRegistrationOtp');
-    
-    // Logout (both GET and POST)
-    $routes->get('logout', 'AuthController::logout');
-    $routes->post('logout', 'AuthController::logout');
+ $routes->group('auth', function($routes) {
+     // Login
+     $routes->get('login', 'AuthController::login');
+     $routes->post('login', 'AuthController::loginProcess');
+     
+     // Login OTP verification (2FA via email)
+     $routes->get('login-verify', 'AuthController::loginVerify');
+     $routes->post('login-verify', 'AuthController::loginVerifyProcess');
+     $routes->post('resend-login-otp', 'AuthController::resendLoginOtp');
+     
+     // Disabled account page
+     $routes->get('disabled', 'AuthController::disabled');
+     
+     // Blocked registration page
+     $routes->get('blocked-registration', 'AuthController::blockedRegistration');
+     
+     // Register (farmer registration routes redirect to unified buyer registration)
+     $routes->get('register-farmer', 'AuthController::registerBuyer');
+     $routes->post('register-farmer', 'AuthController::registerBuyerProcess');
+     $routes->get('register-buyer', 'AuthController::registerBuyer');
+     $routes->post('register-buyer', 'AuthController::registerBuyerProcess');
+     $routes->get('register-verify', 'AuthController::registerVerify');
+     $routes->post('register-verify', 'AuthController::registerVerifyProcess');
+     $routes->post('register-resend-otp', 'AuthController::resendRegistrationOtp');
+     
+     // Logout (both GET and POST)
+     $routes->get('logout', 'AuthController::logout');
+     $routes->post('logout', 'AuthController::logout');
 
-    // Password reset OTP routes
-    $routes->get('otp', 'AuthController::otp');
-    $routes->post('sendOtp', 'AuthController::sendOtp');
-    $routes->post('verifyOtp', 'AuthController::verifyOtp');
-    $routes->get('change_password', 'AuthController::changePassword');
-    $routes->post('changePasswordProcess', 'AuthController::changePasswordProcess');
+     // Password reset OTP routes
+     $routes->get('otp', 'AuthController::otp');
+     $routes->post('sendOtp', 'AuthController::sendOtp');
+     $routes->post('verifyOtp', 'AuthController::verifyOtp');
+     $routes->get('change_password', 'AuthController::changePassword');
+     $routes->post('changePasswordProcess', 'AuthController::changePasswordProcess');
 
-});
+ });
 
 // ============================================================
 // BUYER ROUTES (Protected - Unified buyer/seller functionality)

@@ -7,97 +7,128 @@ namespace Composer\Autoload;
 class ComposerStaticInit657ac079313fab046eb8c29fe1d6992b
 {
     public static $files = array (
-        '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
+        '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
         'ec07570ca5a812141189b1fa81503674' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/Assert/Functions.php',
     );
 
     public static $prefixLengthsPsr4 = array (
-        'T' =>
+        'c' => 
+        array (
+            'chillerlan\\Settings\\' => 20,
+            'chillerlan\\QRCode\\' => 18,
+        ),
+        'T' => 
         array (
             'Tests\\Support\\' => 14,
         ),
-        'P' =>
+        'P' => 
         array (
             'Psr\\Log\\' => 8,
             'Psr\\Container\\' => 14,
+            'Psr\\Clock\\' => 10,
             'PhpParser\\' => 10,
+            'ParagonIE\\ConstantTime\\' => 23,
             'PHPMailer\\PHPMailer\\' => 20,
         ),
-        'L' =>
+        'O' => 
+        array (
+            'OTPHP\\' => 6,
+        ),
+        'L' => 
         array (
             'Laminas\\Escaper\\' => 16,
         ),
-        'F' =>
+        'F' => 
         array (
             'Faker\\' => 6,
         ),
-        'D' =>
+        'D' => 
         array (
             'DeepCopy\\' => 9,
         ),
-        'C' =>
+        'C' => 
         array (
             'Config\\' => 7,
             'CodeIgniter\\' => 12,
         ),
-        'A' =>
+        'A' => 
         array (
             'App\\' => 4,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'Tests\\Support\\' =>
+        'chillerlan\\Settings\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/chillerlan/php-settings-container/src',
+        ),
+        'chillerlan\\QRCode\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/chillerlan/php-qrcode/src',
+        ),
+        'Tests\\Support\\' => 
         array (
             0 => __DIR__ . '/../..' . '/tests/_support',
         ),
-        'Psr\\Log\\' =>
+        'Psr\\Log\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/log/src',
         ),
-        'Psr\\Container\\' =>
+        'Psr\\Container\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/container/src',
         ),
-        'PhpParser\\' =>
+        'Psr\\Clock\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/clock/src',
+        ),
+        'PhpParser\\' => 
         array (
             0 => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser',
         ),
-        'PHPMailer\\PHPMailer\\' =>
+        'ParagonIE\\ConstantTime\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/paragonie/constant_time_encoding/src',
+        ),
+        'PHPMailer\\PHPMailer\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
         ),
-        'Laminas\\Escaper\\' =>
+        'OTPHP\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/spomky-labs/otphp/src',
+        ),
+        'Laminas\\Escaper\\' => 
         array (
             0 => __DIR__ . '/..' . '/laminas/laminas-escaper/src',
         ),
-        'Faker\\' =>
+        'Faker\\' => 
         array (
             0 => __DIR__ . '/..' . '/fakerphp/faker/src/Faker',
         ),
-        'DeepCopy\\' =>
+        'DeepCopy\\' => 
         array (
             0 => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy',
         ),
-        'Config\\' =>
+        'Config\\' => 
         array (
             0 => __DIR__ . '/../..' . '/app/Config',
         ),
-        'CodeIgniter\\' =>
+        'CodeIgniter\\' => 
         array (
             0 => __DIR__ . '/..' . '/codeigniter4/framework/system',
         ),
-        'App\\' =>
+        'App\\' => 
         array (
             0 => __DIR__ . '/../..' . '/app',
         ),
     );
 
     public static $prefixesPsr0 = array (
-        'o' =>
+        'o' => 
         array (
-            'org\\bovigo\\vfs\\' =>
+            'org\\bovigo\\vfs\\' => 
             array (
                 0 => __DIR__ . '/..' . '/mikey179/vfsstream/src/main/php',
             ),
@@ -122,12 +153,15 @@ class ComposerStaticInit657ac079313fab046eb8c29fe1d6992b
         'App\\Controllers\\Weather' => __DIR__ . '/../..' . '/app/Controllers/Weather.php',
         'App\\Filters\\AuthFilter' => __DIR__ . '/../..' . '/app/Filters/AuthFilter.php',
         'App\\Libraries\\PHPMailerService' => __DIR__ . '/../..' . '/app/Libraries/PHPMailerService.php',
+        'App\\Libraries\\TwoFactorAuth' => __DIR__ . '/../..' . '/app/Libraries/TwoFactorAuth.php',
         'App\\Models\\AnnouncementModel' => __DIR__ . '/../..' . '/app/Models/AnnouncementModel.php',
+        'App\\Models\\BlockedEmailModel' => __DIR__ . '/../..' . '/app/Models/BlockedEmailModel.php',
         'App\\Models\\CartModel' => __DIR__ . '/../..' . '/app/Models/CartModel.php',
         'App\\Models\\MessageModel' => __DIR__ . '/../..' . '/app/Models/MessageModel.php',
         'App\\Models\\OrderModel' => __DIR__ . '/../..' . '/app/Models/OrderModel.php',
         'App\\Models\\OtpTokenModel' => __DIR__ . '/../..' . '/app/Models/OtpTokenModel.php',
         'App\\Models\\ProductModel' => __DIR__ . '/../..' . '/app/Models/ProductModel.php',
+        'App\\Models\\TwoFactorAttemptModel' => __DIR__ . '/../..' . '/app/Models/TwoFactorAttemptModel.php',
         'App\\Models\\UserModel' => __DIR__ . '/../..' . '/app/Models/UserModel.php',
         'App\\Models\\ViolationModel' => __DIR__ . '/../..' . '/app/Models/ViolationModel.php',
         'CodeIgniter\\API\\ResponseTrait' => __DIR__ . '/..' . '/codeigniter4/framework/system/API/ResponseTrait.php',
@@ -1109,6 +1143,22 @@ class ComposerStaticInit657ac079313fab046eb8c29fe1d6992b
         'Laminas\\Escaper\\Exception\\ExceptionInterface' => __DIR__ . '/..' . '/laminas/laminas-escaper/src/Exception/ExceptionInterface.php',
         'Laminas\\Escaper\\Exception\\InvalidArgumentException' => __DIR__ . '/..' . '/laminas/laminas-escaper/src/Exception/InvalidArgumentException.php',
         'Laminas\\Escaper\\Exception\\RuntimeException' => __DIR__ . '/..' . '/laminas/laminas-escaper/src/Exception/RuntimeException.php',
+        'OTPHP\\Exception\\InvalidLabelException' => __DIR__ . '/..' . '/spomky-labs/otphp/src/Exception/InvalidLabelException.php',
+        'OTPHP\\Exception\\InvalidParameterException' => __DIR__ . '/..' . '/spomky-labs/otphp/src/Exception/InvalidParameterException.php',
+        'OTPHP\\Exception\\InvalidProvisioningUriException' => __DIR__ . '/..' . '/spomky-labs/otphp/src/Exception/InvalidProvisioningUriException.php',
+        'OTPHP\\Exception\\OTPExceptionInterface' => __DIR__ . '/..' . '/spomky-labs/otphp/src/Exception/OTPExceptionInterface.php',
+        'OTPHP\\Exception\\ParameterNotFoundException' => __DIR__ . '/..' . '/spomky-labs/otphp/src/Exception/ParameterNotFoundException.php',
+        'OTPHP\\Exception\\SecretDecodingException' => __DIR__ . '/..' . '/spomky-labs/otphp/src/Exception/SecretDecodingException.php',
+        'OTPHP\\Factory' => __DIR__ . '/..' . '/spomky-labs/otphp/src/Factory.php',
+        'OTPHP\\FactoryInterface' => __DIR__ . '/..' . '/spomky-labs/otphp/src/FactoryInterface.php',
+        'OTPHP\\HOTP' => __DIR__ . '/..' . '/spomky-labs/otphp/src/HOTP.php',
+        'OTPHP\\HOTPInterface' => __DIR__ . '/..' . '/spomky-labs/otphp/src/HOTPInterface.php',
+        'OTPHP\\InternalClock' => __DIR__ . '/..' . '/spomky-labs/otphp/src/InternalClock.php',
+        'OTPHP\\OTP' => __DIR__ . '/..' . '/spomky-labs/otphp/src/OTP.php',
+        'OTPHP\\OTPInterface' => __DIR__ . '/..' . '/spomky-labs/otphp/src/OTPInterface.php',
+        'OTPHP\\TOTP' => __DIR__ . '/..' . '/spomky-labs/otphp/src/TOTP.php',
+        'OTPHP\\TOTPInterface' => __DIR__ . '/..' . '/spomky-labs/otphp/src/TOTPInterface.php',
+        'OTPHP\\Url' => __DIR__ . '/..' . '/spomky-labs/otphp/src/Url.php',
         'PHPMailer\\PHPMailer\\DSNConfigurator' => __DIR__ . '/..' . '/phpmailer/phpmailer/src/DSNConfigurator.php',
         'PHPMailer\\PHPMailer\\Exception' => __DIR__ . '/..' . '/phpmailer/phpmailer/src/Exception.php',
         'PHPMailer\\PHPMailer\\OAuth' => __DIR__ . '/..' . '/phpmailer/phpmailer/src/OAuth.php',
@@ -2008,6 +2058,17 @@ class ComposerStaticInit657ac079313fab046eb8c29fe1d6992b
         'PHPUnit\\Util\\Xml' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/Xml/Xml.php',
         'PHPUnit\\Util\\Xml\\Loader' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/Xml/Loader.php',
         'PHPUnit\\Util\\Xml\\XmlException' => __DIR__ . '/..' . '/phpunit/phpunit/src/Util/Exception/XmlException.php',
+        'ParagonIE\\ConstantTime\\Base32' => __DIR__ . '/..' . '/paragonie/constant_time_encoding/src/Base32.php',
+        'ParagonIE\\ConstantTime\\Base32Hex' => __DIR__ . '/..' . '/paragonie/constant_time_encoding/src/Base32Hex.php',
+        'ParagonIE\\ConstantTime\\Base64' => __DIR__ . '/..' . '/paragonie/constant_time_encoding/src/Base64.php',
+        'ParagonIE\\ConstantTime\\Base64DotSlash' => __DIR__ . '/..' . '/paragonie/constant_time_encoding/src/Base64DotSlash.php',
+        'ParagonIE\\ConstantTime\\Base64DotSlashOrdered' => __DIR__ . '/..' . '/paragonie/constant_time_encoding/src/Base64DotSlashOrdered.php',
+        'ParagonIE\\ConstantTime\\Base64UrlSafe' => __DIR__ . '/..' . '/paragonie/constant_time_encoding/src/Base64UrlSafe.php',
+        'ParagonIE\\ConstantTime\\Binary' => __DIR__ . '/..' . '/paragonie/constant_time_encoding/src/Binary.php',
+        'ParagonIE\\ConstantTime\\EncoderInterface' => __DIR__ . '/..' . '/paragonie/constant_time_encoding/src/EncoderInterface.php',
+        'ParagonIE\\ConstantTime\\Encoding' => __DIR__ . '/..' . '/paragonie/constant_time_encoding/src/Encoding.php',
+        'ParagonIE\\ConstantTime\\Hex' => __DIR__ . '/..' . '/paragonie/constant_time_encoding/src/Hex.php',
+        'ParagonIE\\ConstantTime\\RFC4648' => __DIR__ . '/..' . '/paragonie/constant_time_encoding/src/RFC4648.php',
         'PharIo\\Manifest\\Application' => __DIR__ . '/..' . '/phar-io/manifest/src/values/Application.php',
         'PharIo\\Manifest\\ApplicationName' => __DIR__ . '/..' . '/phar-io/manifest/src/values/ApplicationName.php',
         'PharIo\\Manifest\\Author' => __DIR__ . '/..' . '/phar-io/manifest/src/values/Author.php',
@@ -2348,6 +2409,7 @@ class ComposerStaticInit657ac079313fab046eb8c29fe1d6992b
         'PhpParser\\PrettyPrinterAbstract' => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser/PrettyPrinterAbstract.php',
         'PhpParser\\PrettyPrinter\\Standard' => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser/PrettyPrinter/Standard.php',
         'PhpParser\\Token' => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser/Token.php',
+        'Psr\\Clock\\ClockInterface' => __DIR__ . '/..' . '/psr/clock/src/ClockInterface.php',
         'Psr\\Container\\ContainerExceptionInterface' => __DIR__ . '/..' . '/psr/container/src/ContainerExceptionInterface.php',
         'Psr\\Container\\ContainerInterface' => __DIR__ . '/..' . '/psr/container/src/ContainerInterface.php',
         'Psr\\Container\\NotFoundExceptionInterface' => __DIR__ . '/..' . '/psr/container/src/NotFoundExceptionInterface.php',
@@ -2573,6 +2635,75 @@ class ComposerStaticInit657ac079313fab046eb8c29fe1d6992b
         'TheSeer\\Tokenizer\\TokenCollectionException' => __DIR__ . '/..' . '/theseer/tokenizer/src/TokenCollectionException.php',
         'TheSeer\\Tokenizer\\Tokenizer' => __DIR__ . '/..' . '/theseer/tokenizer/src/Tokenizer.php',
         'TheSeer\\Tokenizer\\XMLSerializer' => __DIR__ . '/..' . '/theseer/tokenizer/src/XMLSerializer.php',
+        'chillerlan\\QRCode\\Common\\BitBuffer' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Common/BitBuffer.php',
+        'chillerlan\\QRCode\\Common\\ECICharset' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Common/ECICharset.php',
+        'chillerlan\\QRCode\\Common\\EccLevel' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Common/EccLevel.php',
+        'chillerlan\\QRCode\\Common\\GDLuminanceSource' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Common/GDLuminanceSource.php',
+        'chillerlan\\QRCode\\Common\\GF256' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Common/GF256.php',
+        'chillerlan\\QRCode\\Common\\GenericGFPoly' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Common/GenericGFPoly.php',
+        'chillerlan\\QRCode\\Common\\IMagickLuminanceSource' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Common/IMagickLuminanceSource.php',
+        'chillerlan\\QRCode\\Common\\LuminanceSourceAbstract' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Common/LuminanceSourceAbstract.php',
+        'chillerlan\\QRCode\\Common\\LuminanceSourceInterface' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Common/LuminanceSourceInterface.php',
+        'chillerlan\\QRCode\\Common\\MaskPattern' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Common/MaskPattern.php',
+        'chillerlan\\QRCode\\Common\\Mode' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Common/Mode.php',
+        'chillerlan\\QRCode\\Common\\Version' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Common/Version.php',
+        'chillerlan\\QRCode\\Data\\AlphaNum' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Data/AlphaNum.php',
+        'chillerlan\\QRCode\\Data\\Byte' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Data/Byte.php',
+        'chillerlan\\QRCode\\Data\\ECI' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Data/ECI.php',
+        'chillerlan\\QRCode\\Data\\Hanzi' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Data/Hanzi.php',
+        'chillerlan\\QRCode\\Data\\Kanji' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Data/Kanji.php',
+        'chillerlan\\QRCode\\Data\\Number' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Data/Number.php',
+        'chillerlan\\QRCode\\Data\\QRCodeDataException' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Data/QRCodeDataException.php',
+        'chillerlan\\QRCode\\Data\\QRData' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Data/QRData.php',
+        'chillerlan\\QRCode\\Data\\QRDataModeAbstract' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Data/QRDataModeAbstract.php',
+        'chillerlan\\QRCode\\Data\\QRDataModeInterface' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Data/QRDataModeInterface.php',
+        'chillerlan\\QRCode\\Data\\QRMatrix' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Data/QRMatrix.php',
+        'chillerlan\\QRCode\\Data\\ReedSolomonEncoder' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Data/ReedSolomonEncoder.php',
+        'chillerlan\\QRCode\\Decoder\\Binarizer' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Decoder/Binarizer.php',
+        'chillerlan\\QRCode\\Decoder\\BitMatrix' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Decoder/BitMatrix.php',
+        'chillerlan\\QRCode\\Decoder\\Decoder' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Decoder/Decoder.php',
+        'chillerlan\\QRCode\\Decoder\\DecoderResult' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Decoder/DecoderResult.php',
+        'chillerlan\\QRCode\\Decoder\\QRCodeDecoderException' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Decoder/QRCodeDecoderException.php',
+        'chillerlan\\QRCode\\Decoder\\ReedSolomonDecoder' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Decoder/ReedSolomonDecoder.php',
+        'chillerlan\\QRCode\\Detector\\AlignmentPattern' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Detector/AlignmentPattern.php',
+        'chillerlan\\QRCode\\Detector\\AlignmentPatternFinder' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Detector/AlignmentPatternFinder.php',
+        'chillerlan\\QRCode\\Detector\\Detector' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Detector/Detector.php',
+        'chillerlan\\QRCode\\Detector\\FinderPattern' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Detector/FinderPattern.php',
+        'chillerlan\\QRCode\\Detector\\FinderPatternFinder' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Detector/FinderPatternFinder.php',
+        'chillerlan\\QRCode\\Detector\\GridSampler' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Detector/GridSampler.php',
+        'chillerlan\\QRCode\\Detector\\PerspectiveTransform' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Detector/PerspectiveTransform.php',
+        'chillerlan\\QRCode\\Detector\\QRCodeDetectorException' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Detector/QRCodeDetectorException.php',
+        'chillerlan\\QRCode\\Detector\\ResultPoint' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Detector/ResultPoint.php',
+        'chillerlan\\QRCode\\Output\\CssColorModuleValueTrait' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Output/CssColorModuleValueTrait.php',
+        'chillerlan\\QRCode\\Output\\QRCodeOutputException' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Output/QRCodeOutputException.php',
+        'chillerlan\\QRCode\\Output\\QREps' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Output/QREps.php',
+        'chillerlan\\QRCode\\Output\\QRFpdf' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Output/QRFpdf.php',
+        'chillerlan\\QRCode\\Output\\QRGdImage' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Output/QRGdImage.php',
+        'chillerlan\\QRCode\\Output\\QRGdImageAVIF' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Output/QRGdImageAVIF.php',
+        'chillerlan\\QRCode\\Output\\QRGdImageBMP' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Output/QRGdImageBMP.php',
+        'chillerlan\\QRCode\\Output\\QRGdImageGIF' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Output/QRGdImageGIF.php',
+        'chillerlan\\QRCode\\Output\\QRGdImageJPEG' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Output/QRGdImageJPEG.php',
+        'chillerlan\\QRCode\\Output\\QRGdImagePNG' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Output/QRGdImagePNG.php',
+        'chillerlan\\QRCode\\Output\\QRGdImageWEBP' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Output/QRGdImageWEBP.php',
+        'chillerlan\\QRCode\\Output\\QRImagick' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Output/QRImagick.php',
+        'chillerlan\\QRCode\\Output\\QRInterventionImage' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Output/QRInterventionImage.php',
+        'chillerlan\\QRCode\\Output\\QRMarkup' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Output/QRMarkup.php',
+        'chillerlan\\QRCode\\Output\\QRMarkupHTML' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Output/QRMarkupHTML.php',
+        'chillerlan\\QRCode\\Output\\QRMarkupSVG' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Output/QRMarkupSVG.php',
+        'chillerlan\\QRCode\\Output\\QRMarkupXML' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Output/QRMarkupXML.php',
+        'chillerlan\\QRCode\\Output\\QROutputAbstract' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Output/QROutputAbstract.php',
+        'chillerlan\\QRCode\\Output\\QROutputInterface' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Output/QROutputInterface.php',
+        'chillerlan\\QRCode\\Output\\QRStringJSON' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Output/QRStringJSON.php',
+        'chillerlan\\QRCode\\Output\\QRStringText' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Output/QRStringText.php',
+        'chillerlan\\QRCode\\Output\\RGBArrayModuleValueTrait' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/Output/RGBArrayModuleValueTrait.php',
+        'chillerlan\\QRCode\\QRCode' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/QRCode.php',
+        'chillerlan\\QRCode\\QRCodeException' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/QRCodeException.php',
+        'chillerlan\\QRCode\\QRCodeReaderOptionsTrait' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/QRCodeReaderOptionsTrait.php',
+        'chillerlan\\QRCode\\QROptions' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/QROptions.php',
+        'chillerlan\\QRCode\\QROptionsTrait' => __DIR__ . '/..' . '/chillerlan/php-qrcode/src/QROptionsTrait.php',
+        'chillerlan\\Settings\\Attributes\\ThrowOnInvalidProperty' => __DIR__ . '/..' . '/chillerlan/php-settings-container/src/Attributes/ThrowOnInvalidProperty.php',
+        'chillerlan\\Settings\\SettingsContainerAbstract' => __DIR__ . '/..' . '/chillerlan/php-settings-container/src/SettingsContainerAbstract.php',
+        'chillerlan\\Settings\\SettingsContainerInterface' => __DIR__ . '/..' . '/chillerlan/php-settings-container/src/SettingsContainerInterface.php',
         'org\\bovigo\\vfs\\DotDirectory' => __DIR__ . '/..' . '/mikey179/vfsstream/src/main/php/org/bovigo/vfs/DotDirectory.php',
         'org\\bovigo\\vfs\\Quota' => __DIR__ . '/..' . '/mikey179/vfsstream/src/main/php/org/bovigo/vfs/Quota.php',
         'org\\bovigo\\vfs\\content\\FileContent' => __DIR__ . '/..' . '/mikey179/vfsstream/src/main/php/org/bovigo/vfs/content/FileContent.php',

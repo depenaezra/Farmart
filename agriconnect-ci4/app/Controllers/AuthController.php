@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\UserModel;
 use App\Models\BlockedEmailModel;
+use App\Models\OtpTokenModel;
 
 class AuthController extends BaseController
 {
@@ -12,12 +13,14 @@ class AuthController extends BaseController
 
     protected $userModel;
     protected $blockedEmailModel;
+    protected $otpTokenModel;
 
     public function initController(\CodeIgniter\HTTP\RequestInterface $request, \CodeIgniter\HTTP\ResponseInterface $response, \Psr\Log\LoggerInterface $logger)
     {
         parent::initController($request, $response, $logger);
         $this->userModel = new UserModel();
         $this->blockedEmailModel = new BlockedEmailModel();
+        $this->otpTokenModel = new OtpTokenModel();
     }
 
 
@@ -139,23 +142,28 @@ class AuthController extends BaseController
             session()->remove('otp_email_sent');
             return redirect()->to(base_url('auth/change_password'))->with('success', 'OTP verified. You may now reset your password.');
         }
-    /**
-     * Show login form
-     */
-    public function login()
-    {
-        // Redirect if already logged in
-        if (session()->has('logged_in') && session()->get('logged_in') && session()->get('user_id')) {
-            return redirect()->to($this->getUserHomePage(session()->get('user_role')));
-        }
+     /**
+      * Show login form
+      */
+     public function login()
+     {
+         // Redirect if already logged in
+         if (session()->has('logged_in') && session()->get('logged_in') && session()->get('user_id')) {
+             return redirect()->to($this->getUserHomePage(session()->get('user_role')));
+         }
 
-        // Clean up inconsistent session state so login works normally.
-        if (session()->has('logged_in') && session()->get('logged_in') && !session()->get('user_id')) {
-            session()->destroy();
-        }
-        
-        return view('auth/login');
-    }
+         // If OTP verification pending, redirect to OTP page
+         if (session()->has('otp_login_user_id') && session()->get('otp_login_user_id')) {
+             return redirect()->to('/auth/login-verify');
+         }
+
+         // Clean up inconsistent session state so login works normally.
+         if (session()->has('logged_in') && session()->get('logged_in') && !session()->get('user_id')) {
+             session()->destroy();
+         }
+         
+         return view('auth/login');
+     }
     
     /**
      * Show disabled account page
@@ -173,83 +181,91 @@ class AuthController extends BaseController
         return view('auth/blocked-registration');
     }
     
-    /**
-     * Process login
-     */
-    public function loginProcess()
-    {
-        $validation = \Config\Services::validation();
-        
-        $rules = [
-            'email' => 'required|valid_email',
-            'password' => 'required'
-        ];
-        
-        if (!$this->validate($rules)) {
-            return redirect()->back()
-                ->withInput()
-                ->with('errors', $validation->getErrors());
-        }
-        
-        $email = $this->request->getPost('email');
-        $password = $this->request->getPost('password');
-        
-        // Find user by email
-        $user = $this->userModel->getUserByEmail($email);
-        
-        if (!$user) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Invalid email or password');
-        }
+     /**
+      * Process login
+      */
+     public function loginProcess()
+     {
+         $validation = \Config\Services::validation();
+         
+         $rules = [
+             'email' => 'required|valid_email',
+             'password' => 'required'
+         ];
+         
+         if (!$this->validate($rules)) {
+             return redirect()->back()
+                 ->withInput()
+                 ->with('errors', $validation->getErrors());
+         }
+         
+         $email = $this->request->getPost('email');
+         $password = $this->request->getPost('password');
+         
+         // Find user by email
+         $user = $this->userModel->getUserByEmail($email);
+         
+         if (!$user) {
+             return redirect()->back()
+                 ->withInput()
+                 ->with('error', 'Invalid email or password');
+         }
 
-        // Check if email is blocked and disable account if so
-        if ($this->blockedEmailModel->isBlocked($email)) {
-            // Disable the account if it's not already disabled
-            if ($user['status'] === 'active') {
-                $this->userModel->update($user['id'], ['status' => 'disabled']);
-            }
-            return redirect()->to('/auth/disabled');
-        }
-        
-        // Check if user is active
-        if ($user['status'] !== 'active') {
-            return redirect()->to('/auth/disabled');
-        }
+         // Check if email is blocked and disable account if so
+         if ($this->blockedEmailModel->isBlocked($email)) {
+             if ($user['status'] === 'active') {
+                 $this->userModel->update($user['id'], ['status' => 'disabled']);
+             }
+             return redirect()->to('/auth/disabled');
+         }
+         
+         // Check if user is active
+         if ($user['status'] !== 'active') {
+             return redirect()->to('/auth/disabled');
+         }
 
-        // Verify password
-        if (!password_verify($password, $user['password'])) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Invalid email or password');
-        }
-        
-        // Set session
-        session()->set([
-            'user_id' => $user['id'],
-            'user_name' => $user['name'],
-            'user_email' => $user['email'],
-            'user_role' => $user['role'],
-            'logged_in' => true
-        ]);
+         // Verify password
+         if (!password_verify($password, $user['password'])) {
+             return redirect()->back()
+                 ->withInput()
+                 ->with('error', 'Invalid email or password');
+         }
 
-        // Redirect to appropriate homepage
-        // Admin users always go to admin dashboard, ignoring any redirect_url
-        if ($user['role'] === 'admin') {
-            $redirectUrl = '/admin/dashboard';
-        } else {
-            $redirectUrl = session()->get('redirect_url') ?? $this->getUserHomePage($user['role']);
-        }
-        session()->remove('redirect_url');
+         // Generate OTP for 2FA verification
+         $otp = random_int(100000, 999999);
+         $expiresAt = date('Y-m-d H:i:s', strtotime('+10 minutes'));
 
-        session()->setFlashdata('success', 'Welcome back, ' . $user['name'] . '!');
+         // Save OTP to DB (clear any existing OTPs for this user first)
+         $this->otpTokenModel->where('userID', $user['id'])->delete();
+         $this->otpTokenModel->insert([
+             'userID' => $user['id'],
+             'token' => $otp,
+             'expires_at' => $expiresAt,
+             'created_at' => date('Y-m-d H:i:s')
+         ]);
 
-        return redirect()->to($redirectUrl);
-    }
-    
-    /**
-     * Show farmer registration form
-     */
+         // Send OTP to email
+         $sendResult = \App\Libraries\PHPMailerService::sendOTP($email, $otp);
+         if ($sendResult !== true) {
+             return redirect()->back()
+                 ->withInput()
+                 ->with('error', 'Failed to send verification code. ' . $sendResult);
+         }
+
+         // Store user in session for OTP verification (don't set full logged_in yet)
+         session()->set([
+             'otp_login_user_id' => $user['id'],
+             'otp_login_email' => $user['email'],
+         ]);
+
+          // Redirect to OTP verification page
+          return redirect()->to('/auth/login-verify')
+              ->with('success', 'A verification code has been sent to your email.');
+      }
+
+     /**
+      * Show farmer registration form
+      */
     public function registerFarmer()
     {
         return view('auth/register_farmer');
@@ -431,31 +447,171 @@ class AuthController extends BaseController
         return redirect()->back()->with('success', 'A new verification code has been sent to your email.');
     }
     
-    /**
-     * Logout
-     */
-    public function logout()
-    {
-        session()->destroy();
-        return redirect()->to('/')
-            ->with('success', 'You have been logged out successfully.');
-    }
+     /**
+      * Logout
+      */
+     public function logout()
+     {
+         // Clear OTP login session if present
+         session()->remove('otp_login_user_id');
+         session()->remove('otp_login_email');
+         
+         session()->destroy();
+         return redirect()->to('/')
+             ->with('success', 'You have been logged out successfully.');
+     }
     
-    /**
-     * Get user homepage based on role
-     */
-    private function getUserHomePage($role)
-    {
-        switch ($role) {
-            case 'buyer':
-            case 'farmer':
-            case 'user':
-                return '/marketplace';
-            case 'admin':
-                return '/admin/dashboard';
-            default:
-                return '/';
-        }
-    }
+     /**
+      * Show login OTP verification page
+      */
+     public function loginVerify()
+     {
+         $userId = session()->get('otp_login_user_id');
+         if (!$userId) {
+             return redirect()->to('/auth/login')
+                 ->with('error', 'Please login first.');
+         }
+
+         $user = $this->userModel->find($userId);
+         if (!$user) {
+             session()->remove('otp_login_user_id');
+             session()->remove('otp_login_email');
+             return redirect()->to('/auth/login')
+                 ->with('error', 'User not found.');
+         }
+
+         // Show OTP verification form
+         return view('auth/login_verify', [
+             'email' => $user['email'],
+         ]);
+     }
+
+     /**
+      * Verify login OTP and complete authentication
+      */
+     public function loginVerifyProcess()
+     {
+         $userId = session()->get('otp_login_user_id');
+         if (!$userId) {
+             return redirect()->to('/auth/login')
+                 ->with('error', 'Session expired. Please login again.');
+         }
+
+         $otpInput = trim((string) $this->request->getPost('otp'));
+         if (!$otpInput) {
+             return redirect()->back()->with('error', 'Please enter the verification code.');
+         }
+
+         $user = $this->userModel->find($userId);
+         if (!$user) {
+             session()->remove('otp_login_user_id');
+             session()->remove('otp_login_email');
+             return redirect()->to('/auth/login')
+                 ->with('error', 'User not found.');
+         }
+
+         // Check OTP from database
+         $otpRecord = $this->otpTokenModel
+             ->where('userID', $userId)
+             ->where('token', $otpInput)
+             ->first();
+
+         if (!$otpRecord) {
+             log_message('error', 'OTP verification failed: Invalid OTP for user ' . $userId);
+             return redirect()->back()->with('error', 'Invalid verification code. Please try again.');
+         }
+
+         if (strtotime($otpRecord['expires_at']) < time()) {
+             log_message('error', 'OTP verification failed: OTP expired for user ' . $userId);
+             return redirect()->back()->with('error', 'Verification code has expired. Please login again.');
+         }
+
+         // OTP valid - complete login
+         // Clear any existing OTPs for this user
+         $this->otpTokenModel->where('userID', $userId)->delete();
+
+         // Set full session
+         session()->set([
+             'user_id' => $user['id'],
+             'user_name' => $user['name'],
+             'user_email' => $user['email'],
+             'user_role' => $user['role'],
+             'logged_in' => true,
+         ]);
+
+         // Clean up OTP login session
+         session()->remove('otp_login_user_id');
+         session()->remove('otp_login_email');
+
+         // Redirect to appropriate homepage
+         if ($user['role'] === 'admin') {
+             $redirectUrl = '/admin/dashboard';
+         } else {
+             $redirectUrl = session()->get('redirect_url') ?? $this->getUserHomePage($user['role']);
+         }
+         session()->remove('redirect_url');
+
+         session()->setFlashdata('success', 'Welcome back, ' . $user['name'] . '!');
+
+         return redirect()->to($redirectUrl);
+     }
+
+     /**
+      * Resend login OTP
+      */
+     public function resendLoginOtp()
+     {
+         $userId = session()->get('otp_login_user_id');
+         if (!$userId) {
+             return redirect()->to('/auth/login')
+                 ->with('error', 'Session expired. Please login again.');
+         }
+
+         $user = $this->userModel->find($userId);
+         if (!$user) {
+             session()->remove('otp_login_user_id');
+             session()->remove('otp_login_email');
+             return redirect()->to('/auth/login')
+                 ->with('error', 'User not found.');
+         }
+
+         // Generate new OTP
+         $otp = random_int(100000, 999999);
+         $expiresAt = date('Y-m-d H:i:s', strtotime('+10 minutes'));
+
+         // Clear old OTP and save new one
+         $this->otpTokenModel->where('userID', $userId)->delete();
+         $this->otpTokenModel->insert([
+             'userID' => $userId,
+             'token' => $otp,
+             'expires_at' => $expiresAt,
+             'created_at' => date('Y-m-d H:i:s')
+         ]);
+
+         // Send new OTP
+         $sendResult = \App\Libraries\PHPMailerService::sendOTP($user['email'], $otp);
+         if ($sendResult !== true) {
+             return redirect()->back()->with('error', 'Failed to resend code. ' . $sendResult);
+         }
+
+         return redirect()->back()->with('success', 'A new verification code has been sent to your email.');
+     }
+
+     /**
+      * Get user homepage based on role
+      */
+     private function getUserHomePage($role)
+     {
+         switch ($role) {
+             case 'buyer':
+             case 'farmer':
+             case 'user':
+                 return '/marketplace';
+             case 'admin':
+                 return '/admin/dashboard';
+             default:
+                 return '/';
+         }
+     }
         // ...existing code...
 }
