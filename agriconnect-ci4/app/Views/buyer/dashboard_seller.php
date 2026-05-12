@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 datasets: [{
                     label: 'Revenue (₱)',
                     data: salesData.map(item => parseFloat(item.revenue)),
-                    borderColor: '#2d7a3e',
+                    borderColor: '#166534',
                     backgroundColor: 'rgba(45, 122, 62, 0.1)',
                     tension: 0.4,
                     fill: true
@@ -226,7 +226,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'pending': '#f59e0b',
             'confirmed': '#3b82f6',
             'processing': '#8b5cf6',
-            'completed': '#10b981',
+            'completed': '#166534',
             'cancelled': '#ef4444'
         };
 
@@ -264,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 datasets: [{
                     label: 'Revenue (₱)',
                     data: productsData.map(item => parseFloat(item.total_revenue)),
-                    backgroundColor: '#2d7a3e',
+                    backgroundColor: '#166534',
                     borderColor: '#236330',
                     borderWidth: 1
                 }]

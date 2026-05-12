@@ -181,7 +181,7 @@
                     <!-- Edit Profile Form (Displayed by default) -->
                     <div id="editProfileForm" class="w-full max-w-md p-4 bg-gray-50 rounded-lg border border-gray-200 mx-auto">
                             <h3 class="text-md font-semibold text-gray-900 mb-4 text-center">Edit Profile Information</h3>
-                            <form action="/profile/update" method="POST" class="space-y-4">
+                            <form action="/profile/update" method="POST" class="space-y-4" data-submit-loading data-loading-label="Saving…">
                                 <?= csrf_field() ?>
                                 <div>
                                     <label for="edit_name" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
@@ -218,7 +218,7 @@
                         <!-- Add Admin Form (Hidden by default) -->
                         <div id="addAdminForm" class="hidden mt-6 w-full max-w-md p-4 bg-gray-50 rounded-lg border border-gray-200">
                             <h3 class="text-md font-semibold text-gray-900 mb-4 text-center">Create New Admin Account</h3>
-                            <form action="/admin/users/create-admin" method="POST" class="space-y-4">
+                            <form action="/admin/users/create-admin" method="POST" class="space-y-4" data-submit-loading data-loading-label="Creating admin…">
                                 <?= csrf_field() ?>
                                 <div>
                                     <label for="admin_name" class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>

@@ -243,13 +243,13 @@
                                             </div>
                                             <div class="modal-footer bg-gray-50">
                                                 <?php if ($violation['item_exists']): ?>
-                                                    <form action="/admin/violations/<?= $violation['id'] ?>/delete" method="POST" class="me-auto swal-confirm-form" data-confirm="Are you sure you want to delete this reported item?">
+                                                    <form action="/admin/violations/<?= $violation['id'] ?>/delete" method="POST" class="me-auto swal-confirm-form" data-confirm-title="Delete reported content?" data-confirm="The listing or post will be removed from the marketplace. This cannot be undone." data-confirm-ok="Yes, delete item" data-confirm-danger data-confirm-icon="warning">
                                                         <button type="submit" class="btn btn-danger">
                                                             <i data-lucide="trash-2" class="w-4 h-4 inline mr-1"></i>
                                                             Delete Item
                                                         </button>
                                                     </form>
-                                                    <form action="/admin/violations/<?= $violation['id'] ?>/status" method="POST">
+                                                    <form action="/admin/violations/<?= $violation['id'] ?>/status" method="POST" class="swal-confirm-form" data-confirm-title="Keep this content?" data-confirm="The reported item stays visible. The report will be marked reviewed." data-confirm-ok="Keep item" data-confirm-icon="question">
                                                         <input type="hidden" name="status" value="reviewed">
                                                         <button type="submit" class="btn btn-success">
                                                             <i data-lucide="check" class="w-4 h-4 inline mr-1"></i>
@@ -278,14 +278,14 @@
                                     </h4>
                                     
                                     <?php if ($violation['status'] === 'pending'): ?>
-                                        <form action="/admin/violations/<?= $violation['id'] ?>/status" method="POST" class="mb-2">
+                                        <form action="/admin/violations/<?= $violation['id'] ?>/status" method="POST" class="mb-2 swal-confirm-form" data-confirm-title="Mark as reviewed?" data-confirm="The report stays on your queue until you mark it resolved." data-confirm-ok="Mark reviewed" data-confirm-icon="question">
                                             <input type="hidden" name="status" value="reviewed">
                                             <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold shadow-sm">
                                                 <i data-lucide="eye" class="w-4 h-4"></i>
                                                 Mark as Reviewed
                                             </button>
                                         </form>
-                                        <form action="/admin/violations/<?= $violation['id'] ?>/status" method="POST" class="mb-2">
+                                        <form action="/admin/violations/<?= $violation['id'] ?>/status" method="POST" class="mb-2 swal-confirm-form" data-confirm-title="Mark as resolved?" data-confirm="This closes the violation report. You can still delete content separately if needed." data-confirm-ok="Mark resolved" data-confirm-icon="question">
                                             <input type="hidden" name="status" value="resolved">
                                             <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold shadow-sm">
                                                 <i data-lucide="check-circle" class="w-4 h-4"></i>
@@ -293,7 +293,7 @@
                                             </button>
                                         </form>
                                     <?php elseif ($violation['status'] === 'reviewed'): ?>
-                                        <form action="/admin/violations/<?= $violation['id'] ?>/status" method="POST" class="mb-2">
+                                        <form action="/admin/violations/<?= $violation['id'] ?>/status" method="POST" class="mb-2 swal-confirm-form" data-confirm-title="Mark as resolved?" data-confirm="This closes the violation report." data-confirm-ok="Mark resolved" data-confirm-icon="question">
                                             <input type="hidden" name="status" value="resolved">
                                             <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-semibold shadow-sm">
                                                 <i data-lucide="check-circle" class="w-4 h-4"></i>
@@ -309,7 +309,7 @@
 
                                     <!-- Delete Buttons -->
                                     <?php if ($violation['item_exists']): ?>
-                                        <form action="/admin/violations/<?= $violation['id'] ?>/delete" method="POST" class="swal-confirm-form" data-confirm="Are you sure you want to delete this reported item? This action cannot be undone.">
+                                        <form action="/admin/violations/<?= $violation['id'] ?>/delete" method="POST" class="swal-confirm-form" data-confirm-title="Delete reported content?" data-confirm="The item is removed from the site. This cannot be undone." data-confirm-ok="Yes, delete item" data-confirm-danger data-confirm-icon="warning">
                                             <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition-colors text-sm font-semibold">
                                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                                                 Delete Reported Item
@@ -319,7 +319,7 @@
                                     
                                     <div class="border-t border-gray-200 my-3"></div>
                                     
-                                    <form action="/admin/violations/<?= $violation['id'] ?>/delete-report" method="POST" class="swal-confirm-form" data-confirm="Are you sure you want to delete this violation report? This will remove the report from the system.">
+                                    <form action="/admin/violations/<?= $violation['id'] ?>/delete-report" method="POST" class="swal-confirm-form" data-confirm-title="Remove this report only?" data-confirm="The underlying content stays on the site; only the moderation record is removed." data-confirm-ok="Delete report" data-confirm-danger data-confirm-icon="warning">
                                         <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-50 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors text-sm font-semibold">
                                             <i data-lucide="file-x" class="w-4 h-4"></i>
                                             Delete This Report

@@ -14,7 +14,7 @@
         </div>
 
         <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-            <form action="/buyer/products/add" method="POST" enctype="multipart/form-data">
+            <form action="/buyer/products/add" method="POST" enctype="multipart/form-data" data-submit-loading data-loading-label="Saving listing…">
                 <?= csrf_field() ?>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

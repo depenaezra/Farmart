@@ -18,7 +18,7 @@
 
     <div class="max-w-2xl">
         <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-            <form method="post" action="/admin/announcements/create">
+            <form method="post" action="/admin/announcements/create" data-submit-loading data-loading-label="Publishing…">
                 <?= csrf_field() ?>
 
                 <?php if (session()->has('errors')): ?>

@@ -79,7 +79,15 @@
                 <div class="mt-6 pt-6 border-t border-gray-200">
                     <div class="flex space-x-2">
                         <?php if ((int) $user['id'] !== (int) session()->get('user_id')): ?>
-                            <form method="post" action="/admin/users/<?= $user['id'] ?>/toggle-status" class="flex-1 swal-confirm-form" data-confirm="<?= $user['status'] === 'active' ? 'Disable this account login access?' : 'Re-enable this account login access?' ?>">
+                            <?php
+                            $isActiveUser = $user['status'] === 'active';
+                            $toggleTitleD = $isActiveUser ? 'Disable login for this user?' : 'Enable login for this user?';
+                            $toggleBodyD = $isActiveUser
+                                ? 'They will not be able to sign in until you turn access back on.'
+                                : 'They can sign in again if the account is otherwise in good standing.';
+                            $toggleOkD = $isActiveUser ? 'Disable login' : 'Enable login';
+                            ?>
+                            <form method="post" action="/admin/users/<?= $user['id'] ?>/toggle-status" class="flex-1 swal-confirm-form" data-confirm-title="<?= esc($toggleTitleD, 'attr') ?>" data-confirm="<?= esc($toggleBodyD, 'attr') ?>" data-confirm-ok="<?= esc($toggleOkD, 'attr') ?>" data-confirm-icon="question"<?= $isActiveUser ? ' data-confirm-danger' : '' ?>>
                                 <?= csrf_field() ?>
                                 <button type="submit" class="w-full px-4 py-2 text-sm font-medium rounded-lg
                                     <?= $user['status'] === 'active' ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-green-100 text-green-700 hover:bg-green-200' ?>
@@ -92,7 +100,7 @@
                         <?php endif; ?>
 
                         <?php if ($user['id'] != session()->get('user_id')): ?>
-                            <form method="post" action="/admin/users/<?= $user['id'] ?>/delete" class="flex-1 swal-confirm-form" data-confirm="Are you sure you want to delete this user? This action cannot be undone.">
+                            <form method="post" action="/admin/users/<?= $user['id'] ?>/delete" class="flex-1 swal-confirm-form" data-confirm-title="Delete this user account?" data-confirm="Removes their profile and access permanently. This cannot be undone." data-confirm-ok="Yes, delete user" data-confirm-danger data-confirm-icon="warning" data-loading-label="Deleting…">
                                 <?= csrf_field() ?>
                                 <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
                                     <i data-lucide="trash-2" class="w-4 h-4 inline mr-2"></i>
@@ -104,7 +112,7 @@
 
                     <?php if ((int) $user['id'] !== (int) session()->get('user_id')): ?>
                         <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2">
-                            <form method="post" action="/admin/users/<?= $user['id'] ?>/suspend-login" class="swal-confirm-form" data-confirm="Apply selected suspension option for this user?">
+                            <form method="post" action="/admin/users/<?= $user['id'] ?>/suspend-login" class="swal-confirm-form" data-confirm-title="Suspend sign-in?" data-confirm="Uses the duration selected below. The user cannot log in until it ends or you clear it." data-confirm-ok="Apply suspension" data-confirm-danger data-confirm-icon="warning">
                                 <?= csrf_field() ?>
                                 <label for="suspend_duration" class="block text-sm font-medium text-gray-700 mb-1">Suspend Login</label>
                                 <div class="flex gap-2">
@@ -120,7 +128,7 @@
                                 </div>
                             </form>
 
-                            <form method="post" action="/admin/users/<?= $user['id'] ?>/clear-suspension" class="swal-confirm-form self-end" data-confirm="Remove temporary login suspension for this user?">
+                            <form method="post" action="/admin/users/<?= $user['id'] ?>/clear-suspension" class="swal-confirm-form self-end" data-confirm-title="Clear login suspension?" data-confirm="They can try to sign in again immediately if login is enabled." data-confirm-ok="Clear suspension" data-confirm-icon="question">
                                 <?= csrf_field() ?>
                                 <button type="submit" class="w-full px-4 py-2 bg-emerald-100 text-emerald-800 text-sm font-medium rounded-lg hover:bg-emerald-200 transition-colors">
                                     Clear Temporary Suspension

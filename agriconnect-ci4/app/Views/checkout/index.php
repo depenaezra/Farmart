@@ -234,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     icon: 'error',
                     title: 'Invalid Delivery Address',
                     text: 'Please enter a complete delivery address (minimum 10 characters).',
-                    confirmButtonColor: '#d33'
+                    confirmButtonColor: '#b91c1c'
                 });
                 return;
             }
@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     icon: 'error',
                     title: 'Missing Contact Number',
                     text: 'Please enter your contact number.',
-                    confirmButtonColor: '#d33'
+                    confirmButtonColor: '#b91c1c'
                 });
                 return;
             }
@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     icon: 'error',
                     title: 'Payment Method Required',
                     text: 'Please select a payment method.',
-                    confirmButtonColor: '#d33'
+                    confirmButtonColor: '#b91c1c'
                 });
                 return;
             }
@@ -313,12 +313,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 `,
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonColor: '#10b981',
-                cancelButtonColor: '#6b7280',
+                confirmButtonColor: '#166534',
+                cancelButtonColor: '#64748b',
                 confirmButtonText: 'Place Order',
                 cancelButtonText: 'Review Order',
                 customClass: {
-                    popup: 'swal-wide'
+                    popup: 'swal-wide farmart-swal-popup'
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
@@ -354,9 +354,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 title: 'Thank you for your purchase!',
                 text: 'Your order<?= $orderCount > 1 ? 's have' : ' has' ?> been placed successfully.',
                 confirmButtonText: 'Continue Shopping',
+                confirmButtonColor: '#166534',
                 allowOutsideClick: false,
                 customClass: {
-                    popup: 'animate__animated animate__bounceIn'
+                    popup: 'farmart-swal-popup animate__animated animate__zoomIn animate__faster'
                 }
             }).then(function(result) {
                 if (result.isConfirmed) {

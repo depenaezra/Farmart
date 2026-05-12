@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function() {
             icon: 'info',
             title: 'Backup Code',
             text: 'Enter one of your 8-character backup codes instead of the 6-digit TOTP.',
-            confirmButtonColor: '#16a34a'
+            confirmButtonColor: '#166534'
         });
     });
 
@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 icon: 'error',
                 title: 'Required',
                 text: 'Please enter a verification code.',
-                confirmButtonColor: '#16a34a'
+                confirmButtonColor: '#166534'
             });
             return;
         }
@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     icon: 'error',
                     title: 'Failed',
                     text: data.message,
-                    confirmButtonColor: '#16a34a'
+                    confirmButtonColor: '#166534'
                 });
                 codeInput.value = '';
                 codeInput.focus();
@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 icon: 'error',
                 title: 'Error',
                 text: 'Network error. Please try again.',
-                confirmButtonColor: '#16a34a'
+                confirmButtonColor: '#166534'
             });
         } finally {
             verifyBtn.disabled = false;

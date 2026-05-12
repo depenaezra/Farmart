@@ -18,7 +18,7 @@
 
     <div class="max-w-2xl">
         <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-            <form method="post" action="/admin/announcements/edit/<?= $announcement['id'] ?>">
+            <form method="post" action="/admin/announcements/edit/<?= $announcement['id'] ?>" data-submit-loading data-loading-label="Saving changes…">
                 <?= csrf_field() ?>
 
                 <?php if (session()->has('errors')): ?>

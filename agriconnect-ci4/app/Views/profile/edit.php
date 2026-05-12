@@ -46,7 +46,7 @@
                 <div class="font-semibold mb-1">Security Verification Notice</div>
                 <p>Changing your phone number or password requires OTP verification. After saving, you will be redirected to verify the OTP sent to your email.</p>
             </div>
-            <form action="/profile/update" method="POST">
+            <form action="/profile/update" method="POST" data-submit-loading data-loading-label="Saving profile…">
                 <?= csrf_field() ?>
                 
                 <div class="space-y-6">

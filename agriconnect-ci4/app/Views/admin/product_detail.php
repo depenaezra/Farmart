@@ -136,7 +136,7 @@
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Actions</h3>
                     <div class="space-y-3">
                         <?php if ($product['status'] === 'pending'): ?>
-                            <form method="post" action="/admin/products/<?= $product['id'] ?>/approve" class="swal-confirm-form" data-confirm="Are you sure you want to approve this product?">
+                            <form method="post" action="/admin/products/<?= $product['id'] ?>/approve" class="swal-confirm-form" data-confirm-title="Approve this listing?" data-confirm="It will become visible on the marketplace for buyers." data-confirm-ok="Approve" data-confirm-icon="question" data-loading-label="Approving…">
                                 <?= csrf_field() ?>
                                 <button type="submit" class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                                     <i data-lucide="check" class="w-4 h-4 inline mr-2"></i>
@@ -144,7 +144,7 @@
                                 </button>
                             </form>
 
-                            <form method="post" action="/admin/products/<?= $product['id'] ?>/reject" class="swal-confirm-form" data-confirm="Are you sure you want to reject this product?">
+                            <form method="post" action="/admin/products/<?= $product['id'] ?>/reject" class="swal-confirm-form" data-confirm-title="Reject this listing?" data-confirm="The seller will need to edit and resubmit. Continue?" data-confirm-ok="Reject listing" data-confirm-danger data-confirm-icon="warning" data-loading-label="Rejecting…">
                                 <?= csrf_field() ?>
                                 <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
                                     <i data-lucide="x" class="w-4 h-4 inline mr-2"></i>
@@ -153,7 +153,7 @@
                             </form>
                         <?php endif; ?>
 
-                        <form method="post" action="/admin/products/<?= $product['id'] ?>/delete" class="swal-confirm-form" data-confirm="Are you sure you want to delete this product? This action cannot be undone.">
+                        <form method="post" action="/admin/products/<?= $product['id'] ?>/delete" class="swal-confirm-form" data-confirm-title="Delete product permanently?" data-confirm="Removes the listing from the marketplace. This cannot be undone." data-confirm-ok="Yes, delete" data-confirm-danger data-confirm-icon="warning" data-loading-label="Deleting…">
                             <?= csrf_field() ?>
                             <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
                                 <i data-lucide="trash-2" class="w-4 h-4 inline mr-2"></i>

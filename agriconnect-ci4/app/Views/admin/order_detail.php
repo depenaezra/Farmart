@@ -224,7 +224,7 @@
                     <!-- Update Status Form -->
                     <div class="mb-6 pb-6 border-b border-gray-200">
                         <h3 class="text-sm font-semibold text-gray-900 mb-3">Update Order Status</h3>
-                        <form action="/admin/orders/<?= $order['id'] ?>/update-status" method="POST">
+                        <form action="/admin/orders/<?= $order['id'] ?>/update-status" method="POST" class="swal-confirm-form" data-confirm-title="Change order status?" data-confirm="This updates what buyers and sellers see for this order." data-confirm-ok="Save status" data-confirm-icon="question" data-loading-label="Saving…">
                             <?= csrf_field() ?>
                             <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent mb-3">
                                 <option value="pending" <?= $order['status'] === 'pending' ? 'selected' : '' ?>>Pending</option>

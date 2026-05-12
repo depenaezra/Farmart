@@ -127,7 +127,7 @@
                                     </a>
 
                                     <?php if (in_array($order['status'], ['pending', 'confirmed', 'processing'])): ?>
-                                        <form action="/buyer/sales/orders/<?= $order['id'] ?>/update-status" method="POST" class="inline-flex items-center gap-2">
+                                        <form action="/buyer/sales/orders/<?= $order['id'] ?>/update-status" method="POST" class="inline-flex items-center gap-2 swal-confirm-form" data-confirm-title="Update order status?" data-confirm="The buyer will see the new status. Save this change?" data-confirm-ok="Update" data-confirm-icon="question" data-loading-label="Updating…">
                                             <?= csrf_field() ?>
                                             <select name="status" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm">
                                                 <option value="pending" <?= $order['status'] === 'pending' ? 'selected' : '' ?>>Pending</option>

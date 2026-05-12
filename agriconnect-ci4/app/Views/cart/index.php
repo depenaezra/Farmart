@@ -2,576 +2,545 @@
 
 <?= $this->section('content') ?>
 
-<div class="container mx-auto px-4 py-8">
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">Shopping Cart</h1>
-        <p class="text-gray-600">Review your items before checkout</p>
+<?php
+$cartBySeller = [];
+if (!empty($cart)) {
+    foreach ($cart as $row) {
+        $sellerKey = (string) ($row['farmer_id'] ?? '0') . '|' . ($row['farmer_name'] ?? 'Seller');
+        if (!isset($cartBySeller[$sellerKey])) {
+            $cartBySeller[$sellerKey] = [
+                'farmer_id' => $row['farmer_id'] ?? null,
+                'farmer_name' => $row['farmer_name'] ?? 'Seller',
+                'items' => [],
+            ];
+        }
+        $cartBySeller[$sellerKey]['items'][] = $row;
+    }
+}
+?>
+
+<div class="max-w-[1280px] mx-auto px-4 sm:px-6 py-6 lg:py-8">
+    <!-- Lazada-style top strip: title + search + cart count -->
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+        <div>
+            <nav class="text-sm text-slate-500 mb-1">
+                <a href="/" class="hover:text-primary transition-colors">Home</a>
+                <span class="mx-1.5">/</span>
+                <span class="text-slate-800 font-medium">Shopping Cart</span>
+            </nav>
+            <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Shopping Cart</h1>
+            <p class="text-slate-600 text-sm mt-1"><?= (int) ($item_count ?? 0) ?> item<?= ((int) ($item_count ?? 0)) === 1 ? '' : 's' ?> in your cart</p>
+        </div>
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto lg:min-w-[420px]">
+            <form action="/marketplace" method="GET" class="flex flex-1 gap-0 rounded-xl overflow-hidden ring-1 ring-slate-200/90 shadow-sm bg-white focus-within:ring-2 focus-within:ring-primary/40 transition-shadow">
+                <input type="text" name="keyword" value="<?= esc(request()->getGet('keyword') ?? '') ?>"
+                       placeholder="Search products, farmers…"
+                       class="flex-1 min-w-0 px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 border-0 focus:ring-0">
+                <button type="submit" class="shrink-0 px-5 py-2.5 bg-primary text-white font-semibold text-sm hover:bg-primary-hover transition-colors flex items-center gap-2">
+                    <i data-lucide="search" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Search</span>
+                </button>
+            </form>
+            <a href="/marketplace" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm font-semibold hover:border-primary/40 hover:text-primary transition-colors whitespace-nowrap">
+                <i data-lucide="store" class="w-4 h-4"></i>
+                Continue shopping
+            </a>
+        </div>
     </div>
 
-    <!-- Display success message -->
     <?php if (session()->has('success')): ?>
-        <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3">
+        <div class="mb-5 p-4 bg-green-50 border border-green-200 rounded-xl flex items-start gap-3" role="alert">
             <i data-lucide="check-circle" class="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5"></i>
             <div>
-                <p class="text-green-800 font-semibold">Success!</p>
+                <p class="text-green-800 font-semibold">Success</p>
                 <p class="text-green-700 text-sm"><?= esc(session()->get('success')) ?></p>
             </div>
         </div>
     <?php endif; ?>
 
-    <!-- Display error message -->
     <?php if (session()->has('error')): ?>
-        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+        <div class="mb-5 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3" role="alert">
             <i data-lucide="alert-circle" class="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5"></i>
             <div>
-                <p class="text-red-800 font-semibold">Error!</p>
+                <p class="text-red-800 font-semibold">Error</p>
                 <p class="text-red-700 text-sm"><?= esc(session()->get('error')) ?></p>
             </div>
         </div>
     <?php endif; ?>
 
     <?php if (empty($cart)): ?>
-        <div class="bg-white rounded-xl shadow-md border border-gray-200 p-12 text-center">
-            <i data-lucide="shopping-cart" class="w-16 h-16 text-gray-400 mx-auto mb-4"></i>
-            <h2 class="text-2xl font-semibold text-gray-900 mb-2">Your cart is empty</h2>
-            <p class="text-gray-600 mb-6">Add some products to get started!</p>
-            <a href="/marketplace" class="inline-block bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-hover font-semibold transition-colors">
-                <i data-lucide="arrow-left" class="w-5 h-5 inline mr-2"></i>
-                Continue Shopping
+        <div class="farmart-card rounded-2xl p-12 sm:p-16 text-center max-w-lg mx-auto">
+            <i data-lucide="shopping-cart" class="w-16 h-16 text-slate-300 mx-auto mb-4"></i>
+            <h2 class="text-xl font-semibold text-slate-900 mb-2">Your cart is empty</h2>
+            <p class="text-slate-600 mb-6 text-sm">Browse the marketplace and add fresh produce.</p>
+            <form action="/marketplace" method="GET" class="flex flex-col sm:flex-row gap-2 max-w-md mx-auto mb-6">
+                <input type="text" name="keyword" placeholder="Search the marketplace…" class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-primary focus:border-transparent">
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary-hover">Search</button>
+            </form>
+            <a href="/marketplace" class="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-xl hover:bg-primary-hover font-semibold text-sm shadow-md shadow-primary/25 transition-all">
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                Go to marketplace
             </a>
         </div>
     <?php else: ?>
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Cart Items -->
-            <div class="lg:col-span-2">
-                <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-                    <div class="p-6 border-b border-gray-200">
-                        <h2 class="text-xl font-semibold text-gray-900">
-                            Cart Items (0)
-                        </h2>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+            <!-- Main cart column (~66%) -->
+            <div class="lg:col-span-8 space-y-4">
+                <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
+                    <!-- Toolbar: select all + delete -->
+                    <div class="flex flex-wrap items-center justify-between gap-3 px-4 sm:px-5 py-3.5 bg-slate-50/90 border-b border-slate-200/80">
+                        <label class="inline-flex items-center gap-3 cursor-pointer select-none">
+                            <input type="checkbox" id="cart-select-all" class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary">
+                            <span class="text-sm font-semibold text-slate-800">Select all (<span id="cart-total-line-count"><?= count($cart) ?></span>)</span>
+                        </label>
+                        <button type="button" onclick="deleteSelectedItems()" class="text-sm font-semibold text-rose-600 hover:text-rose-700 hover:underline inline-flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-rose-50 transition-colors">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            Delete
+                        </button>
                     </div>
-                    
+
                     <form id="cartForm">
                         <?= csrf_field() ?>
-                        <div class="divide-y divide-gray-200">
-                            <?php foreach ($cart as $item): ?>
-                                <div class="p-6 flex gap-4">
-                                    <!-- Checkbox -->
-                                    <div class="flex-shrink-0 flex items-center">
-                                        <input type="checkbox"
-                                               name="selected_items[]"
-                                               value="<?= esc($item['id']) ?>"
-                                               id="item_<?= $item['id'] ?>"
-                                               class="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary">
+                        <?php foreach ($cartBySeller as $sellerKey => $sellerBlock): ?>
+                            <div class="seller-group border-b border-slate-100 last:border-b-0" data-seller-key="<?= esc($sellerKey, 'attr') ?>">
+                                <!-- Seller header -->
+                                <div class="flex items-center gap-3 px-4 sm:px-5 py-3 bg-gradient-to-r from-emerald-50/90 to-white border-l-4 border-primary">
+                                    <input type="checkbox" class="cart-shop-select-all w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary" title="Select this seller">
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-xs font-bold uppercase tracking-wider text-primary">Seller</p>
+                                        <p class="font-semibold text-slate-900 truncate"><?= esc($sellerBlock['farmer_name']) ?></p>
                                     </div>
+                                    <span class="hidden sm:inline-flex items-center gap-1 text-xs font-medium text-emerald-800 bg-emerald-100/80 px-2.5 py-1 rounded-full">
+                                        <i data-lucide="truck" class="w-3.5 h-3.5"></i>
+                                        Direct from farmer
+                                    </span>
+                                </div>
 
-                                    <!-- Product Image -->
-                                    <div class="flex-shrink-0">
-                                        <?php
-                                        $cartImage = null;
-                                        if (!empty($item['image_url'])) {
-                                            $decoded = json_decode($item['image_url'], true);
-                                            if (is_array($decoded)) {
-                                                $cartImage = $decoded[0];
-                                            } else {
-                                                $cartImage = $item['image_url'];
-                                            }
-                                        }
-                                        ?>
-                                        <?php if (!empty($cartImage)): ?>
-                                            <img src="<?= esc($cartImage) ?>"
-                                                 alt="<?= esc($item['product_name']) ?>"
-                                                 class="w-24 h-24 object-cover rounded-lg">
-                                        <?php else: ?>
-                                            <div class="w-24 h-24 bg-gray-200 rounded-lg flex items-center justify-center">
-                                                <i data-lucide="image" class="w-8 h-8 text-gray-400"></i>
+                                <?php foreach ($sellerBlock['items'] as $item):
+                                    $stock = isset($item['stock_quantity']) ? (int) $item['stock_quantity'] : 99;
+                                    $maxQty = min(max($stock, 1), 99);
+                                    $lineTotal = (float) $item['price'] * (int) $item['quantity'];
+                                    ?>
+                                    <div class="cart-row px-4 sm:px-5 py-4 flex flex-wrap sm:flex-nowrap gap-4 border-b border-slate-50 last:border-0"
+                                         data-cart-row
+                                         data-cart-id="<?= esc($item['id'], 'attr') ?>"
+                                         data-unit-price="<?= esc($item['price'], 'attr') ?>"
+                                         data-line-total="<?= esc($lineTotal, 'attr') ?>">
+                                        <div class="flex items-start gap-3 sm:gap-4 w-full sm:w-auto">
+                                            <div class="pt-1">
+                                                <input type="checkbox"
+                                                       name="selected_items[]"
+                                                       value="<?= esc($item['id'], 'attr') ?>"
+                                                       id="item_<?= esc($item['id'], 'attr') ?>"
+                                                       class="cart-item-cb w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary"
+                                                       onchange="updateCartTotal(); syncSelectAllState();">
                                             </div>
-                                        <?php endif; ?>
-                                    </div>
-
-                                    <!-- Product Details -->
-                                    <div class="flex-1 min-w-0">
-                                        <h3 class="text-lg font-semibold text-gray-900 mb-1">
-                                            <?= esc($item['product_name']) ?>
-                                        </h3>
-                                        <p class="text-sm text-gray-600 mb-2">
-                                            <i data-lucide="user" class="w-4 h-4 inline mr-1"></i>
-                                            <?= esc($item['farmer_name']) ?>
-                                        </p>
-                                        <?php if (!empty($item['location'])): ?>
-                                            <p class="text-sm text-gray-500 mb-3">
-                                                <i data-lucide="map-pin" class="w-4 h-4 inline mr-1"></i>
-                                                <?= esc($item['location']) ?>
-                                            </p>
-                                        <?php endif; ?>
-
-                                        <div class="flex items-center justify-between mt-4">
-                                            <div class="flex items-center gap-4">
-                                                <!-- Quantity Update -->
-                                                <div class="flex items-center gap-2">
-                                                    <label for="quantity_<?= $item['id'] ?>" class="text-sm font-medium text-gray-700">Qty:</label>
-                                                    <input
-                                                        type="number"
-                                                        id="quantity_<?= $item['id'] ?>"
-                                                        value="<?= $item['quantity'] ?>"
-                                                        data-original-quantity="<?= $item['quantity'] ?>"
-                                                        min="1"
-                                                        max="99"
-                                                        class="w-20 px-3 py-1 border border-gray-300 rounded-lg text-center focus:ring-2 focus:ring-primary focus:border-transparent"
-                                                    >
-                                                    <button type="button" onclick="updateQuantity('<?= esc($item['id']) ?>')" class="px-2 py-1 bg-primary text-white text-xs rounded hover:bg-primary-hover transition-colors">
-                                                        Update
+                                            <?php
+                                            $cartImage = null;
+                                            if (!empty($item['image_url'])) {
+                                                $decoded = json_decode($item['image_url'], true);
+                                                $cartImage = is_array($decoded) ? ($decoded[0] ?? null) : $item['image_url'];
+                                            }
+                                            ?>
+                                            <a href="/marketplace/product/<?= esc($item['product_id'], 'attr') ?>" class="shrink-0 rounded-xl overflow-hidden ring-1 ring-slate-100">
+                                                <?php if (!empty($cartImage)): ?>
+                                                    <img src="<?= esc($cartImage) ?>" alt="" class="w-20 h-20 sm:w-24 sm:h-24 object-cover">
+                                                <?php else: ?>
+                                                    <div class="w-20 h-20 sm:w-24 sm:h-24 bg-slate-100 flex items-center justify-center">
+                                                        <i data-lucide="image" class="w-8 h-8 text-slate-400"></i>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </a>
+                                            <div class="flex-1 min-w-0">
+                                                <a href="/marketplace/product/<?= esc($item['product_id'], 'attr') ?>" class="font-semibold text-slate-900 hover:text-primary text-sm sm:text-base leading-snug line-clamp-2">
+                                                    <?= esc($item['product_name']) ?>
+                                                </a>
+                                                <?php if (!empty($item['location'])): ?>
+                                                    <p class="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                                                        <i data-lucide="map-pin" class="w-3.5 h-3.5 shrink-0"></i>
+                                                        <?= esc($item['location']) ?>
+                                                    </p>
+                                                <?php endif; ?>
+                                                <?php if ($stock <= 10): ?>
+                                                    <p class="text-xs font-medium text-rose-600 mt-1">Only <?= $stock ?> in stock — order soon</p>
+                                                <?php endif; ?>
+                                                <div class="flex flex-wrap items-center gap-2 mt-3">
+                                                    <div class="inline-flex items-center rounded-xl border border-slate-200 bg-white shadow-sm">
+                                                        <button type="button" class="px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-l-xl transition-colors disabled:opacity-40" aria-label="Decrease"
+                                                                onclick="adjustQuantity('<?= esc($item['id'], 'js') ?>', -1)">
+                                                            <i data-lucide="minus" class="w-4 h-4"></i>
+                                                        </button>
+                                                        <input type="number"
+                                                               id="quantity_<?= esc($item['id'], 'attr') ?>"
+                                                               value="<?= (int) $item['quantity'] ?>"
+                                                               data-original-quantity="<?= (int) $item['quantity'] ?>"
+                                                               min="1"
+                                                               max="<?= $maxQty ?>"
+                                                               readonly
+                                                               class="w-12 text-center text-sm font-semibold border-x border-slate-200 py-2 bg-slate-50/50 text-slate-900 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none">
+                                                        <button type="button" class="px-3 py-2 text-slate-600 hover:bg-slate-50 rounded-r-xl transition-colors disabled:opacity-40" aria-label="Increase"
+                                                                onclick="adjustQuantity(<?= (int) $item['id'] ?>, 1)">
+                                                            <i data-lucide="plus" class="w-4 h-4"></i>
+                                                        </button>
+                                                    </div>
+                                                    <span class="text-xs text-slate-500"><?= esc($item['unit']) ?></span>
+                                                    <button type="button" onclick="removeFromCart(<?= (int) $item['id'] ?>)" class="ml-auto sm:ml-2 p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Remove">
+                                                        <i data-lucide="trash-2" class="w-5 h-5"></i>
                                                     </button>
-                                                    <span class="text-sm text-gray-600"><?= esc($item['unit']) ?></span>
                                                 </div>
                                             </div>
-
-                                            <div class="text-right">
-                                                <p class="text-lg font-bold text-primary">
-                                                    ₱<?= number_format($item['price'] * $item['quantity'], 2) ?>
-                                                </p>
-                                                <p class="text-sm text-gray-500">
-                                                    ₱<?= number_format($item['price'], 2) ?> per <?= esc($item['unit']) ?>
-                                                </p>
+                                        </div>
+                                        <!-- Price column (Lazada-style right stack) -->
+                                        <div class="w-full sm:w-36 sm:ml-auto flex sm:flex-col sm:items-end justify-between sm:justify-start gap-2 pt-1 sm:pt-0 border-t sm:border-t-0 border-slate-100 sm:border-0">
+                                            <div class="text-left sm:text-right">
+                                                <p class="js-line-total text-lg font-bold text-primary tabular-nums">₱<?= number_format($lineTotal, 2) ?></p>
+                                                <p class="js-unit-label text-xs text-slate-500 tabular-nums">₱<?= number_format((float) $item['price'], 2) ?> / <?= esc($item['unit']) ?></p>
                                             </div>
                                         </div>
                                     </div>
-
-                                    <!-- Remove Button -->
-                                    <div class="flex-shrink-0">
-                                        <button type="button" onclick="removeFromCart('<?= esc($item['id']) ?>')" class="text-red-500 hover:text-red-700 transition-colors">
-                                            <i data-lucide="trash-2" class="w-5 h-5"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endforeach; ?>
                     </form>
 
-                    <!-- Clear Cart -->
-                    <div class="p-6 border-t border-gray-200">
-                        <button type="button" onclick="clearCart()" class="text-red-600 hover:text-red-700 text-sm font-medium transition-colors">
-                            <i data-lucide="trash-2" class="w-4 h-4 inline mr-1"></i>
-                            Clear Cart
+                    <div class="px-4 sm:px-5 py-3 bg-slate-50/80 border-t border-slate-200/80 flex justify-end">
+                        <button type="button" onclick="clearCart()" class="text-sm font-medium text-slate-600 hover:text-rose-600 inline-flex items-center gap-2 transition-colors">
+                            <i data-lucide="eraser" class="w-4 h-4"></i>
+                            Clear entire cart
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Checkout Button -->
-            <div class="lg:col-span-1">
-                <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6 sticky top-4">
-                    <button type="button" onclick="proceedToCheckout()" class="w-full bg-primary text-white text-center px-6 py-3 rounded-lg hover:bg-primary-hover font-semibold transition-colors">
-                        <i data-lucide="shopping-bag" class="w-5 h-5 inline mr-2"></i>
-                        Proceed to Checkout
-                    </button>
+            <!-- Order summary sidebar (~33%) -->
+            <aside class="lg:col-span-4 lg:sticky lg:top-24 space-y-4">
+                <div class="bg-white rounded-2xl border border-slate-200/90 shadow-md overflow-hidden">
+                    <div class="px-5 py-4 border-b border-slate-100 bg-gradient-to-br from-slate-50 to-white">
+                        <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="map-pin" class="w-5 h-5 text-primary"></i>
+                            Order summary
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-1">Delivery address &amp; fees are confirmed at checkout.</p>
+                    </div>
+                    <div class="p-5 space-y-4" id="cart-order-summary">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-600">Subtotal (<span id="summary-selected-count">0</span> items)</span>
+                            <span class="font-semibold text-slate-900 tabular-nums" id="summary-subtotal">₱0.00</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-600">Shipping</span>
+                            <span class="font-medium text-emerald-700 text-xs sm:text-sm">Set at checkout</span>
+                        </div>
+                        <div class="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-3">
+                            <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Voucher</label>
+                            <div class="flex gap-2 mt-2">
+                                <input type="text" disabled placeholder="Coming soon" class="flex-1 text-sm px-3 py-2 rounded-lg border border-slate-200 bg-white text-slate-400 cursor-not-allowed">
+                                <button type="button" disabled class="px-3 py-2 rounded-lg bg-slate-200 text-slate-500 text-xs font-semibold cursor-not-allowed">Apply</button>
+                            </div>
+                        </div>
+                        <div class="border-t border-slate-200 pt-4 flex justify-between items-baseline">
+                            <span class="text-slate-700 font-semibold">Total</span>
+                            <span class="text-2xl font-bold text-primary tabular-nums" id="summary-total">₱0.00</span>
+                        </div>
+                        <button type="button" onclick="proceedToCheckout()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-primary to-emerald-800 text-white font-bold text-sm sm:text-base shadow-lg shadow-primary/30 hover:from-primary-hover hover:to-emerald-900 transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="credit-card" class="w-5 h-5"></i>
+                            PROCEED TO CHECKOUT
+                        </button>
+                        <a href="/marketplace" class="block text-center text-sm font-semibold text-primary hover:text-primary-hover py-1">
+                            Continue shopping
+                        </a>
+                    </div>
                 </div>
-            </div>
+            </aside>
         </div>
     <?php endif; ?>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Lucide icons
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-    }
-
-    // Initialize cart functionality
+    if (typeof lucide !== 'undefined') lucide.createIcons();
     initializeCart();
 });
 
 function initializeCart() {
-    // Add event listeners to checkboxes
-    const checkboxes = document.querySelectorAll('input[name="selected_items[]"]');
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', updateCartTotal);
+    document.querySelectorAll('.cart-item-cb').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+            updateCartTotal();
+            syncSelectAllState();
+        });
     });
-
-    // Initial total calculation
+    var master = document.getElementById('cart-select-all');
+    if (master) {
+        master.addEventListener('change', function() {
+            selectAllItems(master.checked);
+            updateCartTotal();
+        });
+    }
+    document.querySelectorAll('.cart-shop-select-all').forEach(function(shopCb) {
+        shopCb.addEventListener('change', function() {
+            var block = shopCb.closest('.seller-group');
+            if (!block) return;
+            block.querySelectorAll('.cart-item-cb').forEach(function(i) {
+                i.checked = shopCb.checked;
+            });
+            updateCartTotal();
+            syncSelectAllState();
+        });
+    });
     updateCartTotal();
+    syncSelectAllState();
+}
+
+function syncSelectAllState() {
+    var all = document.querySelectorAll('.cart-item-cb');
+    var master = document.getElementById('cart-select-all');
+    if (!master || !all.length) return;
+    var total = all.length;
+    var checked = 0;
+    all.forEach(function(c) { if (c.checked) checked++; });
+    master.checked = checked === total && total > 0;
+    master.indeterminate = checked > 0 && checked < total;
+
+    document.querySelectorAll('.seller-group').forEach(function(block) {
+        var cbs = block.querySelectorAll('.cart-item-cb');
+        var shopMaster = block.querySelector('.cart-shop-select-all');
+        if (!shopMaster || !cbs.length) return;
+        var sc = 0;
+        cbs.forEach(function(c) { if (c.checked) sc++; });
+        shopMaster.checked = sc === cbs.length;
+        shopMaster.indeterminate = sc > 0 && sc < cbs.length;
+    });
+}
+
+function updateRowLineTotal(row) {
+    var unit = parseFloat(row.getAttribute('data-unit-price')) || 0;
+    var input = row.querySelector('input[id^="quantity_"]');
+    var qty = input ? parseInt(input.value, 10) || 0 : 0;
+    var line = unit * qty;
+    row.setAttribute('data-line-total', line);
+    var el = row.querySelector('.js-line-total');
+    if (el) el.textContent = '₱' + line.toFixed(2);
 }
 
 function updateCartTotal() {
-    const checkboxes = document.querySelectorAll('input[name="selected_items[]"]');
-    let total = 0;
-    let selectedCount = 0;
-
-    checkboxes.forEach(checkbox => {
-        if (checkbox.checked) {
-            const itemContainer = checkbox.closest('.p-6');
-            const priceText = itemContainer.querySelector('.text-primary').textContent.trim();
-            // Extract number from format like "₱1,234.56"
-            const priceMatch = priceText.match(/₱([\d,]+\.?\d*)/);
-            const itemTotal = priceMatch ? parseFloat(priceMatch[1].replace(',', '')) : 0;
-
-            total += itemTotal;
-            selectedCount++;
-        }
+    var total = 0;
+    var count = 0;
+    document.querySelectorAll('.cart-item-cb:checked').forEach(function(cb) {
+        var row = cb.closest('[data-cart-row]');
+        if (!row) return;
+        updateRowLineTotal(row);
+        total += parseFloat(row.getAttribute('data-line-total')) || 0;
+        count++;
     });
+    var subEl = document.getElementById('summary-subtotal');
+    var totEl = document.getElementById('summary-total');
+    var cntEl = document.getElementById('summary-selected-count');
+    if (subEl) subEl.textContent = '₱' + total.toFixed(2);
+    if (totEl) totEl.textContent = '₱' + total.toFixed(2);
+    if (cntEl) cntEl.textContent = String(count);
+}
 
-    console.log('Selected items:', selectedCount, 'Total:', total); // Debug log
+function selectAllItems(checked) {
+    document.querySelectorAll('.cart-item-cb').forEach(function(cb) {
+        cb.checked = checked;
+    });
+    document.querySelectorAll('.cart-shop-select-all').forEach(function(s) {
+        s.checked = checked;
+        s.indeterminate = false;
+    });
+}
 
-    // Update main cart item count
-    const cartHeader = document.querySelector('.bg-white.rounded-xl.shadow-md.border .p-6.border-b h2');
-    if (cartHeader) {
-        cartHeader.textContent = `Cart Items (${selectedCount})`;
+function adjustQuantity(cartItemId, delta) {
+    var input = document.getElementById('quantity_' + cartItemId);
+    if (!input) return;
+    var max = parseInt(input.getAttribute('max'), 10) || 99;
+    var v = parseInt(input.value, 10) + delta;
+    if (v < 1) v = 1;
+    if (v > max) v = max;
+    if (v === parseInt(input.value, 10)) return;
+    input.value = v;
+    updateQuantity(cartItemId);
+}
+
+function deleteSelectedItems() {
+    var ids = Array.from(document.querySelectorAll('.cart-item-cb:checked')).map(function(c) { return c.value; });
+    if (!ids.length) {
+        Swal.fire({ icon: 'warning', title: 'Nothing selected', text: 'Select items to remove.', confirmButtonColor: '#166534' });
+        return;
     }
-
-    // Update Order Summary section
-    const orderSummaryContainer = document.querySelector('.lg\\:col-span-1 .bg-white.rounded-xl.shadow-md .space-y-3');
-
-    if (orderSummaryContainer) {
-        console.log('Found order summary container');
-
-        // Find all rows in order summary
-        const allRows = orderSummaryContainer.querySelectorAll('.flex.justify-between');
-        console.log('Found', allRows.length, 'rows in order summary');
-
-        allRows.forEach((row, index) => {
-            const label = row.querySelector('span:first-child');
-            const amount = row.querySelector('span:last-child');
-
-            if (label && amount) {
-                console.log(`Row ${index}: label="${label.textContent}", amount="${amount.textContent}"`);
-
-                if (label.textContent.includes('Subtotal')) {
-                    console.log('Updating subtotal row');
-                    // Update subtotal label and amount
-                    label.textContent = `Subtotal (${selectedCount} items)`;
-                    amount.textContent = `₱${total.toFixed(2)}`;
-                } else if (label.textContent.includes('Total')) {
-                    console.log('Updating total row');
-                    // Update total amount
-                    amount.textContent = `₱${total.toFixed(2)}`;
-                }
-            }
+    Swal.fire({
+        title: 'Remove selected?',
+        text: 'Remove ' + ids.length + ' item(s) from your cart?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#b91c1c',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Yes, remove',
+        cancelButtonText: 'Cancel'
+    }).then(function(result) {
+        if (!result.isConfirmed) return;
+        Swal.fire({ title: 'Removing…', allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
+        var tokenName = '<?= csrf_token() ?>';
+        var token = document.querySelector('input[name="' + tokenName + '"]');
+        var val = token ? token.value : '';
+        Promise.all(ids.map(function(id) {
+            return fetch('/cart/remove/' + id, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+                body: new URLSearchParams((function() { var o = {}; o[tokenName] = val; return o; })())
+            }).then(function(r) { return r.json(); });
+        })).then(function() {
+            Swal.close();
+            window.location.reload();
+        }).catch(function() {
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Could not remove some items.', confirmButtonColor: '#166534' });
         });
-    } else {
-        console.log('Order summary container not found');
-    }
+    });
 }
 
 function removeFromCart(cartItemId) {
-    // Find the cart item element to get details
-    const cartItemElement = document.querySelector(`input[id="quantity_${cartItemId}"]`);
-    if (!cartItemElement) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Could not find item details'
-        });
+    var input = document.getElementById('quantity_' + cartItemId);
+    if (!input) {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Could not find item', confirmButtonColor: '#166534' });
         return;
     }
-
-    const itemContainer = cartItemElement.closest('.p-6');
-    const productName = itemContainer.querySelector('h3').textContent.trim();
-    const farmerName = itemContainer.querySelector('.text-gray-600').textContent.replace('by ', '').trim();
-    const quantity = parseInt(cartItemElement.value) || 0;
-    const priceText = itemContainer.querySelector('.text-primary').textContent.trim();
-    // Extract number from format like "₱1,234.56"
-    const priceMatch = priceText.match(/₱([\d,]+\.?\d*)/);
-    const itemTotal = priceMatch ? parseFloat(priceMatch[1].replace(',', '')) : 0;
-    const unitPrice = quantity > 0 ? itemTotal / quantity : 0;
+    var row = input.closest('[data-cart-row]');
+    var titleEl = row.querySelector('a.font-semibold');
+    var productName = titleEl ? titleEl.textContent.trim() : 'Item';
+    var qty = parseInt(input.value, 10) || 0;
+    var unit = parseFloat(row.getAttribute('data-unit-price')) || 0;
+    var itemTotal = unit * qty;
 
     Swal.fire({
-        title: 'Remove Item',
-        html: `
-            <div class="text-left">
-                <div class="mb-4">
-                    <h3 class="font-semibold text-lg mb-2">${productName}</h3>
-                    <p class="text-gray-600 mb-2">Seller: ${farmerName}</p>
-                </div>
-                <div class="border-t pt-3">
-                    <div class="flex justify-between mb-2">
-                        <span>Quantity:</span>
-                        <span>${quantity}</span>
-                    </div>
-                    <div class="flex justify-between mb-2">
-                        <span>Unit Price:</span>
-                        <span>₱${unitPrice.toFixed(2)}</span>
-                    </div>
-                    <div class="flex justify-between mb-2">
-                        <span>Total (${quantity} items):</span>
-                        <span>₱${itemTotal.toFixed(2)}</span>
-                    </div>
-                    <div class="border-t pt-2 mt-2">
-                        <div class="flex justify-between font-bold text-red-600">
-                            <span>This will be removed from your cart</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `,
+        title: 'Remove item?',
+        text: productName + '\nQty: ' + qty + ' · Line total: ₱' + itemTotal.toFixed(2),
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Yes, remove it!',
-        cancelButtonText: 'Keep in cart'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Get CSRF token
-            const csrfToken = document.querySelector('input[name="<?= csrf_token() ?>"]').value;
-
-            fetch(`/cart/remove/${cartItemId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: new URLSearchParams({
-                    '<?= csrf_token() ?>': csrfToken
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Show success message and reload page
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Removed!',
-                        html: `
-                            <div class="text-center">
-                                <p class="mb-2">${data.message}</p>
-                                <div class="bg-gray-50 p-3 rounded-lg mt-3">
-                                    <p class="text-sm text-gray-600">Remaining items in cart: <strong>${data.cart_count}</strong></p>
-                                </div>
-                            </div>
-                        `,
-                        showConfirmButton: true,
-                        confirmButtonText: 'Continue Shopping',
-                        showCancelButton: true,
-                        cancelButtonText: 'View Updated Cart',
-                        confirmButtonColor: '#10b981',
-                        cancelButtonColor: '#3b82f6'
-                    }).then((result) => {
-                        if (result.dismiss === Swal.DismissReason.cancel) {
-                            location.reload();
-                        } else {
-                            window.location.href = '/marketplace';
-                        }
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: data.message
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'An error occurred. Please try again.'
-                });
-            });
-        }
+        confirmButtonColor: '#b91c1c',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Remove',
+        cancelButtonText: 'Keep'
+    }).then(function(result) {
+        if (!result.isConfirmed) return;
+        var tokenName = '<?= csrf_token() ?>';
+        var csrfToken = document.querySelector('input[name="' + tokenName + '"]').value;
+        fetch('/cart/remove/' + cartItemId, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+            body: new URLSearchParams((function() { var o = {}; o[tokenName] = csrfToken; return o; })())
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                Swal.fire({ icon: 'success', title: 'Removed', timer: 1200, showConfirmButton: false }).then(function() { location.reload(); });
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: data.message || 'Failed', confirmButtonColor: '#166534' });
+            }
+        })
+        .catch(function() {
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Request failed.', confirmButtonColor: '#166534' });
+        });
     });
 }
 
 function clearCart() {
     Swal.fire({
-        title: 'Clear Cart',
-        text: 'Clear entire cart? This cannot be undone.',
+        title: 'Clear entire cart?',
+        text: 'This cannot be undone.',
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Yes, clear it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Show loading indicator
-            Swal.fire({
-                title: 'Clearing Cart...',
-                text: 'Please wait while we clear your cart.',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                showConfirmButton: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-
-            // Get CSRF token
-            const csrfToken = document.querySelector('input[name="<?= csrf_token() ?>"]').value;
-
-            fetch('/cart/clear', {
-                method: 'GET',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => {
-                if (response.ok) {
-                    // Show success message
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Cart Cleared!',
-                        text: 'All items have been removed from your cart.',
-                        confirmButtonText: 'Continue Shopping',
-                        confirmButtonColor: '#10b981'
-                    }).then(() => {
-                        window.location.reload();
-                    });
-                } else {
-                    throw new Error('Failed to clear cart');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Failed to clear cart. Please try again.',
-                    confirmButtonColor: '#d33'
-                });
-            });
-        }
+        confirmButtonColor: '#b91c1c',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Clear all'
+    }).then(function(result) {
+        if (!result.isConfirmed) return;
+        Swal.fire({ title: 'Clearing…', allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
+        fetch('/cart/clear', { method: 'GET', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function(r) {
+            if (r.ok) {
+                Swal.fire({ icon: 'success', title: 'Cart cleared', confirmButtonColor: '#166534' }).then(function() { location.reload(); });
+            } else throw new Error('fail');
+        })
+        .catch(function() {
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to clear cart.', confirmButtonColor: '#166534' });
+        });
     });
 }
 
 function proceedToCheckout() {
-    const form = document.getElementById('cartForm');
-    const formData = new FormData(form);
-    const selectedItems = formData.getAll('selected_items[]');
-
-    if (selectedItems.length === 0) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'No Items Selected',
-            text: 'Please select at least one item to checkout.',
-            confirmButtonColor: '#f59e0b'
-        });
+    var form = document.getElementById('cartForm');
+    var fd = new FormData(form);
+    var selected = fd.getAll('selected_items[]');
+    if (!selected.length) {
+        Swal.fire({ icon: 'warning', title: 'Select items', text: 'Choose at least one product to checkout.', confirmButtonColor: '#166534' });
         return;
     }
-
-    // Submit form directly to checkout
     form.action = '/checkout';
     form.method = 'POST';
     form.submit();
 }
 
-function selectAllItems(checked) {
-    const checkboxes = document.querySelectorAll('input[name="selected_items[]"]');
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = checked;
-    });
-}
-
 function updateQuantity(cartItemId) {
-    const quantityInput = document.getElementById(`quantity_${cartItemId}`);
-
-    const newQuantity = parseInt(quantityInput.value);
-
+    var quantityInput = document.getElementById('quantity_' + cartItemId);
+    var newQuantity = parseInt(quantityInput.value, 10);
     if (newQuantity < 1 || newQuantity > 99 || isNaN(newQuantity)) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Invalid Quantity',
-            text: 'Please enter a quantity between 1 and 99.'
-        });
+        Swal.fire({ icon: 'warning', title: 'Invalid quantity', text: 'Use a quantity between 1 and 99.', confirmButtonColor: '#166534' });
         return;
     }
+    var row = quantityInput.closest('[data-cart-row]');
+    var unit = parseFloat(row.getAttribute('data-unit-price')) || 0;
+    var priceEl = row.querySelector('.js-line-total');
+    priceEl.textContent = '₱' + (unit * newQuantity).toFixed(2);
+    row.setAttribute('data-line-total', unit * newQuantity);
 
-    const itemContainer = quantityInput.closest('.p-6');
-    const unitPriceText = itemContainer.querySelector('.text-gray-500').textContent.trim();
-    const unitPriceMatch = unitPriceText.match(/₱([\d,]+\.?\d*)/);
-    const unitPrice = unitPriceMatch ? parseFloat(unitPriceMatch[1].replace(',', '')) : 0;
-    const newTotal = unitPrice * newQuantity;
+    var tokenName = '<?= csrf_token() ?>';
+    var csrfToken = document.querySelector('input[name="' + tokenName + '"]').value;
 
-    // Update the price display immediately
-    const priceSpan = itemContainer.querySelector('.text-primary');
-    priceSpan.textContent = `₱${newTotal.toFixed(2)}`;
-
-    // Get CSRF token
-    const csrfToken = document.querySelector('input[name="<?= csrf_token() ?>"]').value;
-
-    // Show loading
-    const updateButton = itemContainer.querySelector('button[onclick*="updateQuantity"]');
-    const originalText = updateButton.textContent;
-    updateButton.textContent = 'Updating...';
-    updateButton.disabled = true;
-
-    fetch(`/cart/update/${cartItemId}`, {
+    fetch('/cart/update/' + cartItemId, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: new URLSearchParams({
-            '<?= csrf_token() ?>': csrfToken,
-            'quantity': newQuantity
-        })
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+        body: new URLSearchParams((function() { var o = {}; o[tokenName] = csrfToken; o.quantity = newQuantity; return o; })())
     })
-    .then(response => response.json())
-    .then(data => {
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
         if (data.success) {
-            // Update original quantity
             quantityInput.setAttribute('data-original-quantity', newQuantity);
-            // Update cart totals
             updateCartTotal();
-            Swal.fire({
-                icon: 'success',
-                title: 'Updated!',
-                text: 'Quantity updated successfully.',
-                timer: 1500,
-                showConfirmButton: false
-            });
+            syncSelectAllState();
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'success', title: 'Updated', timer: 900, showConfirmButton: false });
+            }
         } else {
-            // Revert changes
-            const oldQuantity = data.old_quantity || quantityInput.getAttribute('data-original-quantity');
-            quantityInput.value = oldQuantity;
-            const oldTotal = unitPrice * parseInt(oldQuantity);
-            priceSpan.textContent = `₱${oldTotal.toFixed(2)}`;
-            Swal.fire({
-                icon: 'error',
-                title: 'Update Failed',
-                text: data.message || 'Failed to update quantity.'
-            });
+            var oldQ = parseInt(quantityInput.getAttribute('data-original-quantity'), 10) || 1;
+            quantityInput.value = oldQ;
+            updateRowLineTotal(row);
+            updateCartTotal();
+            Swal.fire({ icon: 'error', title: 'Update failed', text: data.message || 'Try again.', confirmButtonColor: '#166534' });
         }
     })
-    .catch(error => {
-        console.error('Error:', error);
-        // Revert changes
-        const oldQuantity = quantityInput.getAttribute('data-original-quantity');
-        quantityInput.value = oldQuantity;
-        const oldTotal = unitPrice * parseInt(oldQuantity);
-        priceSpan.textContent = `₱${oldTotal.toFixed(2)}`;
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'An error occurred while updating quantity.'
-        });
-    })
-    .finally(() => {
-        // Reset button
-        updateButton.textContent = originalText;
-        updateButton.disabled = false;
+    .catch(function() {
+        var oldQ = parseInt(quantityInput.getAttribute('data-original-quantity'), 10) || 1;
+        quantityInput.value = oldQ;
+        updateRowLineTotal(row);
+        updateCartTotal();
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Network error.', confirmButtonColor: '#166534' });
     });
 }
 
-// Show checkout success notification if redirected from checkout
 document.addEventListener('DOMContentLoaded', function() {
-    <?php if (session()->has('success') && strpos(session()->get('success'), 'order') !== false): ?>
+    <?php if (session()->has('success') && stripos((string) session()->get('success'), 'order') !== false): ?>
         if (typeof Swal !== 'undefined') {
             Swal.fire({
                 icon: 'success',
-                title: 'Checkout Successful!',
-                html: `<?= str_replace("'", "\\'", session()->get('success')) ?>`,
-                confirmButtonText: 'Great!',
-                confirmButtonColor: '#10b981'
+                title: 'Checkout successful!',
+                text: <?= json_encode((string) session()->get('success'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT) ?>,
+                confirmButtonText: 'Great',
+                confirmButtonColor: '#166534'
             });
         }
-        // Reload cart to show updated items
-        setTimeout(function() {
-            window.location.reload();
-        }, 1500);
+        setTimeout(function() { window.location.reload(); }, 1600);
     <?php endif; ?>
 });
 </script>
 
 <?= $this->endSection() ?>
-

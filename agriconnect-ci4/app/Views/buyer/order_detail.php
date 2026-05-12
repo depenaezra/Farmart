@@ -174,7 +174,7 @@
                     <!-- Actions -->
                     <div class="space-y-3">
                         <?php if ($order['status'] === 'pending'): ?>
-                            <form action="/buyer/orders/<?= $order['id'] ?>/cancel" method="POST" class="swal-confirm-form" data-confirm="Are you sure you want to cancel this order?">
+                            <form action="/buyer/orders/<?= $order['id'] ?>/cancel" method="POST" class="swal-confirm-form" data-confirm-title="Cancel this order?" data-confirm="The seller will be notified. This may not be reversible depending on payment status." data-confirm-ok="Yes, cancel order" data-confirm-danger data-confirm-icon="warning">
                                 <?= csrf_field() ?>
                                 <button type="submit" class="w-full bg-red-100 text-red-700 py-3 px-4 rounded-lg hover:bg-red-200 font-semibold transition-colors">
                                     <i data-lucide="x-circle" class="w-5 h-5 inline mr-2"></i>

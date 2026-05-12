@@ -117,7 +117,15 @@
                                         </a>
 
                                         <?php if ((int) $user['id'] !== (int) session()->get('user_id')): ?>
-                                            <form method="post" action="/admin/users/<?= $user['id'] ?>/toggle-status" class="swal-confirm-form" data-confirm="<?= $user['status'] === 'active' ? 'Disable this account login access?' : 'Re-enable this account login access?' ?>">
+                                            <?php
+                                            $isActiveRow = $user['status'] === 'active';
+                                            $toggleTitle = $isActiveRow ? 'Disable login for this user?' : 'Enable login for this user?';
+                                            $toggleBody = $isActiveRow
+                                                ? 'They will not be able to sign in until you turn access back on.'
+                                                : 'They can sign in again if the account is otherwise in good standing.';
+                                            $toggleOk = $isActiveRow ? 'Disable login' : 'Enable login';
+                                            ?>
+                                            <form method="post" action="/admin/users/<?= $user['id'] ?>/toggle-status" class="swal-confirm-form" data-confirm-title="<?= esc($toggleTitle, 'attr') ?>" data-confirm="<?= esc($toggleBody, 'attr') ?>" data-confirm-ok="<?= esc($toggleOk, 'attr') ?>" data-confirm-icon="question"<?= $isActiveRow ? ' data-confirm-danger' : '' ?>>
                                                 <?= csrf_field() ?>
                                                 <button type="submit" class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors <?= $user['status'] === 'active' ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-green-100 text-green-700 hover:bg-green-200' ?>">
                                                     <i data-lucide="<?= $user['status'] === 'active' ? 'user-x' : 'user-check' ?>" class="w-4 h-4 mr-2"></i>
@@ -126,7 +134,7 @@
                                             </form>
 
                                             <?php if ($hasActiveSuspension): ?>
-                                                <form method="post" action="/admin/users/<?= $user['id'] ?>/clear-suspension" class="swal-confirm-form" data-confirm="Remove temporary login suspension for this user?">
+                                                <form method="post" action="/admin/users/<?= $user['id'] ?>/clear-suspension" class="swal-confirm-form" data-confirm-title="Clear login suspension?" data-confirm="They can try to sign in again immediately if login is enabled for the account." data-confirm-ok="Clear suspension" data-confirm-icon="question">
                                                     <?= csrf_field() ?>
                                                     <button type="submit" class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors">
                                                         <i data-lucide="shield-check" class="w-4 h-4 mr-2"></i>
@@ -134,7 +142,7 @@
                                                     </button>
                                                 </form>
                                             <?php else: ?>
-                                                <form method="post" action="/admin/users/<?= $user['id'] ?>/suspend-login" class="swal-confirm-form" data-confirm="Apply selected suspension option to this user?">
+                                                <form method="post" action="/admin/users/<?= $user['id'] ?>/suspend-login" class="swal-confirm-form" data-confirm-title="Suspend sign-in?" data-confirm="Uses the duration selected in this row. The user cannot log in until it ends or you clear it." data-confirm-ok="Apply suspension" data-confirm-danger data-confirm-icon="warning">
                                                     <?= csrf_field() ?>
                                                     <select name="suspend_duration" class="px-3 py-2 text-sm border border-amber-200 bg-amber-50 text-amber-900 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
                                                         <option value="1h">Suspend 1hr</option>

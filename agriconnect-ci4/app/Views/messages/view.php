@@ -41,7 +41,7 @@
                             <span>To: <?= esc($message['receiver_name']) ?></span>
                         </div>
 
-                        <form action="/messages/delete/<?= $message['id'] ?>" method="POST" class="inline swal-confirm-form" data-confirm="Are you sure you want to delete this message?">
+                        <form action="/messages/delete/<?= $message['id'] ?>" method="POST" class="inline swal-confirm-form" data-confirm-title="Delete this message?" data-confirm="You will not be able to read it again from your inbox." data-confirm-ok="Delete" data-confirm-danger data-confirm-icon="warning">
                             <?= csrf_field() ?>
                             <button type="submit" class="inline-flex items-center px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors">
                                 <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i>
@@ -63,7 +63,7 @@
         <div class="mt-8 bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden mb-40">
             <div class="p-8">
                 <h3 class="text-xl font-bold text-gray-900 mb-6">Reply to Message</h3>
-                <form action="/messages/reply/<?= $message['id'] ?>" method="POST">
+                <form action="/messages/reply/<?= $message['id'] ?>" method="POST" data-submit-loading data-loading-label="Sending reply…">
                     <?= csrf_field() ?>
                     <div class="mb-6">
                         <label for="message" class="block text-sm font-semibold text-gray-700 mb-2">

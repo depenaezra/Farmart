@@ -427,8 +427,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                 title: 'Error',
                                 text: data.error || 'Failed to send message',
                                 showCloseButton: true,
-                                showClass: { popup: 'animate__animated animate__shakeX' },
-                                hideClass: { popup: 'animate__animated animate__fadeOutUp' }
+                                confirmButtonColor: '#166534',
+                                showClass: { popup: 'animate__animated animate__shakeX animate__faster' },
+                                hideClass: { popup: 'animate__animated animate__fadeOutUp animate__faster' }
                             });
                         } catch (e) {
                             alert(data.error || 'Failed to send message');
@@ -444,7 +445,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         icon: 'error',
                         title: 'Error',
                         text: 'Failed to send message. Please try again.',
-                        showCloseButton: true
+                        showCloseButton: true,
+                        confirmButtonColor: '#166534'
                     });
                 } catch (e) {
                     alert('Failed to send message. Please try again.');

@@ -755,60 +755,97 @@ document.getElementById('imageModalNext').onclick = function(e) {
     }
 };
 
-// Delete post functionality
+// Delete post functionality (SweetAlert2 confirm + loading, matches site-wide patterns)
 function deletePost(postId) {
-    if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+    function runDelete() {
         const formData = new FormData();
         const csrfInput = document.querySelector('input[name*="csrf"]');
         if (csrfInput) {
             formData.append(csrfInput.name, csrfInput.value);
         }
 
-        fetch(`/forum/post/${postId}/delete`, {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Remove the post from the page
-                const postCard = document.querySelector(`.post-card[data-post-id="${postId}"]`);
-                if (postCard) {
-                    postCard.remove();
-                }
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Deleting…',
+                allowOutsideClick: false,
+                didOpen: function () {
+                    Swal.showLoading();
+                },
+            });
+        }
 
-                try {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Post deleted',
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-                } catch (e) {}
-            } else {
+        fetch('/forum/post/' + postId + '/delete', {
+            method: 'POST',
+            body: formData,
+        })
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (data) {
+                if (typeof Swal !== 'undefined') Swal.close();
+                if (data.success) {
+                    const postCard = document.querySelector('.post-card[data-post-id="' + postId + '"]');
+                    if (postCard) postCard.remove();
+                    try {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Post deleted',
+                            timer: 1600,
+                            showConfirmButton: false,
+                            showClass: { popup: 'animate__animated animate__fadeInDown' },
+                            hideClass: { popup: 'animate__animated animate__fadeOutUp' },
+                        });
+                    } catch (e) {}
+                } else {
+                    try {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Could not delete',
+                            text: data.message || 'Failed to delete post.',
+                            confirmButtonColor: '#166534',
+                        });
+                    } catch (e) {
+                        alert(data.message || 'Failed to delete post.');
+                    }
+                }
+            })
+            .catch(function () {
+                if (typeof Swal !== 'undefined') Swal.close();
                 try {
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: data.message || 'Failed to delete post.'
+                        text: 'An error occurred.',
+                        confirmButtonColor: '#166534',
                     });
                 } catch (e) {
-                    alert(data.message || 'Failed to delete post.');
+                    alert('An error occurred.');
                 }
-            }
-        })
-        .catch(error => {
-            try {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'An error occurred.'
-                });
-            } catch (e) {
-                alert('An error occurred.');
-            }
-        });
+            });
     }
+
+    if (typeof Swal === 'undefined') {
+        if (confirm('Delete this forum post? Comments will be removed. This cannot be undone.')) runDelete();
+        return;
+    }
+
+    Swal.fire({
+        html:
+            '<div class="text-center"><h2 class="text-xl font-semibold text-gray-900 mb-2">Delete this forum post?</h2><p class="text-gray-600 text-sm">All comments will be removed. This cannot be undone.</p></div>',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete post',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        reverseButtons: true,
+        focusCancel: true,
+        customClass: { popup: 'farmart-swal-popup' },
+        showClass: { popup: 'animate__animated animate__zoomIn' },
+        hideClass: { popup: 'animate__animated animate__fadeOutUp' },
+    }).then(function (result) {
+        if (result.isConfirmed) runDelete();
+    });
 }
 
 // Report functionality

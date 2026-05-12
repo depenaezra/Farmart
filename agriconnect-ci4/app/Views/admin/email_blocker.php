@@ -11,7 +11,7 @@
     <!-- Add Blocked Email Form -->
     <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6 mb-6">
         <h2 class="text-xl font-semibold text-gray-900 mb-4">Block New Email</h2>
-        <form method="post" action="/admin/email-blocker/block">
+        <form method="post" action="/admin/email-blocker/block" class="swal-confirm-form" data-confirm-title="Block this email?" data-confirm="That address will not be able to register a new account." data-confirm-ok="Block email" data-confirm-icon="warning" data-submit-loading data-loading-label="Blocking…">
             <?= csrf_field() ?>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -82,7 +82,7 @@
                                     <?= date('M d, Y H:i', strtotime($blocked['blocked_at'])) ?>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <form method="post" action="/admin/email-blocker/unblock/<?= $blocked['id'] ?>" class="swal-confirm-form" data-confirm="Are you sure you want to unblock this email?">
+                                    <form method="post" action="/admin/email-blocker/unblock/<?= $blocked['id'] ?>" class="swal-confirm-form" data-confirm-title="Unblock this email?" data-confirm="They will be allowed to register again if they try." data-confirm-ok="Unblock" data-confirm-icon="question">
                                         <?= csrf_field() ?>
                                         <button type="submit" class="inline-flex items-center px-4 py-2 bg-green-100 text-green-700 text-sm font-medium rounded-lg hover:bg-green-200 transition-colors">
                                             <i data-lucide="shield-check" class="w-4 h-4 mr-2"></i>

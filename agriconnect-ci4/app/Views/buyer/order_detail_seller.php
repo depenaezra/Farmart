@@ -171,7 +171,7 @@
                     <?php if (in_array($order['status'], ['pending', 'confirmed', 'processing'])): ?>
                         <div class="mb-6">
                             <h3 class="text-sm font-semibold text-gray-900 mb-3">Update Status</h3>
-                            <form action="/buyer/sales/orders/<?= $order['id'] ?>/update-status" method="POST">
+                            <form action="/buyer/sales/orders/<?= $order['id'] ?>/update-status" method="POST" class="swal-confirm-form" data-confirm-title="Update order status?" data-confirm="The buyer will see the new status on their order. Continue?" data-confirm-ok="Update status" data-confirm-icon="question" data-loading-label="Updating…">
                                 <?= csrf_field() ?>
                                 <select name="status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent mb-3">
                                     <option value="confirmed" <?= $order['status'] === 'confirmed' ? 'selected' : '' ?>>Confirmed</option>

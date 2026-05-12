@@ -3,23 +3,25 @@
 <?= $this->section('content') ?>
 
 <!-- Hero Section -->
-<section class="bg-gradient-to-br from-[#2d7a3e] to-[#4a9b5a] text-white py-12 md:py-20">
-    <div class="container mx-auto px-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+<section class="bg-gradient-to-br from-[#14532d] via-[#166534] to-[#15803d] text-white py-14 md:py-24 relative overflow-hidden">
+    <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.04\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-90 pointer-events-none" aria-hidden="true"></div>
+    <div class="container mx-auto px-4 relative z-10">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-14 items-center">
             <div>
-                <h1 class="text-4xl md:text-5xl font-bold mb-4">
-                    Direct Marketplace for Nasugbu Farmers
+                <p class="text-sm font-semibold uppercase tracking-widest text-emerald-200/90 mb-3">Nasugbu agricultural marketplace</p>
+                <h1 class="text-4xl md:text-5xl lg:text-[3.25rem] font-bold mb-5 leading-tight tracking-tight">
+                    Direct marketplace for local farmers
                 </h1>
-                <p class="text-xl mb-8 text-white/90">
-                    Connecting local farmers directly with buyers. Fresh produce, fair prices, strong community.
+                <p class="text-lg md:text-xl mb-9 text-white/85 max-w-xl leading-relaxed">
+                    Connect growers with buyers. Fresh produce, fair prices, and a stronger community.
                 </p>
                 
-                <div class="flex flex-col sm:flex-row gap-4">
-                    <a href="/marketplace" class="bg-white text-[#2d7a3e] px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 text-center transition-colors">
-                        Browse Products
+                <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                    <a href="/marketplace" class="bg-white text-primary px-8 py-3.5 rounded-xl font-semibold hover:bg-slate-100 text-center transition-all shadow-lg shadow-black/20">
+                        Browse products
                     </a>
-                    <a href="/auth/register-buyer" class="bg-[#d97706] text-white px-8 py-4 rounded-lg font-semibold hover:bg-[#b45309] text-center transition-colors">
-                        Register
+                    <a href="/auth/register-buyer" class="bg-amber-500 text-white px-8 py-3.5 rounded-xl font-semibold hover:bg-amber-600 text-center transition-all ring-2 ring-white/20 shadow-lg shadow-black/15">
+                        Create account
                     </a>
                 </div>
             </div>
@@ -34,10 +36,10 @@
 </section>
 
 <!-- Navigation Cards -->
-<section class="py-12 md:py-16 bg-mint-light">
-    <div class="container mx-auto px-4">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-            <a href="/marketplace" class="bg-white rounded-xl shadow-md border-2 border-gray-200 hover:border-primary transition-all p-6 text-center">
+<section class="py-14 md:py-20 bg-mint-light">
+    <div class="max-w-[1200px] mx-auto px-4 sm:px-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-14">
+            <a href="/marketplace" class="farmart-card rounded-2xl p-5 md:p-6 text-center group hover:-translate-y-0.5">
                 <div class="flex flex-col items-center">
                     <i data-lucide="store" class="w-12 h-12 text-green-600 mb-3"></i>
                     <h3 class="text-lg font-semibold text-gray-900">Marketplace</h3>
@@ -45,7 +47,7 @@
                 </div>
             </a>
 
-            <a href="/announcements" class="bg-white rounded-xl shadow-md border-2 border-gray-200 hover:border-primary transition-all p-6 text-center">
+            <a href="/announcements" class="farmart-card rounded-2xl p-5 md:p-6 text-center group hover:-translate-y-0.5">
                 <div class="flex flex-col items-center">
                     <i data-lucide="megaphone" class="w-12 h-12 text-green-600 mb-3"></i>
                     <h3 class="text-lg font-semibold text-gray-900">Announcements</h3>
@@ -53,7 +55,7 @@
                 </div>
             </a>
 
-            <a href="/forum" class="bg-white rounded-xl shadow-md border-2 border-gray-200 hover:border-primary transition-all p-6 text-center">
+            <a href="/forum" class="farmart-card rounded-2xl p-5 md:p-6 text-center group hover:-translate-y-0.5">
                 <div class="flex flex-col items-center">
                     <i data-lucide="message-circle" class="w-12 h-12 text-green-600 mb-3"></i>
                     <h3 class="text-lg font-semibold text-gray-900">Forum</h3>
@@ -61,7 +63,7 @@
                 </div>
             </a>
 
-            <a href="/weather" class="bg-white rounded-xl shadow-md border-2 border-gray-200 hover:border-primary transition-all p-6 text-center">
+            <a href="/weather" class="farmart-card rounded-2xl p-5 md:p-6 text-center group hover:-translate-y-0.5">
                 <div class="flex flex-col items-center">
                     <i data-lucide="cloud-sun" class="w-12 h-12 text-green-600 mb-3"></i>
                     <h3 class="text-lg font-semibold text-gray-900">Weather</h3>
@@ -119,7 +121,7 @@
         
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <?php foreach ($featured_products as $product): ?>
-                <div class="bg-white rounded-xl shadow-md border-2 border-gray-200 hover:border-primary transition-all overflow-hidden">
+                <div class="farmart-card rounded-2xl overflow-hidden group hover:-translate-y-0.5">
                     <?php
                     $landingPreviewImage = null;
                     if (!empty($product['image_url'])) {

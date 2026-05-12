@@ -141,9 +141,9 @@
             <a href="/buyer/products/edit/<?= $product['id'] ?>" class="flex-1 max-w-xs bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition-colors font-semibold text-center">
                 Edit Product
             </a>
-            <form action="/buyer/products/delete/<?= $product['id'] ?>" method="POST" class="flex-1 max-w-xs">
+            <form action="/buyer/products/delete/<?= $product['id'] ?>" method="POST" class="flex-1 max-w-xs swal-confirm-form" data-confirm-title="Remove this listing?" data-confirm="<?= esc('This product will disappear from the marketplace and cannot be restored.', 'attr') ?>" data-confirm-ok="Yes, delete listing" data-confirm-danger data-confirm-icon="warning">
                 <?= csrf_field() ?>
-                <button type="submit" class="w-full bg-red-500 text-white py-3 px-6 rounded-lg hover:bg-red-600 transition-colors font-semibold" onclick="return confirm('Are you sure you want to delete this product?')">
+                <button type="submit" class="w-full bg-red-500 text-white py-3 px-6 rounded-lg hover:bg-red-600 transition-colors font-semibold shadow-sm hover:shadow">
                     Delete Product
                 </button>
             </form>
@@ -303,7 +303,7 @@ function addToCart() {
         `,
         icon: 'question',
         showCancelButton: true,
-        confirmButtonColor: '#10b981',
+        confirmButtonColor: '#166534',
         cancelButtonColor: '#6b7280',
         confirmButtonText: 'Add to Cart',
         cancelButtonText: 'Cancel'
@@ -343,7 +343,7 @@ function addToCart() {
                         confirmButtonText: 'Continue Shopping',
                         showCancelButton: true,
                         cancelButtonText: 'View Cart',
-                        confirmButtonColor: '#10b981',
+                        confirmButtonColor: '#166534',
                         cancelButtonColor: '#3b82f6'
                     }).then((result) => {
                         if (result.dismiss === Swal.DismissReason.cancel) {
@@ -421,7 +421,7 @@ function buyNow() {
         `,
         icon: 'question',
         showCancelButton: true,
-        confirmButtonColor: '#10b981',
+        confirmButtonColor: '#166534',
         cancelButtonColor: '#6b7280',
         confirmButtonText: 'Proceed to Checkout',
         cancelButtonText: 'Cancel'

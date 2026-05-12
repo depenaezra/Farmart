@@ -38,51 +38,51 @@
             </span>
             Shop by Category
         </h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <a href="/marketplace?category=vegetables" class="bg-white rounded-xl shadow-md border-2 <?= ($filters['category'] ?? '') === 'vegetables' ? 'border-green-500 bg-green-50 scale-105' : 'border-gray-200 hover:border-green-300 hover:scale-105' ?> transition-all duration-300 p-6 text-center group">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+            <a href="/marketplace?category=vegetables" class="farmart-interactive bg-white rounded-xl shadow border-2 <?= ($filters['category'] ?? '') === 'vegetables' ? 'border-green-500 bg-green-50 ring-1 ring-green-200' : 'border-gray-200 hover:border-green-300' ?> transition-all duration-200 p-3 sm:p-4 text-center group">
                 <div class="flex flex-col items-center">
-                    <div class="bg-green-100 rounded-full p-3 mb-3 group-hover:bg-green-200 transition-colors">
-                        <i data-lucide="carrot" class="w-12 h-12 text-green-600"></i>
+                    <div class="bg-green-100 rounded-full p-2 mb-2 group-hover:bg-green-200 transition-colors">
+                        <i data-lucide="carrot" class="w-8 h-8 sm:w-9 sm:h-9 text-green-600"></i>
                     </div>
-                    <h3 class="text-lg font-semibold text-gray-900">Vegetables</h3>
-                    <p class="text-sm text-gray-600 mt-1">Fresh produce</p>
+                    <h3 class="text-sm sm:text-base font-semibold text-gray-900">Vegetables</h3>
+                    <p class="text-xs text-gray-600 mt-0.5 line-clamp-1">Fresh produce</p>
                 </div>
             </a>
 
-            <a href="/marketplace?category=fruits" class="bg-white rounded-xl shadow-md border-2 <?= ($filters['category'] ?? '') === 'fruits' ? 'border-red-500 bg-red-50 scale-105' : 'border-gray-200 hover:border-red-300 hover:scale-105' ?> transition-all duration-300 p-6 text-center group">
+            <a href="/marketplace?category=fruits" class="farmart-interactive bg-white rounded-xl shadow border-2 <?= ($filters['category'] ?? '') === 'fruits' ? 'border-red-500 bg-red-50 ring-1 ring-red-200' : 'border-gray-200 hover:border-red-300' ?> transition-all duration-200 p-3 sm:p-4 text-center group">
                 <div class="flex flex-col items-center">
-                    <div class="bg-red-100 rounded-full p-3 mb-3 group-hover:bg-red-200 transition-colors">
-                        <i data-lucide="apple" class="w-12 h-12 text-red-600"></i>
+                    <div class="bg-red-100 rounded-full p-2 mb-2 group-hover:bg-red-200 transition-colors">
+                        <i data-lucide="apple" class="w-8 h-8 sm:w-9 sm:h-9 text-red-600"></i>
                     </div>
-                    <h3 class="text-lg font-semibold text-gray-900">Fruits</h3>
-                    <p class="text-sm text-gray-600 mt-1">Sweet & juicy</p>
+                    <h3 class="text-sm sm:text-base font-semibold text-gray-900">Fruits</h3>
+                    <p class="text-xs text-gray-600 mt-0.5 line-clamp-1">Sweet &amp; juicy</p>
                 </div>
             </a>
 
-            <a href="/marketplace?category=grains" class="bg-white rounded-xl shadow-md border-2 <?= ($filters['category'] ?? '') === 'grains' ? 'border-yellow-500 bg-yellow-50 scale-105' : 'border-gray-200 hover:border-yellow-300 hover:scale-105' ?> transition-all duration-300 p-6 text-center group">
+            <a href="/marketplace?category=grains" class="farmart-interactive bg-white rounded-xl shadow border-2 <?= ($filters['category'] ?? '') === 'grains' ? 'border-yellow-500 bg-yellow-50 ring-1 ring-yellow-200' : 'border-gray-200 hover:border-yellow-300' ?> transition-all duration-200 p-3 sm:p-4 text-center group">
                 <div class="flex flex-col items-center">
-                    <div class="bg-yellow-100 rounded-full p-3 mb-3 group-hover:bg-yellow-200 transition-colors">
-                        <i data-lucide="wheat" class="w-12 h-12 text-yellow-600"></i>
+                    <div class="bg-yellow-100 rounded-full p-2 mb-2 group-hover:bg-yellow-200 transition-colors">
+                        <i data-lucide="wheat" class="w-8 h-8 sm:w-9 sm:h-9 text-yellow-600"></i>
                     </div>
-                    <h3 class="text-lg font-semibold text-gray-900">Grains</h3>
-                    <p class="text-sm text-gray-600 mt-1">Rice & staples</p>
+                    <h3 class="text-sm sm:text-base font-semibold text-gray-900">Grains</h3>
+                    <p class="text-xs text-gray-600 mt-0.5 line-clamp-1">Rice &amp; staples</p>
                 </div>
             </a>
 
-            <a href="/marketplace?category=other" class="bg-white rounded-xl shadow-md border-2 <?= ($filters['category'] ?? '') === 'other' ? 'border-purple-500 bg-purple-50 scale-105' : 'border-gray-200 hover:border-purple-300 hover:scale-105' ?> transition-all duration-300 p-6 text-center group">
+            <a href="/marketplace?category=other" class="farmart-interactive bg-white rounded-xl shadow border-2 <?= ($filters['category'] ?? '') === 'other' ? 'border-purple-500 bg-purple-50 ring-1 ring-purple-200' : 'border-gray-200 hover:border-purple-300' ?> transition-all duration-200 p-3 sm:p-4 text-center group">
                 <div class="flex flex-col items-center">
-                    <div class="bg-purple-100 rounded-full p-3 mb-3 group-hover:bg-purple-200 transition-colors">
-                        <i data-lucide="package" class="w-12 h-12 text-purple-600"></i>
+                    <div class="bg-purple-100 rounded-full p-2 mb-2 group-hover:bg-purple-200 transition-colors">
+                        <i data-lucide="package" class="w-8 h-8 sm:w-9 sm:h-9 text-purple-600"></i>
                     </div>
-                    <h3 class="text-lg font-semibold text-gray-900">Other</h3>
-                    <p class="text-sm text-gray-600 mt-1">Miscellaneous</p>
+                    <h3 class="text-sm sm:text-base font-semibold text-gray-900">Other</h3>
+                    <p class="text-xs text-gray-600 mt-0.5 line-clamp-1">Miscellaneous</p>
                 </div>
             </a>
         </div>
     </div>
 
     <!-- Filters -->
-    <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-8">
+    <div class="bg-white rounded-xl shadow border border-gray-200 p-4 sm:p-5 mb-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4 inline-flex items-center gap-2">
             <i data-lucide="sliders-horizontal" class="w-5 h-5 text-primary"></i>
             Filter Products
@@ -117,7 +117,7 @@
                     <i data-lucide="filter" class="w-4 h-4 inline mr-1"></i>
                     Apply
                 </button>
-                <a href="/marketplace" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 font-semibold transition-colors">
+                <a href="/marketplace" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 font-semibold transition-colors farmart-interactive" data-confirm-title="Clear filters?" data-confirm="Search, category, and price filters will be reset so you browse the full marketplace." data-confirm-ok="Clear" data-confirm-icon="question">
                     Clear
                 </a>
             </div>
@@ -145,10 +145,9 @@
                 Fresh Products
             </h2>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
             <?php foreach ($products as $product): ?>
-                <a href="/marketplace/product/<?= $product['id'] ?>" class="bg-white rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl hover:scale-105 transition-all duration-300 overflow-hidden group aspect-square block">
-                    <div class="relative h-full">
+                <a href="/marketplace/product/<?= $product['id'] ?>" class="farmart-interactive farmart-compact-card bg-white rounded-xl shadow border border-gray-200 overflow-hidden group flex flex-col h-full">
                         <?php
                         $previewImage = null;
                         if (!empty($product['image_url'])) {
@@ -160,28 +159,27 @@
                             }
                         }
                         ?>
+                    <div class="relative h-28 sm:h-32 shrink-0 overflow-hidden bg-gradient-to-br from-green-50 to-green-100">
                         <?php if ($previewImage): ?>
-                            <img src="<?= esc($previewImage) ?>" alt="<?= esc($product['name']) ?>" class="w-full h-2/3 object-cover group-hover:scale-110 transition-transform duration-300">
+                            <img src="<?= esc($previewImage) ?>" alt="<?= esc($product['name']) ?>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                         <?php else: ?>
-                            <div class="w-full h-2/3 bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
-                                <i data-lucide="package" class="w-16 h-16 text-green-600"></i>
+                            <div class="w-full h-full flex items-center justify-center">
+                                <i data-lucide="package" class="w-10 h-10 text-green-600"></i>
                             </div>
                         <?php endif; ?>
-                        <div class="absolute top-3 left-3">
-                            <span class="bg-white/90 text-primary text-xs font-semibold px-2 py-1 rounded-full">
+                        <div class="absolute top-2 left-2">
+                            <span class="bg-white/90 text-primary text-[10px] sm:text-xs font-semibold px-1.5 py-0.5 rounded-full">
                                 <?= ucfirst(esc($product['category'])) ?>
                             </span>
                         </div>
+                    </div>
 
-                        <div class="p-4 h-1/3 flex flex-col justify-between">
-                            <div>
-                                <h3 class="text-sm font-semibold mb-1 line-clamp-2"><?= esc($product['name']) ?></h3>
-                                <p class="text-primary text-lg font-bold">
-                                    ₱<?= number_format($product['price'], 2) ?>
-                                    <span class="text-xs text-gray-600 font-normal">/ <?= esc($product['unit']) ?></span>
-                                </p>
-                            </div>
-                        </div>
+                    <div class="p-2.5 sm:p-3 flex flex-col flex-1 min-h-0">
+                        <h3 class="text-xs sm:text-sm font-semibold line-clamp-2 text-gray-900 leading-snug"><?= esc($product['name']) ?></h3>
+                        <p class="text-primary text-sm sm:text-base font-bold mt-auto pt-2">
+                            ₱<?= number_format($product['price'], 2) ?>
+                            <span class="text-[10px] sm:text-xs text-gray-600 font-normal">/ <?= esc($product['unit']) ?></span>
+                        </p>
                     </div>
                 </a>
             <?php endforeach; ?>

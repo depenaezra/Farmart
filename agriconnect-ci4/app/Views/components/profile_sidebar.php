@@ -47,9 +47,9 @@
             <span class="sidebar-text">Account Settings</span>
         </a>
 
-        <form action="/auth/logout" method="POST" class="mt-3">
+        <form action="/auth/logout" method="POST" class="mt-3 swal-confirm-form" data-confirm-title="Sign out?" data-confirm="You will leave your session and need to sign in again to use your account." data-confirm-ok="Sign out" data-confirm-icon="question">
             <?= csrf_field() ?>
-            <button type="submit" class="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-red-600 font-medium swal-confirm-form" data-confirm="Log out from your account?">
+            <button type="submit" class="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-red-600 font-medium">
                 <i data-lucide="log-out" class="w-4 h-4 inline mr-2"></i>
                 <span class="sidebar-text">Logout</span>
             </button>

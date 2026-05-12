@@ -17,7 +17,7 @@
             <!-- Main Form -->
             <div class="flex-1 lg:max-w-2xl">
                 <div class="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-            <form action="/forum/create" method="POST" enctype="multipart/form-data">
+            <form action="/forum/create" method="POST" enctype="multipart/form-data" data-submit-loading data-loading-label="Publishing post…">
                 <?= csrf_field() ?>
 
                 <div class="space-y-6">
