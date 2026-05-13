@@ -384,8 +384,12 @@ class AuthController extends BaseController
                 }
             }
             
+            $lockoutRemaining = 0;
             if ($failedAttempts >= 5 && $failedAttempts < 10) {
                 $this->userModel->setLockout($user['id'], 5);
+                // Calculate accurate remaining time after lockout is set
+                $lockoutUntil = $this->userModel->getLockoutUntil($user['id']);
+                $lockoutRemaining = $lockoutUntil ? max(0, strtotime($lockoutUntil) - time()) : 0;
             }
             
             $errorMsg = 'Invalid email or password.';
@@ -400,7 +404,7 @@ class AuthController extends BaseController
                 return $this->response->setJSON([
                     'status' => $failedAttempts >= 5 ? 'locked' : 'error',
                     'message' => $errorMsg,
-                    'lockout_remaining' => ($failedAttempts >= 5) ? 300 : 0,
+                    'lockout_remaining' => ($failedAttempts >= 5) ? $lockoutRemaining : 0,
                     'attempts' => $failedAttempts
                 ]);
             }
