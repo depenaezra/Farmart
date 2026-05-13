@@ -37,6 +37,14 @@
                 </div>
             <?php endif; ?>
 
+            <!-- AJAX inline message container -->
+            <div id="ajaxMessage" class="mb-6 hidden">
+                <div class="flex items-start gap-3 p-4 rounded-lg border">
+                    <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
+                    <span class="text-sm"></span>
+                </div>
+            </div>
+
             <form id="loginForm" action="<?= base_url('auth/login') ?>" method="POST">
                 <?= csrf_field() ?>
                 <input type="hidden" name="<?= csrf_token() ?>" value="<?= csrf_hash() ?>">
@@ -119,6 +127,8 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const INITIAL_LOCKOUT_SECONDS = <?= (int) ($initial_lockout_seconds ?? 0) ?>;
+    const CSRF_TOKEN_NAME = '<?= csrf_token() ?>';
     // Password visibility toggle
     const passwordInput = document.getElementById('password');
     const togglePassword = document.getElementById('togglePassword');
@@ -170,6 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
             btnText.textContent = 'Logging in...';
             if (btnSpinner) btnSpinner.classList.remove('hidden');
 
+            let responseData = null;
             try {
                 const response = await fetch(loginForm.action, {
                     method: 'POST',
@@ -179,7 +190,41 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
 
-                const data = await response.json();
+                responseData = await response.json();
+                const data = responseData;
+
+                // Refresh CSRF token from response
+                if (data.csrf_token) {
+                    const tokenInputs = document.querySelectorAll('input[name="' + CSRF_TOKEN_NAME + '"]');
+                    tokenInputs.forEach(input => input.value = data.csrf_token);
+                }
+
+                // Handle inline AJAX message
+                const ajaxMessage = document.getElementById('ajaxMessage');
+                if (ajaxMessage) {
+                    const innerDiv = ajaxMessage.querySelector('div');
+                    const icon = ajaxMessage.querySelector('i');
+                    const textSpan = ajaxMessage.querySelector('span');
+                    if (data.status === 'error' || data.status === 'locked') {
+                        const message = data.message || 'An error occurred.';
+                        if (data.status === 'error') {
+                            innerDiv.className = 'flex items-start gap-3 p-4 rounded-lg border bg-red-50 border-red-200';
+                            icon.className = 'w-5 h-5 text-red-600 flex-shrink-0 mt-0.5';
+                            icon.setAttribute('data-lucide', 'alert-circle');
+                            textSpan.className = 'text-red-700';
+                        } else {
+                            innerDiv.className = 'flex items-start gap-3 p-4 rounded-lg border bg-yellow-50 border-yellow-200';
+                            icon.className = 'w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5';
+                            icon.setAttribute('data-lucide', 'alert-triangle');
+                            textSpan.className = 'text-yellow-700';
+                        }
+                        textSpan.textContent = message;
+                        ajaxMessage.classList.remove('hidden');
+                        if (window.lucide) lucide.createIcons();
+                    } else {
+                        ajaxMessage.classList.add('hidden');
+                    }
+                }
 
                 if (data.status === 'success') {
                     // Show success and redirect
@@ -196,7 +241,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 } else if (data.status === 'locked') {
                     // Show lockout with countdown
-                    const remaining = data.lockout_remaining || 300;
+                    let remaining = parseInt(data.lockout_remaining, 10);
+                    if (!Number.isFinite(remaining) || remaining < 1) {
+                        remaining = 300;
+                    }
                     Swal.fire({
                         icon: 'warning',
                         title: 'Account Locked',
@@ -247,38 +295,46 @@ document.addEventListener('DOMContentLoaded', function() {
                     confirmButtonColor: '#16a34a'
                 });
             } finally {
-                submitBtn.disabled = false;
-                btnText.textContent = 'Login';
-                if (btnSpinner) btnSpinner.classList.add('hidden');
+                const locked = responseData && responseData.status === 'locked';
+                if (!locked) {
+                    submitBtn.disabled = false;
+                    btnText.textContent = 'Login';
+                    if (btnSpinner) btnSpinner.classList.add('hidden');
+                }
             }
         });
     }
 
     // Live countdown function
     function startCountdown(seconds) {
+        const total = Math.max(1, Math.floor(Number(seconds) || 0));
+        let remaining = total;
         const timerEl = document.getElementById('countdownTimer');
         const progressEl = document.getElementById('countdownProgress');
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
         const submitBtn = document.getElementById('loginSubmitBtn');
 
-        // Disable form
+        if (lockoutCountdown) lockoutCountdown.style.display = 'block';
+
+        // Disable form for lockout duration
         if (emailInput) emailInput.disabled = true;
         if (passwordInput) passwordInput.disabled = true;
         if (submitBtn) {
             submitBtn.disabled = true;
             submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
         }
+        if (btnSpinner) btnSpinner.classList.add('hidden');
+        if (document.getElementById('btnText')) document.getElementById('btnText').textContent = 'Login';
 
-        let remaining = seconds;
         function update() {
             const mins = Math.floor(remaining / 60);
             const secs = remaining % 60;
             if (timerEl) timerEl.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
-            if (progressEl) progressEl.style.width = `${(remaining / seconds) * 100}%`;
+            if (progressEl) progressEl.style.width = `${Math.max(0, (remaining / total) * 100)}%`;
 
             if (remaining <= 0) {
-                lockoutCountdown.style.display = 'none';
+                if (lockoutCountdown) lockoutCountdown.style.display = 'none';
                 if (emailInput) emailInput.disabled = false;
                 if (passwordInput) passwordInput.disabled = false;
                 if (submitBtn) {
@@ -293,9 +349,14 @@ document.addEventListener('DOMContentLoaded', function() {
         update();
     }
 
+    if (INITIAL_LOCKOUT_SECONDS > 0 && lockoutCountdown) {
+        lockoutCountdown.style.display = 'block';
+        startCountdown(INITIAL_LOCKOUT_SECONDS);
+    }
+
     // Auto-focus email field
     const emailField = document.getElementById('email');
-    if (emailField) emailField.focus();
+    if (emailField && !(INITIAL_LOCKOUT_SECONDS > 0)) emailField.focus();
 });
 </script>
 

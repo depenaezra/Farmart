@@ -68,6 +68,16 @@
                     </div>
                 </div>
 
+                <div class="mb-6">
+                    <p class="block text-sm font-semibold text-gray-700 mb-2">Password requirements</p>
+                    <ul class="text-sm text-gray-600 space-y-1" id="passwordRequirements">
+                        <li id="req-length"><i data-lucide="circle" class="w-4 h-4 inline text-gray-300 mr-2"></i>At least 8 characters</li>
+                        <li id="req-upper"><i data-lucide="circle" class="w-4 h-4 inline text-gray-300 mr-2"></i>One uppercase letter (A-Z)</li>
+                        <li id="req-number"><i data-lucide="circle" class="w-4 h-4 inline text-gray-300 mr-2"></i>One number (0-9)</li>
+                        <li id="req-special"><i data-lucide="circle" class="w-4 h-4 inline text-gray-300 mr-2"></i>One special character (not a letter or digit)</li>
+                    </ul>
+                </div>
+
                 <button 
                     type="submit" 
                     id="submitBtn"
@@ -110,6 +120,45 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    function getPasswordStrengthMessage(val) {
+        if (val.length < 8) return 'Password must be at least 8 characters.';
+        if (!/[A-Z]/.test(val)) return 'Password must include at least one uppercase letter (A-Z).';
+        if (!/\d/.test(val)) return 'Password must include at least one number (0-9).';
+        if (!/[^A-Za-z0-9]/.test(val)) return 'Password must include at least one special character (for example !@#$%).';
+        return '';
+    }
+
+    const reqs = {
+        length: document.getElementById('req-length'),
+        upper: document.getElementById('req-upper'),
+        number: document.getElementById('req-number'),
+        special: document.getElementById('req-special'),
+    };
+    if (newPassInput) {
+        newPassInput.addEventListener('input', function() {
+            const val = this.value;
+            function upd(el, ok) {
+                if (!el) return;
+                const icon = el.querySelector('i');
+                if (!icon) return;
+                if (ok) {
+                    icon.classList.remove('text-gray-300');
+                    icon.classList.add('text-green-500');
+                    icon.setAttribute('data-lucide', 'check-circle-2');
+                } else {
+                    icon.classList.remove('text-green-500');
+                    icon.classList.add('text-gray-300');
+                    icon.setAttribute('data-lucide', 'circle');
+                }
+                if (window.lucide) lucide.createIcons();
+            }
+            upd(reqs.length, val.length >= 8);
+            upd(reqs.upper, /[A-Z]/.test(val));
+            upd(reqs.number, /\d/.test(val));
+            upd(reqs.special, /[^A-Za-z0-9]/.test(val));
+        });
+    }
+
     // AJAX form submission
     const form = document.getElementById('changePasswordForm');
     const submitBtn = document.getElementById('submitBtn');
@@ -123,21 +172,23 @@ document.addEventListener('DOMContentLoaded', function() {
             const newPass = newPassInput.value;
             const confirmPass = confirmPassInput.value;
 
-            if (!newPass || newPass.length < 8) {
+            const pwMsg = getPasswordStrengthMessage(newPass);
+            if (pwMsg) {
                 Swal.fire({
-                    icon: 'error',
-                    title: 'Invalid Password',
-                    text: 'Password must be at least 8 characters.',
-                    confirmButtonColor: '#16a34a'
+                    icon: 'warning',
+                    title: 'Password requirements not met',
+                    text: pwMsg,
+                    confirmButtonColor: '#16a34a',
+                    showClass: { popup: 'animate__animated animate__shakeX' }
                 });
                 return;
             }
 
             if (newPass !== confirmPass) {
                 Swal.fire({
-                    icon: 'error',
-                    title: 'Mismatch',
-                    text: 'Passwords do not match.',
+                    icon: 'warning',
+                    title: 'Passwords do not match',
+                    text: 'Please enter the same password in both fields.',
                     confirmButtonColor: '#16a34a'
                 });
                 return;
@@ -170,8 +221,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     Swal.fire({
                         icon: 'error',
-                        title: 'Error',
-                        text: data.message,
+                        title: 'Could not update password',
+                        text: data.message || 'Please check your input and try again.',
                         confirmButtonColor: '#16a34a'
                     });
                 }

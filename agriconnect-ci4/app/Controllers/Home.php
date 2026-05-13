@@ -9,8 +9,12 @@ class Home extends BaseController
 {
     public function index()
     {
-        // Redirect logged-in users to marketplace
+        // Redirect logged-in users to their home area
         if (session()->has('logged_in') && session()->get('logged_in')) {
+            if (session()->get('user_role') === 'admin') {
+                return redirect()->to('/admin/dashboard');
+            }
+
             return redirect()->to('/marketplace');
         }
 

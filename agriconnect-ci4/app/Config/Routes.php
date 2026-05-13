@@ -16,30 +16,30 @@ $routes->get('/', 'Home::index');
 // Dashboard (redirects based on user role)
 $routes->get('/dashboard', 'Home::dashboard', ['filter' => 'auth']);
 
-// Marketplace
-$routes->get('/marketplace', 'Marketplace::index');
-$routes->get('/marketplace/product/(:num)', 'Marketplace::product/$1');
-$routes->get('/marketplace/search', 'Marketplace::search');
+// Marketplace (admins are redirected to the admin panel)
+$routes->get('/marketplace', 'Marketplace::index', ['filter' => 'redirectadmin']);
+$routes->get('/marketplace/product/(:num)', 'Marketplace::product/$1', ['filter' => 'redirectadmin']);
+$routes->get('/marketplace/search', 'Marketplace::search', ['filter' => 'redirectadmin']);
 
 // Weather
-$routes->get('/weather', 'Weather::index');
+$routes->get('/weather', 'Weather::index', ['filter' => 'redirectadmin']);
 $routes->get('/weather/api', 'Weather::getWeather');
 $routes->get('/weather/update-cache', 'Weather::updateCache'); // For cron job
 
 // Announcements
-$routes->get('/announcements', 'Announcements::index');
-$routes->get('/announcements/(:num)', 'Announcements::view/$1');
+$routes->get('/announcements', 'Announcements::index', ['filter' => 'redirectadmin']);
+$routes->get('/announcements/(:num)', 'Announcements::view/$1', ['filter' => 'redirectadmin']);
 
 // Forum (public read)
-$routes->get('/forum', 'Forum::index');
-$routes->get('/forum/post/(:num)', 'Forum::viewPost/$1');
-$routes->get('/forum/post/(:num)/comments', 'Forum::loadMoreComments/$1');
+$routes->get('/forum', 'Forum::index', ['filter' => 'redirectadmin']);
+$routes->get('/forum/post/(:num)', 'Forum::viewPost/$1', ['filter' => 'redirectadmin']);
+$routes->get('/forum/post/(:num)/comments', 'Forum::loadMoreComments/$1', ['filter' => 'redirectadmin']);
 
 // Public user profiles
-$routes->get('/users/(:num)', 'Users::show/$1');
+$routes->get('/users/(:num)', 'Users::show/$1', ['filter' => 'redirectadmin']);
 
 // General orders route for all authenticated users
-$routes->get('/orders', 'Buyer::orders', ['filter' => 'auth']);
+$routes->get('/orders', 'Buyer::orders', ['filter' => ['auth', 'nonadmin']]);
 
 // ============================================================
 // AUTHENTICATION ROUTES
@@ -82,7 +82,7 @@ $routes->group('auth', function($routes) {
 // BUYER ROUTES (Protected - Unified buyer/seller functionality)
 // ============================================================
 
-$routes->group('buyer', ['filter' => 'auth:buyer,farmer,user,admin'], function($routes) {
+$routes->group('buyer', ['filter' => ['auth:buyer,farmer,user', 'nonadmin']], function($routes) {
     // Seller dashboard & products (buyer as seller)
     $routes->get('dashboard', 'Buyer::dashboard');
     $routes->get('products', 'Buyer::products');
@@ -106,7 +106,7 @@ $routes->group('buyer', ['filter' => 'auth:buyer,farmer,user,admin'], function($
 });
 
 // Cart
-$routes->group('cart', ['filter' => 'auth:buyer,farmer,user,admin'], function($routes) {
+$routes->group('cart', ['filter' => ['auth:buyer,farmer,user', 'nonadmin']], function($routes) {
     $routes->get('/', 'Cart::index');
     $routes->post('add', 'Cart::add');
     $routes->post('buy_now', 'Cart::buyNow');
@@ -116,7 +116,7 @@ $routes->group('cart', ['filter' => 'auth:buyer,farmer,user,admin'], function($r
 });
 
 // Checkout
-$routes->group('checkout', ['filter' => 'auth:buyer,farmer,user,admin'], function($routes) {
+$routes->group('checkout', ['filter' => ['auth:buyer,farmer,user', 'nonadmin']], function($routes) {
     $routes->get('/', 'Checkout::index');
     $routes->post('/', 'Checkout::index'); // For form submission with selected items
     $routes->get('direct', 'Checkout::directCheckout');
@@ -129,9 +129,9 @@ $routes->group('checkout', ['filter' => 'auth:buyer,farmer,user,admin'], functio
 // PROFILE ROUTES (Protected - All authenticated users)
 // ============================================================
 
-$routes->get('/profile.php', 'Profile::index', ['filter' => 'auth']);
+$routes->get('/profile.php', 'Profile::index', ['filter' => ['auth', 'nonadmin']]);
 
-$routes->group('profile', ['filter' => 'auth'], function($routes) {
+$routes->group('profile', ['filter' => ['auth', 'nonadmin']], function($routes) {
     $routes->get('/', 'Profile::index');
     $routes->get('edit', 'Profile::edit');
     $routes->post('update', 'Profile::update');
@@ -144,7 +144,7 @@ $routes->group('profile', ['filter' => 'auth'], function($routes) {
 // MESSAGING ROUTES (Protected - All authenticated users)
 // ============================================================
 
-$routes->group('messages', ['filter' => 'auth'], function($routes) {
+$routes->group('messages', ['filter' => ['auth', 'nonadmin']], function($routes) {
     $routes->get('/', 'Messages::index');
     $routes->get('inbox', 'Messages::inbox');
     $routes->get('conversation/(:num)', 'Messages::getConversation/$1');
@@ -162,7 +162,7 @@ $routes->group('messages', ['filter' => 'auth'], function($routes) {
 // FORUM ROUTES (Protected for posting)
 // ============================================================
 
-$routes->group('forum', ['filter' => 'auth'], function($routes) {
+$routes->group('forum', ['filter' => ['auth', 'nonadmin']], function($routes) {
     $routes->get('create', 'Forum::create');
     $routes->post('create', 'Forum::createProcess');
     $routes->post('post/(:num)/comment', 'Forum::addComment/$1');
@@ -221,6 +221,12 @@ $routes->group('admin', ['filter' => 'auth:admin'], function($routes) {
     // Settings
     $routes->get('settings', 'Admin::settings');
     $routes->post('settings', 'Admin::updateSettings');
+
+    // Login whitelist (maintenance: restrict login to admins + listed emails)
+    $routes->get('login-whitelist', 'Admin::loginWhitelist');
+    $routes->post('login-whitelist/add-email', 'Admin::loginWhitelistAddEmail');
+    $routes->post('login-whitelist/remove/(:num)', 'Admin::loginWhitelistRemove/$1');
+    $routes->post('login-whitelist/toggle', 'Admin::loginWhitelistToggle');
     
     // Email Blocker
     $routes->get('email-blocker', 'Admin::emailBlocker');
@@ -232,7 +238,7 @@ $routes->group('admin', ['filter' => 'auth:admin'], function($routes) {
 // REPORTING ROUTES (Protected - Authenticated users)
 // ============================================================
 
-$routes->post('report', 'Report::submit', ['filter' => 'auth']);
+$routes->post('report', 'Report::submit', ['filter' => ['auth', 'nonadmin']]);
 
 // ============================================================
 // API ROUTES (Optional - for AJAX)
@@ -245,8 +251,8 @@ $routes->group('api', function($routes) {
     $routes->get('products/search', 'Api\Products::search');
 
     // Cart (requires auth)
-    $routes->post('cart/add', 'Api\Cart::add', ['filter' => 'auth']);
-    $routes->get('cart/count', 'Api\Cart::count', ['filter' => 'auth']);
+    $routes->post('cart/add', 'Api\Cart::add', ['filter' => ['auth', 'nonadmin']]);
+    $routes->get('cart/count', 'Api\Cart::count', ['filter' => ['auth', 'nonadmin']]);
 });
 
 // ============================================================

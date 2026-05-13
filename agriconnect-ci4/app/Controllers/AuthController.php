@@ -4,20 +4,30 @@ namespace App\Controllers;
 
 use App\Models\UserModel;
 use App\Models\BlockedEmailModel;
+use App\Models\OtpTokenModel;
+use App\Models\ApplicationSettingModel;
+use App\Models\LoginWhitelistEmailModel;
 
 class AuthController extends BaseController
 {
     private const REGISTRATION_SESSION_KEY = 'pending_registration';
     private const REGISTRATION_OTP_TTL = 600;
+    private const SETTING_LOGIN_WHITELIST_ENABLED = 'login_whitelist_enabled';
 
     protected $userModel;
     protected $blockedEmailModel;
+    protected $otpTokenModel;
+    protected $applicationSettingModel;
+    protected $loginWhitelistEmailModel;
 
     public function initController(\CodeIgniter\HTTP\RequestInterface $request, \CodeIgniter\HTTP\ResponseInterface $response, \Psr\Log\LoggerInterface $logger)
     {
         parent::initController($request, $response, $logger);
-        $this->userModel = new UserModel();
-        $this->blockedEmailModel = new BlockedEmailModel();
+        $this->userModel                  = new UserModel();
+        $this->blockedEmailModel          = new BlockedEmailModel();
+        $this->otpTokenModel              = new OtpTokenModel();
+        $this->applicationSettingModel  = new ApplicationSettingModel();
+        $this->loginWhitelistEmailModel   = new LoginWhitelistEmailModel();
     }
 
 
@@ -250,7 +260,9 @@ class AuthController extends BaseController
             session()->destroy();
         }
         
-        return view('auth/login');
+        return view('auth/login', [
+            'initial_lockout_seconds' => (int) (session()->getFlashdata('lockout_seconds') ?: 0),
+        ]);
     }
     
     /**
@@ -291,7 +303,8 @@ class AuthController extends BaseController
                 return $this->response->setJSON([
                     'status' => 'error',
                     'message' => 'Please fill in all required fields.',
-                    'errors' => $errors
+                    'errors' => $errors,
+                    'csrf_token' => csrf_hash()
                 ]);
             }
             return redirect()->back()
@@ -309,7 +322,8 @@ class AuthController extends BaseController
             if ($isAjax) {
                 return $this->response->setJSON([
                     'status' => 'error',
-                    'message' => 'Invalid email or password.'
+                    'message' => 'Invalid email or password.',
+                    'csrf_token' => csrf_hash()
                 ]);
             }
             return redirect()->back()
@@ -325,7 +339,8 @@ class AuthController extends BaseController
             if ($isAjax) {
                 return $this->response->setJSON([
                     'status' => 'error',
-                    'message' => 'This account has been blocked.'
+                    'message' => 'This account has been blocked.',
+                    'csrf_token' => csrf_hash()
                 ]);
             }
             return redirect()->to('/auth/disabled');
@@ -336,10 +351,29 @@ class AuthController extends BaseController
             if ($isAjax) {
                 return $this->response->setJSON([
                     'status' => 'error',
-                    'message' => 'Your account is disabled.'
+                    'message' => 'Your account is disabled.',
+                    'csrf_token' => csrf_hash()
                 ]);
             }
             return redirect()->to('/auth/disabled');
+        }
+
+        // Login whitelist: only admins and explicitly whitelisted emails may sign in
+        if ($this->isLoginWhitelistEnabled()) {
+            if (($user['role'] ?? '') !== 'admin' && ! $this->loginWhitelistEmailModel->isWhitelisted($email)) {
+                $wlMsg = 'Login is temporarily restricted to approved accounts. Please contact an administrator.';
+                if ($isAjax) {
+                    return $this->response->setJSON([
+                        'status'   => 'error',
+                        'message'  => $wlMsg,
+                        'csrf_token' => csrf_hash(),
+                    ]);
+                }
+
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', $wlMsg);
+            }
         }
 
         // Clear any expired lockout (resets recent counter, keeps total)
@@ -353,7 +387,8 @@ class AuthController extends BaseController
                 return $this->response->setJSON([
                     'status' => 'locked',
                     'message' => 'Account temporarily locked.',
-                    'lockout_remaining' => $remainingSeconds
+                    'lockout_remaining' => $remainingSeconds,
+                    'csrf_token' => csrf_hash()
                 ]);
             }
             session()->setFlashdata('lockout_seconds', $remainingSeconds);
@@ -395,6 +430,9 @@ class AuthController extends BaseController
             $errorMsg = 'Invalid email or password.';
             if ($failedAttempts >= 5) {
                 $errorMsg .= ' Account locked for 5 minutes.';
+            } else {
+                $remaining = 5 - $failedAttempts;
+                $errorMsg .= " You have {$remaining} attempt(s) remaining before account lock.";
             }
             if ($sentEmail) {
                 $errorMsg .= ' Security alert sent to your email.';
@@ -405,7 +443,9 @@ class AuthController extends BaseController
                     'status' => $failedAttempts >= 5 ? 'locked' : 'error',
                     'message' => $errorMsg,
                     'lockout_remaining' => ($failedAttempts >= 5) ? $lockoutRemaining : 0,
-                    'attempts' => $failedAttempts
+                    'attempts' => $failedAttempts,
+                    'attempts_remaining' => ($failedAttempts >= 5) ? 0 : max(0, 5 - $failedAttempts),
+                    'csrf_token' => csrf_hash()
                 ]);
             }
             
@@ -506,8 +546,9 @@ class AuthController extends BaseController
         if ($passwordError) {
             if ($isAjax) {
                 return $this->response->setJSON([
-                    'status' => 'error',
-                    'message' => $passwordError
+                    'status'  => 'error',
+                    'message' => $passwordError,
+                    'errors'  => ['password' => $passwordError],
                 ]);
             }
             return redirect()->back()
@@ -732,6 +773,16 @@ class AuthController extends BaseController
             ->with('success', 'You have been logged out successfully.');
     }
     
+    private function isLoginWhitelistEnabled(): bool
+    {
+        $db = \Config\Database::connect();
+        if (! $db->tableExists('application_settings')) {
+            return false;
+        }
+
+        return $this->applicationSettingModel->getValue(self::SETTING_LOGIN_WHITELIST_ENABLED, '0') === '1';
+    }
+
     /**
      * Get user homepage based on role
      */
@@ -750,25 +801,24 @@ class AuthController extends BaseController
     }
 
     /**
-     * Validate password strength
+     * Validate password strength (min 8 chars, 1 uppercase, 1 number, 1 special character)
      * Returns error message if invalid, null if valid
      */
     private function validatePasswordStrength(string $password): ?string
     {
-        // At least 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special character
-        $patterns = [
-            '/[A-Z]/' => 'uppercase letter',
-            '/[a-z]/' => 'lowercase letter',
-            '/\d/' => 'number',
-            '/[@$!%*?&]/' => 'special character (@, $, !, %, *, ?, &)'
-        ];
-
-        foreach ($patterns as $pattern => $description) {
-            if (!preg_match($pattern, $password)) {
-                return "Password must contain at least one {$description}.";
-            }
+        if (strlen($password) < 8) {
+            return 'Password must be at least 8 characters long.';
+        }
+        if (! preg_match('/[A-Z]/', $password)) {
+            return 'Password must contain at least one uppercase letter (A-Z).';
+        }
+        if (! preg_match('/\d/', $password)) {
+            return 'Password must contain at least one number (0-9).';
+        }
+        if (! preg_match('/[^A-Za-z0-9]/', $password)) {
+            return 'Password must contain at least one special character (for example !@#$%^&*).';
         }
 
-        return null; // valid
+        return null;
     }
 }

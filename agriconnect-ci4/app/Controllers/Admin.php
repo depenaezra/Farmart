@@ -8,6 +8,8 @@ use App\Models\OrderModel;
 use App\Models\AnnouncementModel;
 use App\Models\ViolationModel;
 use App\Models\BlockedEmailModel;
+use App\Models\ApplicationSettingModel;
+use App\Models\LoginWhitelistEmailModel;
 
 class Admin extends BaseController
 {
@@ -17,15 +19,19 @@ class Admin extends BaseController
     protected $announcementModel;
     protected $violationModel;
     protected $blockedEmailModel;
+    protected $applicationSettingModel;
+    protected $loginWhitelistEmailModel;
 
     public function __construct()
     {
-        $this->userModel = new UserModel();
-        $this->productModel = new ProductModel();
-        $this->orderModel = new OrderModel();
-        $this->announcementModel = new AnnouncementModel();
-        $this->violationModel = new ViolationModel();
-        $this->blockedEmailModel = new BlockedEmailModel();
+        $this->userModel                 = new UserModel();
+        $this->productModel              = new ProductModel();
+        $this->orderModel                = new OrderModel();
+        $this->announcementModel         = new AnnouncementModel();
+        $this->violationModel            = new ViolationModel();
+        $this->blockedEmailModel         = new BlockedEmailModel();
+        $this->applicationSettingModel   = new ApplicationSettingModel();
+        $this->loginWhitelistEmailModel  = new LoginWhitelistEmailModel();
     }
     
     /**
@@ -951,5 +957,73 @@ class Admin extends BaseController
         
         return redirect()->back()
             ->with('success', 'Email unblocked successfully.');
+    }
+
+    /**
+     * Login whitelist management (restrict sign-in to admins + listed emails when enabled).
+     */
+    public function loginWhitelist()
+    {
+        if (! \Config\Database::connect()->tableExists('application_settings')) {
+            return redirect()->to('/admin/dashboard')
+                ->with('error', 'Login whitelist tables are missing. Run database migrations (spark migrate).');
+        }
+
+        $enabled = $this->applicationSettingModel->getValue('login_whitelist_enabled', '0') === '1';
+        $emails  = $this->loginWhitelistEmailModel->listAll();
+
+        return view('admin/login_whitelist', [
+            'title'   => 'Login Whitelist',
+            'enabled' => $enabled,
+            'emails'  => $emails,
+        ]);
+    }
+
+    public function loginWhitelistAddEmail()
+    {
+        $email = (string) $this->request->getPost('email');
+        if ($email === '' || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return redirect()->back()
+                ->with('error', 'Please enter a valid email address.');
+        }
+
+        $result = $this->loginWhitelistEmailModel->addEmail($email, (int) session()->get('user_id'));
+        if ($result !== true) {
+            return redirect()->back()
+                ->with('error', is_string($result) ? $result : 'Could not add email.');
+        }
+
+        return redirect()->back()
+            ->with('success', 'Email added to the login whitelist.');
+    }
+
+    public function loginWhitelistRemove($id)
+    {
+        $id = (int) $id;
+        if ($id <= 0) {
+            return redirect()->back()
+                ->with('error', 'Invalid entry.');
+        }
+
+        if ($this->loginWhitelistEmailModel->delete($id)) {
+            return redirect()->back()
+                ->with('success', 'Email removed from the whitelist.');
+        }
+
+        return redirect()->back()
+            ->with('error', 'Could not remove that entry.');
+    }
+
+    public function loginWhitelistToggle()
+    {
+        $enable = $this->request->getPost('enable');
+        $on      = ($enable === '1' || $enable === 1 || $enable === true);
+
+        $this->applicationSettingModel->setValue('login_whitelist_enabled', $on ? '1' : '0');
+
+        return redirect()->back()
+            ->with('success', $on
+                ? 'Login whitelist is now enabled. Only administrators and whitelisted emails can sign in.'
+                : 'Login whitelist is disabled. All active users can sign in again.');
     }
 }

@@ -131,13 +131,12 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Password Requirements:</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Password requirements</label>
                     <ul class="text-sm text-gray-600 space-y-1" id="passwordRequirements">
                         <li id="req-length"><i data-lucide="circle" class="w-4 h-4 inline text-gray-300 mr-2"></i>At least 8 characters</li>
                         <li id="req-upper"><i data-lucide="circle" class="w-4 h-4 inline text-gray-300 mr-2"></i>One uppercase letter (A-Z)</li>
-                        <li id="req-lower"><i data-lucide="circle" class="w-4 h-4 inline text-gray-300 mr-2"></i>One lowercase letter (a-z)</li>
                         <li id="req-number"><i data-lucide="circle" class="w-4 h-4 inline text-gray-300 mr-2"></i>One number (0-9)</li>
-                        <li id="req-special"><i data-lucide="circle" class="w-4 h-4 inline text-gray-300 mr-2"></i>One special character (@$!%*?&)</li>
+                        <li id="req-special"><i data-lucide="circle" class="w-4 h-4 inline text-gray-300 mr-2"></i>One special character (not a letter or digit)</li>
                     </ul>
                 </div>
 
@@ -194,12 +193,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    function getPasswordStrengthMessage(val) {
+        if (val.length < 8) return 'Password must be at least 8 characters.';
+        if (!/[A-Z]/.test(val)) return 'Password must include at least one uppercase letter (A-Z).';
+        if (!/\d/.test(val)) return 'Password must include at least one number (0-9).';
+        if (!/[^A-Za-z0-9]/.test(val)) return 'Password must include at least one special character (for example !@#$%).';
+        return '';
+    }
+
     // Password strength live feedback
     const passField = document.getElementById('password');
     const reqs = {
         length: document.getElementById('req-length'),
         upper: document.getElementById('req-upper'),
-        lower: document.getElementById('req-lower'),
         number: document.getElementById('req-number'),
         special: document.getElementById('req-special')
     };
@@ -209,13 +215,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const val = this.value;
             const hasLength = val.length >= 8;
             const hasUpper = /[A-Z]/.test(val);
-            const hasLower = /[a-z]/.test(val);
             const hasNumber = /\d/.test(val);
-            const hasSpecial = /[@$!%*?&]/.test(val);
+            const hasSpecial = /[^A-Za-z0-9]/.test(val);
 
             updateRequirement(reqs.length, hasLength);
             updateRequirement(reqs.upper, hasUpper);
-            updateRequirement(reqs.lower, hasLower);
             updateRequirement(reqs.number, hasNumber);
             updateRequirement(reqs.special, hasSpecial);
         });
@@ -246,6 +250,29 @@ document.addEventListener('DOMContentLoaded', function() {
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
 
+            const pwMsg = getPasswordStrengthMessage(passField ? passField.value : '');
+            if (pwMsg) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Password requirements not met',
+                    text: pwMsg,
+                    confirmButtonColor: '#16a34a',
+                    showClass: { popup: 'animate__animated animate__shakeX' }
+                });
+                return;
+            }
+
+            if (passField && confirmInput && passField.value !== confirmInput.value) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Passwords do not match',
+                    text: 'Please make sure both password fields match before continuing.',
+                    confirmButtonColor: '#16a34a',
+                    showClass: { popup: 'animate__animated animate__shakeX' }
+                });
+                return;
+            }
+
             const formData = new FormData(form);
 
             submitBtn.disabled = true;
@@ -275,12 +302,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     let errorMsg = data.message || 'Registration failed.';
                     if (data.errors) {
-                        const errors = Object.values(data.errors).flat();
-                        errorMsg = errors.join('\n');
+                        const errors = Object.values(data.errors).flatMap(v => Array.isArray(v) ? v : [v]);
+                        errorMsg = errors.filter(Boolean).join('\n');
                     }
                     Swal.fire({
                         icon: 'error',
-                        title: 'Error',
+                        title: 'Registration issue',
                         text: errorMsg,
                         confirmButtonColor: '#16a34a'
                     });

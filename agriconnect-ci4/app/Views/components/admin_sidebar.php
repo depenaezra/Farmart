@@ -49,14 +49,14 @@
                 <span class="sidebar-text">Email Blocker</span>
             </a>
 
-            <a href="/messages/inbox" class="sidebar-link flex items-center px-4 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-lg transition-colors">
-                <i data-lucide="mail" class="w-5 h-5 mr-3"></i>
-                <span class="sidebar-text">Messages</span>
+            <a href="/admin/login-whitelist" class="sidebar-link flex items-center px-4 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-lg transition-colors">
+                <i data-lucide="shield-check" class="w-5 h-5 mr-3"></i>
+                <span class="sidebar-text">Login Whitelist</span>
             </a>
 
-            <a href="/profile" class="sidebar-link flex items-center px-4 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-lg transition-colors">
-                <i data-lucide="user" class="w-5 h-5 mr-3"></i>
-                <span class="sidebar-text">My Profile</span>
+            <a href="/admin/settings" class="sidebar-link flex items-center px-4 py-3 text-gray-700 hover:bg-primary hover:text-white rounded-lg transition-colors">
+                <i data-lucide="settings" class="w-5 h-5 mr-3"></i>
+                <span class="sidebar-text">Settings</span>
             </a>
 
 

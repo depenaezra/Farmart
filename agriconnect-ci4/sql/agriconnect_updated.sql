@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 01, 2025 at 03:27 AM
+-- Generation Time: May 13, 2026 (schema updated: login whitelist tables aligned with app)
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -19,6 +19,9 @@ SET time_zone = "+00:00";
 
 --
 -- Database: `agriconnect`
+--
+-- Schema note: Login whitelist uses `application_settings` + `login_whitelist_emails`
+-- (matches the CodeIgniter app). The old `whitelisted_emails` table was removed from this dump.
 --
 
 -- --------------------------------------------------------
@@ -52,6 +55,49 @@ INSERT INTO `announcements` (`id`, `title`, `content`, `category`, `priority`, `
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `blocked_emails`
+--
+
+CREATE TABLE `blocked_emails` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `blocked_by` int(11) UNSIGNED NOT NULL,
+  `blocked_at` datetime NOT NULL,
+  `reason` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `blocked_emails`
+--
+
+INSERT INTO `blocked_emails` (`id`, `email`, `blocked_by`, `blocked_at`, `reason`) VALUES
+(1, 'yurippe.naoi@gmail.com', 3, '2026-04-13 15:19:27', 'spam account');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cart`
+--
+
+CREATE TABLE `cart` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `user_id` int(11) UNSIGNED NOT NULL,
+  `product_id` int(11) UNSIGNED NOT NULL,
+  `quantity` int(11) NOT NULL DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `cart`
+--
+
+INSERT INTO `cart` (`id`, `user_id`, `product_id`, `quantity`, `created_at`, `updated_at`) VALUES
+(1, 4, 3, 3, '2026-04-05 07:56:48', '2026-04-05 07:57:09');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `forum_comments`
 --
 
@@ -72,7 +118,8 @@ INSERT INTO `forum_comments` (`id`, `post_id`, `user_id`, `comment`, `created_at
 (2, 1, 4, 'Thank you for sharing. Do you use any organic pesticides?', '2025-11-29 07:35:33'),
 (3, 2, 1, 'Maria, can you share your composting process? I want to try organic farming too.', '2025-11-29 07:35:33'),
 (4, 3, 1, 'You can try the DA office in Nasugbu. They have good quality seeds.', '2025-11-29 07:35:33'),
-(5, 4, 1, 'Salamat po sa suporta! This platform really helps us connect with buyers directly.', '2025-11-29 07:35:33');
+(5, 4, 1, 'Salamat po sa suporta! This platform really helps us connect with buyers directly.', '2025-11-29 07:35:33'),
+(6, 3, 4, 'im not cute anymore', '2026-04-05 07:56:16');
 
 -- --------------------------------------------------------
 
@@ -93,7 +140,8 @@ CREATE TABLE `forum_likes` (
 
 INSERT INTO `forum_likes` (`id`, `post_id`, `user_id`, `created_at`) VALUES
 (1, 4, 9, '2025-11-30 14:46:34'),
-(2, 3, 9, '2025-11-30 14:46:38');
+(2, 3, 9, '2025-11-30 14:46:38'),
+(4, 1, 2, '2026-04-03 13:59:40');
 
 -- --------------------------------------------------------
 
@@ -217,9 +265,11 @@ CREATE TABLE `migrations` (
 --
 
 INSERT INTO `migrations` (`id`, `version`, `class`, `group`, `namespace`, `time`, `batch`) VALUES
+(0, '2026-04-05-000001', 'App\\Database\\Migrations\\AddLoginSuspensionToUsers', 'default', 'App', 1778214003, 5),
 (1, '2025-11-30-070935', 'App\\Database\\Migrations\\AddMessageAttachments', 'default', 'App', 1764486673, 1),
 (2, '2025-11-30-061626', 'App\\Database\\Migrations\\AddProfilePictureToUsers', 'default', 'App', 1764488190, 2),
-(3, '2025-11-30-070935', '\\AddMessageAttachments', 'default', 'App', 1764489161, 3);
+(3, '2025-11-30-070935', '\\AddMessageAttachments', 'default', 'App', 1764489161, 3),
+(4, '2026-05-13-000001', 'App\\Database\\Migrations\\LoginWhitelistAndSettings', 'default', 'App', 1747689600, 6);
 
 -- --------------------------------------------------------
 
@@ -248,9 +298,33 @@ CREATE TABLE `orders` (
 -- Dumping data for table `orders`
 --
 
-INSERT INTO `orders` (`id`, `order_number`, `buyer_id`, `farmer_id`, `product_id`, `quantity`, `unit`, `total_price`, `status`, `delivery_address`, `notes`, `created_at`, `updated_at`) VALUES
-(1, 'ORD-20251201-17600A', 9, 3, 8, 1, 'kilo', 65.00, 'completed', 'Sample Address\nContact: 09999999999', 'Sample Note', '2025-12-01 00:35:54', '2025-12-01 00:38:58'),
-(2, 'ORD-20251201-B8FC5B', 9, 3, 3, 8, 'kilo', 360.00, 'pending', 'Brgy. Putat, Nasugbu\nContact: 0999-999-9999', NULL, '2025-12-01 01:10:17', '2025-12-01 01:10:17');
+INSERT INTO `orders` (`id`, `order_number`, `buyer_id`, `farmer_id`, `product_id`, `quantity`, `unit`, `total_price`, `status`, `delivery_address`, `payment_method`, `notes`, `created_at`, `updated_at`) VALUES
+(0, 'ORD-20260511-5EA02E', 2, 1, 5, 1, 'kilo', 55.00, 'pending', 'Rillo Tuy, Batangas\nContact: 0906403754111', 'in_person', NULL, '2026-05-11 00:33:24', '2026-05-11 00:33:24'),
+(1, 'ORD-20251201-17600A', 9, 3, 8, 1, 'kilo', 65.00, 'completed', 'Sample Address\nContact: 09999999999', NULL, 'Sample Note', '2025-12-01 00:35:54', '2025-12-01 00:38:58'),
+(2, 'ORD-20251201-B8FC5B', 9, 3, 3, 8, 'kilo', 360.00, 'pending', 'Brgy. Putat, Nasugbu\nContact: 0999-999-9999', NULL, NULL, '2025-12-01 01:10:17', '2025-12-01 01:10:17');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `otp_token`
+--
+
+CREATE TABLE `otp_token` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `userID` int(11) UNSIGNED NOT NULL,
+  `token` varchar(10) NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `otp_token`
+--
+
+INSERT INTO `otp_token` (`id`, `userID`, `token`, `expires_at`, `created_at`) VALUES
+(9, 5, '830364', '2026-05-12 16:44:35', '2026-05-12 16:34:35'),
+(23, 3, '835079', '2026-05-13 00:10:28', '2026-05-13 00:00:28'),
+(25, 7, '153043', '2026-05-13 00:42:08', '2026-05-13 00:32:08');
 
 -- --------------------------------------------------------
 
@@ -280,51 +354,24 @@ CREATE TABLE `products` (
 
 INSERT INTO `products` (`id`, `farmer_id`, `name`, `description`, `price`, `unit`, `category`, `stock_quantity`, `location`, `image_url`, `status`, `created_at`, `updated_at`) VALUES
 (3, 3, 'Native Corn', 'Sweet native corn, freshly harvested.', 45.00, 'kilo', 'grains', 92, 'Brgy. Lumbangan, Nasugbu', '/uploads/products/corn.jpg', 'available', '2025-11-29 03:01:43', '2025-12-01 01:10:17'),
-(4, 4, 'Banana Lakatan', 'Premium lakatan bananas, naturally ripened.', 70.00, 'kilo', 'fruits', 80, 'Brgy. Poblacion, Nasugbu', '/uploads/products/banana.jpg', 'available', '2025-11-29 03:01:43', '2025-11-29 03:01:43'),
 (5, 1, 'Eggplant', 'Fresh eggplants for your favorite dishes.', 55.00, 'kilo', 'vegetables', 40, 'Brgy. Aga, Nasugbu', '/uploads/products/eggplant.jpg', 'available', '2025-11-29 03:01:43', '2025-11-29 03:01:43'),
-(7, 2, 'Cabbage', 'Fresh cabbage, perfect for salads and cooking.', 50.00, 'kilo', 'vegetables', 35, 'Brgy. Wawa, Nasugbu', '/uploads/products/cabbage.jpg', 'available', '2025-11-29 03:01:43', '2025-11-29 03:01:43'),
 (8, 3, 'Sweet Potato', 'Organic sweet potatoes, rich in nutrients.', 65.00, 'kilo', 'vegetables', 59, 'Brgy. Lumbangan, Nasugbu', '/uploads/products/sweetpotato.jpg', 'available', '2025-11-29 03:01:43', '2025-12-01 00:35:54'),
 (9, 1, 'Bayabas', 'basta bayabas', 50.00, 'kilo', 'fruits', 10, 'Brgy. Putat, Nasugbu', '/uploads/products/1764491167_1d47ac1a263cc86bf66e.png', 'available', '2025-11-30 08:26:07', '2025-11-30 08:26:07');
 
 -- --------------------------------------------------------
+
 --
--- Table structure for table `cart`
---
--- NOTE: Shopping cart items are now stored in the 'cart' table in the database.
--- This allows cart persistence across sessions and devices.
--- Only completed orders are saved to the 'orders' table.
+-- Table structure for table `twofa_attempts`
 --
 
-CREATE TABLE `cart` (
+CREATE TABLE `twofa_attempts` (
   `id` int(11) UNSIGNED NOT NULL,
   `user_id` int(11) UNSIGNED NOT NULL,
-  `product_id` int(11) UNSIGNED NOT NULL,
-  `quantity` int(11) NOT NULL DEFAULT 1,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Indexes for table `cart`
---
-ALTER TABLE `cart`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `user_product` (`user_id`,`product_id`),
-  ADD KEY `user_id` (`user_id`),
-  ADD KEY `product_id` (`product_id`);
-
---
--- AUTO_INCREMENT for table `cart`
---
-ALTER TABLE `cart`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- Constraints for table `cart`
---
-ALTER TABLE `cart`
-  ADD CONSTRAINT `cart_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `cart_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE;
+  `ip_address` varchar(45) DEFAULT NULL,
+  `code_entered` varchar(20) DEFAULT NULL,
+  `success` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -338,10 +385,19 @@ CREATE TABLE `users` (
   `email` varchar(255) NOT NULL,
   `phone` varchar(20) DEFAULT NULL,
   `password` varchar(255) NOT NULL,
-  `role` enum('admin','user') NOT NULL,
+  `role` enum('farmer','buyer','admin','user') NOT NULL DEFAULT 'buyer',
   `location` varchar(255) DEFAULT NULL,
   `cooperative` varchar(255) DEFAULT NULL,
-  `status` enum('active','inactive') DEFAULT 'active',
+  `status` enum('active','inactive') NOT NULL DEFAULT 'active',
+  `login_suspended_until` datetime DEFAULT NULL,
+  `failed_login_attempts` int(11) NOT NULL DEFAULT 0,
+  `total_failed_login_attempts` int(11) NOT NULL DEFAULT 0,
+  `last_failed_login` datetime DEFAULT NULL,
+  `lockout_until` datetime DEFAULT NULL,
+  `security_email_sent` tinyint(1) NOT NULL DEFAULT 0,
+  `twofa_enabled` tinyint(1) NOT NULL DEFAULT 0,
+  `twofa_secret` varchar(255) DEFAULT NULL,
+  `twofa_backup_codes` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -350,20 +406,14 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `email`, `phone`, `password`, `role`, `location`, `cooperative`, `status`, `created_at`, `updated_at`) VALUES
-(1, 'Juan Santos', 'juan.santos@example.com', '0917-123-4567', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 'Brgy. Aga, Nasugbu', 'Nasugbu Farmers Coop', 'active', '2025-11-29 03:01:43', '2025-11-29 06:52:55'),
-(2, 'Maria Cruz', 'maria.cruz@example.com', '0918-234-5678', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 'Brgy. Wawa, Nasugbu', 'Green Valley Coop', 'active', '2025-11-29 03:01:43', '2025-11-29 06:52:55'),
-(3, 'Pedro Reyes', 'pedro.reyes@example.com', '0919-345-6789', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 'Brgy. Lumbangan, Nasugbu', 'Batangas Corn Growers', 'active', '2025-11-29 03:01:43', '2025-11-29 06:52:55'),
-(4, 'Rosa Garcia', 'rosa.garcia@example.com', '0920-456-7890', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 'Brgy. Poblacion, Nasugbu', 'Nasugbu Farmers Coop', 'active', '2025-11-29 03:01:43', '2025-11-29 06:52:55'),
-(5, 'Ana Bautista', 'ana.bautista@example.com', '0921-567-8901', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 'Brgy. Mataas na Pulo, Nasugbu', 'Green Valley Coop', 'active', '2025-11-29 03:01:43', '2025-11-29 06:52:55'),
-(6, 'Miguel Buyer', 'miguel.buyer@example.com', '0922-678-9012', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 'Nasugbu Town Center', NULL, 'active', '2025-11-29 03:01:43', '2025-11-29 06:52:55'),
-(7, 'Carmen Buyer', 'carmen.buyer@example.com', '0923-789-0123', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'user', 'Brgy. Poblacion, Nasugbu', NULL, 'active', '2025-11-29 03:01:43', '2025-11-29 06:52:55'),
-(8, 'Admin User', 'admin@agriconnect.ph', '0943-123-4567', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'Nasugbu', NULL, 'active', '2025-11-29 03:01:43', '2025-11-29 06:54:29'),
-(9, 'Ezra Desacola', 'ezra1234@gmail.com', '0999-999-9999', '$2y$10$eEEG2kDhEcCufw4csWduhe.00QG.wAfVP8lgyfB9eDlOkIzEfZ8UG', 'user', 'Brgy. Putat, Nasugbu', NULL, 'active', '2025-11-29 07:00:10', '2025-11-30 06:18:18'),
-(10, 'Carmela Montecarlos', 'montecarlos@gmail.com', '0999-999-9999', '$2y$10$4RzBC/fHSLDVtrclr1dIf.HNbGCEYsRI5bAz52AncvXVO3b4rE1um', 'user', 'Brgy. Putat, Nasugbu', NULL, 'active', '2025-11-29 07:10:09', '2025-11-30 06:18:24'),
-(11, 'Ace Craige', 'craige123@gmail.com', '0999-999-9999', '$2y$10$wgtp7sWOpjjS0xqB9GfkxuweAf2OWvC5OSEMRHx1ev8UScROAWkQO', 'user', 'Brgy. Putat, Nasugbu', NULL, 'active', '2025-11-29 08:09:37', '2025-11-30 06:18:32'),
-(12, 'Aea Sy', 'aea12345@gmail.com', '0999-999-9999', '$2y$10$X/LTlV7FW/h4WsU8/YBxhOc/w9ir1wldSZIQXHOKFp71Eb7O7GFxa', 'user', 'Brgy. Putat, Nasugbu', NULL, 'active', '2025-11-30 06:16:40', '2025-11-30 06:18:46'),
-(13, 'User', 'user1234@gmail.com', '0999-999-9999', '$2y$10$OHoDzkGzEEPLv3o.7ECz3ejmgG0JIQVMfgCLloP0ky8hqBif7Mcqy', 'user', 'Brgy. Putat, Nasugbu', NULL, 'active', '2025-11-30 06:19:25', '2025-11-30 06:19:25');
+INSERT INTO `users` (`id`, `name`, `email`, `phone`, `password`, `role`, `location`, `cooperative`, `status`, `login_suspended_until`, `failed_login_attempts`, `total_failed_login_attempts`, `last_failed_login`, `lockout_until`, `security_email_sent`, `twofa_enabled`, `twofa_secret`, `twofa_backup_codes`, `created_at`, `updated_at`) VALUES
+(1, 'Admin User', 'admin@agriconnect.ph', '09000000000', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 'Nasugbu', NULL, 'active', NULL, 0, 0, NULL, NULL, 0, 0, NULL, NULL, '2026-04-02 10:18:45', '2026-04-02 10:18:45'),
+(2, 'Margarette', 'artofrette@gmail.com', '0906403754111', '$2y$10$zN2VNoCLan5n.uTThkdm4em7H1no6Z.QhjwZy4a8Gzj1bZInPaFvS', 'user', 'Tuy', NULL, 'inactive', NULL, 5, 20, '2026-05-08 12:01:05', '2026-05-08 12:06:05', 1, 0, NULL, NULL, '2026-04-02 11:02:52', '2026-05-12 10:08:35'),
+(3, 'Maria', 'margerette73@gmail.com', '0906403754', '$2y$10$hE1BgFpQ6YWP5yOqM9AClemC3LEVfX4gNnCYPCo87NevDcd2ev.S6', 'admin', 'Rillo, Tuy Batangas', NULL, 'active', NULL, 0, 0, NULL, NULL, 0, 0, NULL, NULL, '2026-04-02 11:16:15', '2026-05-08 03:52:58'),
+(4, 'Jolo Atie', 'atiejolo@gmail.com', '09936126727', '$2y$10$WfAOLDcu4CpNU7We54FUAuxc.mkh0AHyB12GSeqs2mG6ThefsQVnG', 'buyer', 'Sitio Bulihan Brgy. Munting Indang Nasugbu Batangas', NULL, 'inactive', NULL, 0, 0, NULL, NULL, 0, 0, NULL, NULL, '2026-04-05 07:53:35', '2026-05-12 10:08:35'),
+(5, 'margarette m. perez', 'margaretteperez73@gmail.com', '0906403754', '$2y$10$CCL/yAc3R7MmBlnjq/f19eeeZ87ncg57/RXelGUeKdoMk8O24Vbm2', 'buyer', '456 Rillo, Tuy, Batangas', NULL, 'inactive', NULL, 0, 0, NULL, NULL, 0, 0, NULL, NULL, '2026-04-13 06:40:25', '2026-05-12 10:08:35'),
+(6, 'Marga', '23-72068@g.batstate-u.edu.ph', '09936126727', '$2y$10$59cUgA8n0NzC9TMypwRKcuUDV2l0ZDczuIvsDLN5NCkkQGhr2ZBZ.', 'buyer', '456 Rillo, Tuy, Batangas', NULL, 'inactive', NULL, 0, 0, NULL, NULL, 0, 0, NULL, NULL, '2026-05-12 09:18:30', '2026-05-12 10:08:35'),
+(7, 'Admin Account', 'forfarmart@gmail.com', '0906403754', '$2y$10$12DNPxKsUjQCj2SZR8Lm..G.qMjRSu3gJncT5fZaS2R5cqY2zRipa', 'admin', '456 Rillo, Tuy, Batangas', NULL, 'active', NULL, 0, 0, NULL, NULL, 0, 0, NULL, NULL, '2026-05-12 10:00:20', '2026-05-12 10:01:05');
 
 -- --------------------------------------------------------
 
@@ -392,9 +442,48 @@ INSERT INTO `violations` (`id`, `reporter_id`, `reported_type`, `reported_id`, `
 (2, 9, 'product', 2, 'spam', '', 'resolved', '2025-11-30 05:37:12', '2025-11-30 06:06:59', 8),
 (3, 11, 'product', 6, 'false_information', 'sample', 'resolved', '2025-11-30 06:10:53', '2025-11-30 06:11:51', 8);
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `application_settings`
+-- Key/value settings (e.g. login_whitelist_enabled). Used by Admin login whitelist UI.
+--
+
+CREATE TABLE `application_settings` (
+  `setting_key` varchar(64) NOT NULL,
+  `setting_value` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `application_settings`
+--
+
+INSERT INTO `application_settings` (`setting_key`, `setting_value`) VALUES
+('login_whitelist_enabled', '0');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `login_whitelist_emails`
+-- When login whitelist mode is on, these emails may sign in (in addition to all admin roles).
+--
+
+CREATE TABLE `login_whitelist_emails` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `created_by` int(11) UNSIGNED DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `application_settings`
+--
+ALTER TABLE `application_settings`
+  ADD PRIMARY KEY (`setting_key`);
 
 --
 -- Indexes for table `announcements`
@@ -404,6 +493,23 @@ ALTER TABLE `announcements`
   ADD KEY `category` (`category`),
   ADD KEY `priority` (`priority`),
   ADD KEY `created_by` (`created_by`);
+
+--
+-- Indexes for table `blocked_emails`
+--
+ALTER TABLE `blocked_emails`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `email` (`email`),
+  ADD KEY `blocked_emails_blocked_by_foreign` (`blocked_by`);
+
+--
+-- Indexes for table `cart`
+--
+ALTER TABLE `cart`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `user_product` (`user_id`,`product_id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `product_id` (`product_id`);
 
 --
 -- Indexes for table `forum_comments`
@@ -471,6 +577,15 @@ ALTER TABLE `orders`
   ADD KEY `status` (`status`);
 
 --
+-- Indexes for table `otp_token`
+--
+ALTER TABLE `otp_token`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `otp_user_idx` (`userID`),
+  ADD KEY `otp_token_idx` (`token`),
+  ADD KEY `otp_expires_idx` (`expires_at`);
+
+--
 -- Indexes for table `products`
 --
 ALTER TABLE `products`
@@ -480,13 +595,21 @@ ALTER TABLE `products`
   ADD KEY `status` (`status`);
 
 --
+-- Indexes for table `twofa_attempts`
+--
+ALTER TABLE `twofa_attempts`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_user_id` (`user_id`),
+  ADD KEY `idx_created_at` (`created_at`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `email` (`email`),
-  ADD KEY `role` (`role`),
-  ADD KEY `status` (`status`);
+  ADD UNIQUE KEY `users_email_unique` (`email`),
+  ADD KEY `users_role_idx` (`role`),
+  ADD KEY `users_status_idx` (`status`);
 
 --
 -- Indexes for table `violations`
@@ -500,6 +623,14 @@ ALTER TABLE `violations`
   ADD KEY `violations_ibfk_2` (`reviewed_by`);
 
 --
+-- Indexes for table `login_whitelist_emails`
+--
+ALTER TABLE `login_whitelist_emails`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `login_whitelist_emails_email_unique` (`email`),
+  ADD KEY `login_whitelist_emails_created_by` (`created_by`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -510,16 +641,28 @@ ALTER TABLE `announcements`
   MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
+-- AUTO_INCREMENT for table `blocked_emails`
+--
+ALTER TABLE `blocked_emails`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `cart`
+--
+ALTER TABLE `cart`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- AUTO_INCREMENT for table `forum_comments`
 --
 ALTER TABLE `forum_comments`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `forum_likes`
 --
 ALTER TABLE `forum_likes`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `forum_mentions`
@@ -534,110 +677,56 @@ ALTER TABLE `forum_posts`
   MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
--- AUTO_INCREMENT for table `messages`
+-- AUTO_INCREMENT for table `otp_token`
 --
-ALTER TABLE `messages`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+ALTER TABLE `otp_token`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
--- AUTO_INCREMENT for table `message_attachments`
+-- AUTO_INCREMENT for table `twofa_attempts`
 --
-ALTER TABLE `message_attachments`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
-
---
--- AUTO_INCREMENT for table `migrations`
---
-ALTER TABLE `migrations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
--- AUTO_INCREMENT for table `orders`
---
-ALTER TABLE `orders`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
-
---
--- AUTO_INCREMENT for table `products`
---
-ALTER TABLE `products`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+ALTER TABLE `twofa_attempts`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
--- AUTO_INCREMENT for table `violations`
+-- AUTO_INCREMENT for table `login_whitelist_emails`
 --
-ALTER TABLE `violations`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+ALTER TABLE `login_whitelist_emails`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints for dumped tables
 --
 
 --
--- Constraints for table `announcements`
+-- Constraints for table `blocked_emails`
 --
-ALTER TABLE `announcements`
-  ADD CONSTRAINT `announcements_ibfk_1` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+ALTER TABLE `blocked_emails`
+  ADD CONSTRAINT `blocked_emails_blocked_by_foreign` FOREIGN KEY (`blocked_by`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `forum_comments`
+-- Constraints for table `otp_token`
 --
-ALTER TABLE `forum_comments`
-  ADD CONSTRAINT `forum_comments_ibfk_1` FOREIGN KEY (`post_id`) REFERENCES `forum_posts` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `forum_comments_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+ALTER TABLE `otp_token`
+  ADD CONSTRAINT `otp_token_user_fk` FOREIGN KEY (`userID`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `forum_mentions`
+-- Constraints for table `twofa_attempts`
 --
-ALTER TABLE `forum_mentions`
-  ADD CONSTRAINT `forum_mentions_ibfk_1` FOREIGN KEY (`post_id`) REFERENCES `forum_posts` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `forum_mentions_ibfk_2` FOREIGN KEY (`mentioned_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+ALTER TABLE `twofa_attempts`
+  ADD CONSTRAINT `twofa_attempts_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `forum_posts`
+-- Constraints for table `login_whitelist_emails`
 --
-ALTER TABLE `forum_posts`
-  ADD CONSTRAINT `forum_posts_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `messages`
---
-ALTER TABLE `messages`
-  ADD CONSTRAINT `messages_ibfk_1` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `messages_ibfk_2` FOREIGN KEY (`receiver_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `message_attachments`
---
-ALTER TABLE `message_attachments`
-  ADD CONSTRAINT `message_attachments_message_fk` FOREIGN KEY (`message_id`) REFERENCES `messages` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `orders`
---
-ALTER TABLE `orders`
-  ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`buyer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`farmer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `orders_ibfk_3` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `products`
---
-ALTER TABLE `products`
-  ADD CONSTRAINT `products_ibfk_1` FOREIGN KEY (`farmer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `violations`
---
-ALTER TABLE `violations`
-  ADD CONSTRAINT `violations_ibfk_1` FOREIGN KEY (`reporter_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `violations_ibfk_2` FOREIGN KEY (`reviewed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+ALTER TABLE `login_whitelist_emails`
+  ADD CONSTRAINT `login_whitelist_emails_created_by_fk` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
